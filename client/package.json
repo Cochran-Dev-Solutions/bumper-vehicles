@@ -1,0 +1,16 @@
+{
+  "name": "bumper-vehicles-client",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "p5": "^2.0.2",
+    "socket.io-client": "^4.8.1",
+    "vite": "^6.3.5"
+  }
+}
