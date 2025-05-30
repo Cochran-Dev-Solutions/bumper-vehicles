@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "bumper-vehicles-client": "file:",
     "p5": "^2.0.2",
     "socket.io-client": "^4.8.1",
     "vite": "^6.3.5"

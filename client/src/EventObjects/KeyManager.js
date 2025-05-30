@@ -1,7 +1,7 @@
 // client/src/EventObjects/KeyManager.js
 import InputManager from "./InputManager.js";
 
-export default class KeyManager extends InputManager {
+class KeyManager extends InputManager {
   constructor() {
     /**
      **** InputManager contains:
@@ -44,3 +44,7 @@ export default class KeyManager extends InputManager {
     }
   }
 }
+
+// Create and export a singleton instance
+const keyManager = new KeyManager();
+export default keyManager; 

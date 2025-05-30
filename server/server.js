@@ -4,6 +4,8 @@ import { Server } from 'socket.io';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import cors from 'cors';
+import PhysicsEngine from './src/physics/PhysicsEngine.js';
+import GameState from './src/game/GameState.js';
 
 // Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -27,10 +29,18 @@ if (process.env.NODE_ENV === 'production') {
   app.use(express.static(join(__dirname, '../client/dist')));
 }
 
-// Game state
-const gameState = {
-  players: {}
-};
+// Initialize game systems
+const physicsEngine = new PhysicsEngine();
+const gameState = new GameState(physicsEngine);
+
+// Physics update interval (60fps)
+const PHYSICS_UPDATE_INTERVAL = 1000 / 60;
+
+// Start physics update loop
+setInterval(() => {
+  gameState.processPhysics();
+  io.emit('gameState', gameState.getState());
+}, PHYSICS_UPDATE_INTERVAL);
 
 // Basic Socket.io connection handling
 io.on('connection', (socket) => {
@@ -38,37 +48,19 @@ io.on('connection', (socket) => {
 
   // Handle player joining
   socket.on('player:join', (data) => {
-    gameState.players[socket.id] = {
-      id: socket.id,
-      x: Math.random() * 700 + 50,  // Random position
-      y: Math.random() * 500 + 50,
-      color: `#${Math.floor(Math.random() * 16777215).toString(16)}`  // Random color
-    };
-
-    // Broadcast updated game state to all clients
-    io.emit('gameState', gameState);
+    gameState.addPlayer(socket.id);
+    io.emit('gameState', gameState.getState());
   });
 
-  // Handle player movement
-  socket.on('player:move', (data) => {
-    if (gameState.players[socket.id]) {
-      // Update player position
-      gameState.players[socket.id] = {
-        ...gameState.players[socket.id],
-        ...data
-      };
-
-      // Broadcast updated game state to all clients
-      io.emit('gameState', gameState);
-    }
+  // Handle player input
+  socket.on('playerInput', (input) => {
+    gameState.updatePlayerInput(socket.id, input);
   });
 
   socket.on('disconnect', () => {
     console.log('Client disconnected');
-    // Remove player from game state
-    delete gameState.players[socket.id];
-    // Broadcast updated game state to all clients
-    io.emit('gameState', gameState);
+    gameState.removePlayer(socket.id);
+    io.emit('gameState', gameState.getState());
   });
 });
 
