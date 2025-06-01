@@ -1,0 +1,16 @@
+{
+  "name": "bumper-vehicles",
+  "version": "1.0.0",
+  "description": "Multiplayer bumper vehicles game",
+  "scripts": {
+    "postinstall": "cd server && npm install && cd ../client && npm install",
+    "build": "cd client && npm run build",
+    "start": "cd server && npm start"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "bumper-vehicles": "file:"
+  }
+}

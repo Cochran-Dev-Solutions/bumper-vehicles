@@ -71,8 +71,11 @@ const app = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: process.env.NODE_ENV === 'production' ? false : ['http://localhost:5173'],
-    methods: ['GET', 'POST']
+    origin: process.env.NODE_ENV === 'production'
+      ? false  // No CORS in production as we serve static files
+      : ['http://localhost:5173'], // Allow Vite dev server in development
+    methods: ['GET', 'POST'],
+    credentials: true
   }
 });
 
@@ -81,7 +84,12 @@ const io = new Server(server, {
 //////////////////////////////////////////////////
 
 // cross-origin requests
-app.use(cors());
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production'
+    ? false
+    : ['http://localhost:5173'],
+  credentials: true
+}));
 
 // json data
 app.use(express.json());
@@ -111,9 +119,20 @@ const db = new Database(config);
 
 await db.test_connection();
 
+console.log('Current NODE_ENV:', process.env.NODE_ENV);
+
 // Serve static files from the React app in production
 if (process.env.NODE_ENV === 'production') {
+  console.log('Serving static files from:', join(__dirname, '../client/dist'));
   app.use(express.static(join(__dirname, '../client/dist')));
+
+  // Handle React routing in production
+  app.get('*', (req, res) => {
+    console.log('Serving index.html for route:', req.path);
+    res.sendFile(join(__dirname, '../client/dist/index.html'));
+  });
+} else {
+  console.log('Running in development mode - static files not served');
 }
 
 //////////////////////////////////////////////////
@@ -344,13 +363,6 @@ app.post("/resend-verification", async (req, res) => {
     });
   }
 });
-
-// Handle React routing in production
-if (process.env.NODE_ENV === 'production') {
-  app.get('*', (req, res) => {
-    res.sendFile(join(__dirname, '../client/dist/index.html'));
-  });
-}
 
 //////////////////////////////////////////////////
 // Passport Authentication                      //
