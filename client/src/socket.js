@@ -9,7 +9,9 @@ class Socket {
 
   connect() {
     // Connect to the server
-    this.socket = io(import.meta.env.DEV ? 'http://localhost:5000' : '');
+    const serverUrl = import.meta.env.DEV ? 'http://localhost:5000' : window.location.origin;
+    console.log('Connecting to server at:', serverUrl);
+    this.socket = io(serverUrl);
 
     // Set up basic event handlers
     this.socket.on('connect', () => {
