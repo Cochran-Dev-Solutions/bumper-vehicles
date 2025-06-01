@@ -9,7 +9,7 @@ class Socket {
 
   connect() {
     // Connect to the server
-    this.socket = io(import.meta.env.DEV ? 'http://localhost:3000' : '');
+    this.socket = io(import.meta.env.DEV ? 'http://localhost:5000' : '');
 
     // Set up basic event handlers
     this.socket.on('connect', () => {

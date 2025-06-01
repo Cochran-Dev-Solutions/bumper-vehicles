@@ -5,7 +5,8 @@ import keyManager from './EventObjects/KeyManager.js';
 // Game state
 let gameState = {
   players: {},
-  localPlayer: null
+  localPlayer: null,
+  playerId: localStorage.getItem('playerId') // Get stored player ID
 };
 
 // Input update interval (60fps)
@@ -22,6 +23,8 @@ async function initializeSocket() {
       socket.on('connect', () => {
         gameState.localPlayer = socket.id;
         console.log('Connected with ID:', gameState.localPlayer);
+        // Send player:join with stored playerId when socket connects
+        socket.emit('player:join', { playerId: gameState.playerId });
         resolve();
       });
     });
@@ -29,6 +32,13 @@ async function initializeSocket() {
     // Set up socket event handlers
     socket.on('gameState', (state) => {
       gameState.players = state.players;
+    });
+
+    socket.on('playerId', (id) => {
+      // Store the persistent player ID
+      gameState.playerId = id;
+      localStorage.setItem('playerId', id);
+      console.log('Received player ID:', id);
     });
 
     socket.on('disconnect', () => {
@@ -87,7 +97,8 @@ const sketch = (p) => {
 
     // Draw all players
     Object.values(gameState.players).forEach(player => {
-      if (player.id === gameState.localPlayer) {
+      // Check if this is the local player by comparing playerId
+      if (player.playerId === gameState.playerId) {
         p.fill(255);
         p.rect(player.x, player.y, 30, 30);
       } else {
