@@ -11,9 +11,7 @@
   "dependencies": {
     "bumper-vehicles-client": "file:",
     "p5": "^1.9.1",
-    "socket.io-client": "^4.7.4"
-  },
-  "devDependencies": {
+    "socket.io-client": "^4.7.4",
     "vite": "^5.1.4"
   }
 }
