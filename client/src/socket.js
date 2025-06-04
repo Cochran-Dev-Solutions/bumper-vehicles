@@ -8,26 +8,28 @@ class Socket {
   }
 
   connect() {
-    // Connect to the server
-    const serverUrl = import.meta.env.DEV ? 'http://localhost:5000' : window.location.origin;
-    console.log('Connecting to server at:', serverUrl);
-    this.socket = io(serverUrl);
+    return new Promise((resolve, reject) => {
+      // Connect to the server
+      const serverUrl = import.meta.env.DEV ? 'http://localhost:5000' : window.location.origin;
+      console.log('Connecting to server at:', serverUrl);
+      this.socket = io(serverUrl);
 
-    // Set up basic event handlers
-    this.socket.on('connect', () => {
-      this.connected = true;
-      console.log('Connected to server');
-      this.emit('player:join', { id: this.socket.id });
-    });
+      this.socket.on('connect', () => {
+        this.connected = true;
+        console.log('Connected to server');
+        resolve();
+      });
 
-    this.socket.on('disconnect', () => {
-      this.connected = false;
-      console.log('Disconnected from server');
-    });
+      this.socket.on('disconnect', () => {
+        this.connected = false;
+        console.log('Disconnected from server');
+      });
 
-    // Set up error handling
-    this.socket.on('connect_error', (error) => {
-      console.error('Connection error:', error);
+      // Set up error handling
+      this.socket.on('connect_error', (error) => {
+        console.error('Connection error:', error);
+        reject(error);
+      });
     });
   }
 
@@ -61,6 +63,7 @@ class Socket {
   disconnect() {
     if (this.socket) {
       this.socket.disconnect();
+      this.connected = false;
     }
   }
 

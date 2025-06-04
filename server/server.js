@@ -16,8 +16,9 @@ import { Strategy } from "passport-local";
 import { dirname, join } from 'path';
 
 // External Files
-import PhysicsEngine from './src/physics/PhysicsEngine.js';
-import GameState from './src/game/GameState.js';
+import { PhysicsWorld } from './src/physics/PhysicsWorld.js';
+import { PlayerEntity } from './src/game/PlayerEntity.js';
+import Game from './src/game/Game.js';
 import Database from './src/database/database.js';
 import User from './src/database/user.js';
 
@@ -63,7 +64,6 @@ async function sendVerificationEmail(email, verificationCode) {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-
 //////////////////////////////////////////////////
 // Setup Express App                            //
 //////////////////////////////////////////////////
@@ -96,7 +96,6 @@ app.use(express.json());
 
 // parse data passed through the URL
 app.use(bodyParser.urlencoded({ extended: true }));
-
 
 // Create session cookie
 app.use(
@@ -136,19 +135,54 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 //////////////////////////////////////////////////
+// Game Management                              //
+//////////////////////////////////////////////////
+const active_games = []; // list of all games that are running
+let race_game_in_queue = null;
+let battle_game_in_queue = null;
+const player_game_map = new Map(); // Maps playerId to game reference
+
+// Helper function to find game by player ID
+function findGameByPlayerId(playerId) {
+  return player_game_map.get(playerId);
+}
+
+// Helper function to remove game from active games
+function removeGameFromActive(game) {
+  const index = active_games.indexOf(game);
+  if (index !== -1) {
+    active_games.splice(index, 1);
+  }
+}
+
+// Helper function to start game
+function startGame(game) {
+  if (game.type === 'race') {
+    race_game_in_queue = null;
+  } else {
+    battle_game_in_queue = null;
+  }
+  game.state = 'playing';
+  active_games.push(game);
+  game.players.forEach(player => {
+    player_game_map.set(player.playerId, game);
+  });
+
+  console.log("Game players: ", game.players);
+
+  // Get game setup and broadcast to all players in the game
+  const setup = game.getSetup();
+  game.players.forEach((player, socketId) => {
+    console.log(`Sending game setup to player ${player.playerId} (socket: ${socketId})`);
+    io.to(socketId).emit('gameSetup', setup);
+  });
+}
+
+//////////////////////////////////////////////////
 // Game System                                  //
 //////////////////////////////////////////////////
-const physicsEngine = new PhysicsEngine();
-const gameState = new GameState(physicsEngine);
-
-// Physics update interval (60fps)
-const PHYSICS_UPDATE_INTERVAL = 1000 / 60;
-
-// Start physics update loop
-setInterval(() => {
-  gameState.processPhysics();
-  io.emit('gameState', gameState.getState());
-}, PHYSICS_UPDATE_INTERVAL);
+const physicsWorld = new PhysicsWorld();
+const game = new Game(physicsWorld, 2); // Require 2 players to start
 
 //////////////////////////////////////////////////
 // Socket.io Connection Handling                //
@@ -156,37 +190,121 @@ setInterval(() => {
 io.on('connection', (socket) => {
   console.log('New client connected');
 
-  // Handle player joining
-  socket.on('player:join', (data) => {
-    // Try to reconnect using the stored playerId
-    const playerId = data?.playerId;
-    console.log('Player attempting to join with ID:', playerId);
+  // Check if this is a reconnection
+  socket.on('player:reconnect', (playerId) => {
+    console.log('Checking reconnection for player:', playerId);
+    const game = findGameByPlayerId(playerId);
 
-    if (playerId && gameState.handleReconnect(socket.id, playerId)) {
-      console.log(`Player ${playerId} reconnected successfully`);
-      // Send the same player ID back to confirm reconnection
-      socket.emit('playerId', playerId);
-    } else {
-      // If reconnection failed or not applicable, add as new player
-      const player = gameState.addPlayer(socket.id);
-      console.log(`New player joined with ID: ${player.playerId}`);
-      // Send the player their persistent ID
-      socket.emit('playerId', player.playerId);
+    if (game && game.state === 'playing') {
+      console.log('Found active game for player:', playerId);
+      // Update the player's socket ID in the game
+      const player = game.getPlayerByPlayerId(playerId);
+      if (player) {
+        // Store the old socket ID
+        const oldSocketId = player.socketId;
+        // Update the player's socket ID
+        player.socketId = socket.id;
+
+        // Update the player's entry in the game's players Map
+        game.players.delete(oldSocketId);
+        game.players.set(socket.id, player);
+
+        // Send reconnection success and current game state
+        socket.emit('reconnect:success', {
+          gameType: game.type,
+          playerId: playerId
+        });
+        socket.emit('gameSetup', game.getSetup());
+        console.log('Reconnected player to game:', playerId);
+      }
     }
-    io.emit('gameState', gameState.getState());
+  });
+
+  // Handle player joining race
+  socket.on('player:join:race', () => {
+    console.log('Player attempting to join race');
+    if (!race_game_in_queue) {
+      race_game_in_queue = new Game(physicsWorld, 2, 'race');
+      race_game_in_queue.socket = socket;
+    }
+    const { player, shouldStartGame } = race_game_in_queue.addPlayer(socket.id);
+    console.log(`Player ${player.playerId} joined race game`);
+    socket.emit('playerId', player.playerId);
+
+    if (shouldStartGame) {
+      console.log('Starting race game with required players');
+      startGame(race_game_in_queue);
+    } else {
+      console.log(`Waiting for more players: ${race_game_in_queue.getPlayerCount()}/${race_game_in_queue.requiredPlayers}`);
+      socket.emit('waitingRoom', {
+        currentPlayers: race_game_in_queue.getPlayerCount(),
+        requiredPlayers: race_game_in_queue.requiredPlayers,
+        isGameStarted: false
+      });
+    }
+  });
+
+  // Handle player joining battle
+  socket.on('player:join:battle', () => {
+    console.log('Player attempting to join battle');
+    if (!battle_game_in_queue) {
+      battle_game_in_queue = new Game(physicsWorld, 2, 'battle');
+      battle_game_in_queue.socket = socket;
+    }
+    const { player, shouldStartGame } = battle_game_in_queue.addPlayer(socket.id);
+    console.log(`Player ${player.playerId} joined battle game`);
+    socket.emit('playerId', player.playerId);
+
+    if (shouldStartGame) {
+      startGame(battle_game_in_queue);
+    } else {
+      socket.emit('waitingRoom', {
+        currentPlayers: battle_game_in_queue.getPlayerCount(),
+        requiredPlayers: battle_game_in_queue.requiredPlayers,
+        isGameStarted: false
+      });
+    }
   });
 
   // Handle player input
-  socket.on('playerInput', (input) => {
-    gameState.updatePlayerInput(socket.id, input);
+  socket.on('playerInput', (data) => {
+    const game = findGameByPlayerId(data.playerId);
+    if (game) {
+      const player = game.getPlayerBySocketId(socket.id);
+      if (player) {
+        player.updateInput(data.input);
+      } else {
+        console.log('Player not found for socket:', socket.id);
+      }
+    } else {
+      console.log('Game not found for player:', data.playerId);
+    }
   });
 
   socket.on('disconnect', () => {
     console.log('Client disconnected:', socket.id);
-    gameState.handleDisconnect(socket.id);
-    io.emit('gameState', gameState.getState());
+    const game = findGameByPlayerId(socket.id);
+    if (game) {
+      game.handleDisconnect(socket.id);
+      // Broadcast updated game state to all players in the game
+      game.socket.emit('gameState', game.getState());
+    }
   });
 });
+
+// Physics update interval (60fps)
+const PHYSICS_UPDATE_INTERVAL = 1000 / 60;
+
+// Start physics update loop
+setInterval(() => {
+  // Update all active games
+  active_games.forEach(game => {
+    game.update();
+    game.players.forEach((player, socketId) => {
+      io.to(socketId).emit('gameState', game.getState());
+    });
+  });
+}, PHYSICS_UPDATE_INTERVAL);
 
 //////////////////////////////////////////////////
 // RESTful API Routes                           //
