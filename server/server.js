@@ -209,12 +209,12 @@ io.on('connection', (socket) => {
         game.players.delete(oldSocketId);
         game.players.set(socket.id, player);
 
+        console.log("Succesful reconnection: ");
+        console.log(active_games.length);
+
         // Send reconnection success and current game state
-        socket.emit('reconnect:success', {
-          gameType: game.type,
-          playerId: playerId
-        });
-        socket.emit('gameSetup', game.getSetup());
+        socket.emit('reconnect:success');
+        socket.emit('gameState', game.getState());
         console.log('Reconnected player to game:', playerId);
       }
     }

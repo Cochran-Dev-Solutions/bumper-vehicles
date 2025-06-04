@@ -136,82 +136,80 @@ function showWaitingRoom(currentPlayers, requiredPlayers) {
   document.body.appendChild(container);
 }
 
+function setupSocketEvents() {
+  socket.on('disconnect', () => {
+    console.log('Disconnected from server');
+    socket.connected = false;
+    attemptReconnect();
+  });
+
+  // Set up error handling
+  socket.on('connect_error', (error) => {
+    console.error('Connection error:', error);
+    reject(error);
+  });
+
+  // Set up socket event handlers
+  socket.on('waitingRoom', (state) => {
+    gameState.waitingRoom = state;
+    gameState.isGameStarted = false;
+    showWaitingRoom(state.currentPlayers, state.requiredPlayers);
+  });
+
+  socket.on('gameSetup', (setup) => {
+    gameState.players = setup.players;
+    gameState.isGameStarted = true;
+    // Remove waiting room panel
+    const panel = document.getElementById('gamePanel');
+    if (panel) {
+      panel.remove();
+    }
+    document.getElementById('ui-id')?.remove();
+
+    // Initialize local player controller if it doesn't exist
+    if (!localPlayerController && p5Instance) {
+      const localPlayer = Object.values(setup.players).find(p => p.playerId === gameState.playerId);
+      if (localPlayer) {
+        // Make sure we have valid x and y coordinates
+        const x = localPlayer.x || 400; // Default to center if undefined
+        const y = localPlayer.y || 300; // Default to center if undefined
+        localPlayerController = new PlayerController(p5Instance, x, y, gameState.playerId);
+        localPlayerController.initSprite(penguinImages);
+      } else {
+        console.error('Could not find local player in game setup:', gameState.playerId);
+      }
+    }
+  });
+
+  socket.on('gameState', (state) => {
+    if (gameState.isGameStarted) {
+      gameState.players = state.players;
+    }
+  });
+
+  socket.on('playerId', (id) => {
+    gameState.playerId = id;
+  });
+
+  socket.on('reconnect:success', (data) => {
+    console.log('Reconnection successful:', data);
+    hideReconnectingOverlay();
+    // Remove waiting room panel
+    document.getElementById('ui-id').style.display = "none";
+  });
+}
+
 async function initializeGame(gameType) {
   try {
     // Connect to the socket
-    await socket.connect();
+    await socket.connect(setupSocketEvents);
     gameState.gameType = gameType;
-
-    console.log(socket.id);
 
     // Create a promise that resolves when the socket connects
     gameState.localPlayer = socket.id;
-    console.log('Connected with ID:', gameState.localPlayer);
 
     // Now that we're connected, emit the join event
-    console.log('Emitting join event for game type:', gameType);
     socket.emit(`player:join:${gameType}`);
-
-    // Set up socket event handlers
-    socket.on('waitingRoom', (state) => {
-      gameState.waitingRoom = state;
-      gameState.isGameStarted = false;
-      showWaitingRoom(state.currentPlayers, state.requiredPlayers);
-    });
-
-    socket.on('gameSetup', (setup) => {
-      console.log('Received game setup:', setup);
-      gameState.players = setup.players;
-      gameState.isGameStarted = true;
-      hideReconnectingOverlay(); // Hide overlay when game setup is received
-      // Remove waiting room panel
-      const panel = document.getElementById('gamePanel');
-      if (panel) {
-        panel.remove();
-      }
-      document.getElementById('ui-id')?.remove();
-
-      // Initialize local player controller if it doesn't exist
-      if (!localPlayerController && p5Instance) {
-        const localPlayer = Object.values(setup.players).find(p => p.playerId === gameState.playerId);
-        if (localPlayer) {
-          console.log('Initializing local player controller for:', localPlayer);
-          // Make sure we have valid x and y coordinates
-          const x = localPlayer.x || 400; // Default to center if undefined
-          const y = localPlayer.y || 300; // Default to center if undefined
-          localPlayerController = new PlayerController(p5Instance, x, y, gameState.playerId);
-          localPlayerController.initSprite(penguinImages);
-        } else {
-          console.error('Could not find local player in game setup:', gameState.playerId);
-        }
-      }
-    });
-
-    socket.on('gameState', (state) => {
-      console.log("Receiving game state.", state);
-      if (gameState.isGameStarted) {
-        gameState.players = state.players;
-      }
-    });
-
-    socket.on('playerId', (id) => {
-      console.log('Received player ID:', id);
-      gameState.playerId = id;
-    });
-
-    socket.on('disconnect', () => {
-      console.log('Disconnected from server');
-      gameState.isGameStarted = false;
-      localPlayerController = null;
-      attemptReconnect();
-    });
-
-    socket.on('reconnect:success', (data) => {
-      console.log('Reconnection successful:', data);
-      gameState.gameType = data.gameType;
-      gameState.playerId = data.playerId;
-      gameState.isGameStarted = true;
-    });
 
     return true;
   } catch (error) {
@@ -223,63 +221,8 @@ async function initializeGame(gameType) {
 async function reinitializeGame() {
   try {
     // Connect to the socket
-    await socket.connect();
-
-    // Create a promise that resolves when the socket connects
+    await socket.connect(setupSocketEvents);
     gameState.localPlayer = socket.id;
-
-    socket.on('gameSetup', (setup) => {
-      console.log('Received game setup:', setup);
-      gameState.players = setup.players;
-      gameState.isGameStarted = true;
-      // Remove waiting room panel
-      const panel = document.getElementById('gamePanel');
-      if (panel) {
-        panel.remove();
-      }
-      document.getElementById('ui-id').remove();
-
-      // Initialize local player controller if it doesn't exist
-      if (!localPlayerController && p5Instance) {
-        const localPlayer = Object.values(setup.players).find(p => p.playerId === gameState.playerId);
-        if (localPlayer) {
-          console.log('Initializing local player controller for:', localPlayer);
-          // Make sure we have valid x and y coordinates
-          const x = localPlayer.x || 400; // Default to center if undefined
-          const y = localPlayer.y || 300; // Default to center if undefined
-          localPlayerController = new PlayerController(p5Instance, x, y, gameState.playerId);
-          localPlayerController.initSprite(penguinImages);
-        } else {
-          console.error('Could not find local player in game setup:', gameState.playerId);
-        }
-      }
-    });
-
-    socket.on('gameState', (state) => {
-      console.log("Receiving game state.", state);
-      if (gameState.isGameStarted) {
-        gameState.players = state.players;
-      }
-    });
-
-    socket.on('playerId', (id) => {
-      console.log('Received player ID:', id);
-      gameState.playerId = id;
-    });
-
-    socket.on('disconnect', () => {
-      console.log('Disconnected from server');
-      gameState.isGameStarted = false;
-      localPlayerController = null;
-      attemptReconnect();
-    });
-
-    socket.on('reconnect:success', (data) => {
-      console.log('Reconnection successful:', data);
-      gameState.gameType = data.gameType;
-      gameState.playerId = data.playerId;
-      gameState.isGameStarted = true;
-    });
 
     return true;
   } catch (error) {
@@ -351,16 +294,18 @@ function attemptReconnect() {
   showReconnectingOverlay();
 
   setTimeout(async () => {
-    if (!socket.connected) {
-      await socket.connect();
-
-      if (gameState.playerId) {
-        console.log('Socket connected, attempting to reconnect to game with playerId:', gameState.playerId);
-        // Reinitialize the game with the same game type
-        await initializeGame(gameState.gameType);
-        // After initialization, send the reconnect request
-        socket.emit('player:reconnect', gameState.playerId);
+    try {
+      if (!socket.connected) {
+        if (gameState.playerId) {
+          console.log('Socket connected, attempting to reconnect to game with playerId:', gameState.playerId);
+          // Reinitialize the game with the same game type
+          await initializeGame();
+          // After initialization, send the reconnect request
+          socket.emit('player:reconnect', gameState.playerId);
+        }
       }
+    } catch {
+      attemptReconnect();
     }
   }, RECONNECT_INTERVAL);
 }
@@ -390,7 +335,6 @@ const sketch = (p) => {
 
     // Set up key event handlers
     p.keyPressed = (event) => {
-      console.log(event, event.key);
       keyManager.keyPressed(event.key);
     };
 

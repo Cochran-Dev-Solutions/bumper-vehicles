@@ -55,8 +55,7 @@ export class PlayerController {
    */
   sendInputs() {
     const currentTime = Date.now();
-    if (currentTime - this.lastInputUpdate >= this.inputUpdateInterval) {
-      console.log('Sending input:', this.playerId, this.inputs);
+    if (socket.id && currentTime - this.lastInputUpdate >= this.inputUpdateInterval) {
       socket.emit('playerInput', {
         playerId: this.playerId,
         input: this.inputs
