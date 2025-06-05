@@ -7,17 +7,15 @@ class Socket {
     this.handlers = new Map();
   }
 
-  connect(setupEvents) {
+  connect() {
     return new Promise((resolve, reject) => {
       // Connect to the server
       const serverUrl = import.meta.env.DEV ? 'http://localhost:5000' : window.location.origin;
-      console.log('Connecting to server at:', serverUrl);
       this.socket = io(serverUrl);
 
       this.socket.on('connect', () => {
-        console.log('Connected to server');
+        console.log('Connected to server at:', serverUrl);
         this.connected = true;
-        setupEvents();
         resolve();
       });
     });

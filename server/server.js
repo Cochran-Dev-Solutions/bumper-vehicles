@@ -137,52 +137,13 @@ if (process.env.NODE_ENV === 'production') {
 //////////////////////////////////////////////////
 // Game Management                              //
 //////////////////////////////////////////////////
-const active_games = []; // list of all games that are running
-let race_game_in_queue = null;
-let battle_game_in_queue = null;
-const player_game_map = new Map(); // Maps playerId to game reference
-
-// Helper function to find game by player ID
-function findGameByPlayerId(playerId) {
-  return player_game_map.get(playerId);
-}
-
-// Helper function to remove game from active games
-function removeGameFromActive(game) {
-  const index = active_games.indexOf(game);
-  if (index !== -1) {
-    active_games.splice(index, 1);
-  }
-}
-
-// Helper function to start game
-function startGame(game) {
-  if (game.type === 'race') {
-    race_game_in_queue = null;
-  } else {
-    battle_game_in_queue = null;
-  }
-  game.state = 'playing';
-  active_games.push(game);
-  game.players.forEach(player => {
-    player_game_map.set(player.playerId, game);
-  });
-
-  console.log("Game players: ", game.players);
-
-  // Get game setup and broadcast to all players in the game
-  const setup = game.getSetup();
-  game.players.forEach((player, socketId) => {
-    console.log(`Sending game setup to player ${player.playerId} (socket: ${socketId})`);
-    io.to(socketId).emit('gameSetup', setup);
-  });
-}
-
-//////////////////////////////////////////////////
-// Game System                                  //
-//////////////////////////////////////////////////
-const physicsWorld = new PhysicsWorld();
-const game = new Game(physicsWorld, 2); // Require 2 players to start
+const active_games = [];
+// game types: race, battle
+const games_in_queue = {};
+// dictionary: player_id --> game
+const player_game_map = new Map();
+// dicitonary: socket_id --> game
+const socket_game_map = new Map();
 
 //////////////////////////////////////////////////
 // Socket.io Connection Handling                //
@@ -193,7 +154,7 @@ io.on('connection', (socket) => {
   // Check if this is a reconnection
   socket.on('player:reconnect', (playerId) => {
     console.log('Checking reconnection for player:', playerId);
-    const game = findGameByPlayerId(playerId);
+    const game = player_game_map.get(playerId);
 
     if (game && game.state === 'playing') {
       console.log('Found active game for player:', playerId);
@@ -209,59 +170,68 @@ io.on('connection', (socket) => {
         game.players.delete(oldSocketId);
         game.players.set(socket.id, player);
 
-        console.log("Succesful reconnection: ");
-        console.log(active_games.length);
-
         // Send reconnection success and current game state
         socket.emit('reconnect:success');
         socket.emit('gameState', game.getState());
-        console.log('Reconnected player to game:', playerId);
       }
     }
   });
 
-  // Handle player joining race
-  socket.on('player:join:race', () => {
-    console.log('Player attempting to join race');
-    if (!race_game_in_queue) {
-      race_game_in_queue = new Game(physicsWorld, 2, 'race');
-      race_game_in_queue.socket = socket;
+  // Case 1: Player has permanently disconnected from active game
+  // Case 2: Playe rleft waiting room
+  socket.on('player:delete', (playerId) => {
+    // remove player from game
+    const game = player_game_map.get(playerId);
+    if (game) {
+      game.removePlayer(socket.id);
     }
-    const { player, shouldStartGame } = race_game_in_queue.addPlayer(socket.id);
-    console.log(`Player ${player.playerId} joined race game`);
-    socket.emit('playerId', player.playerId);
+
+    // clean up dictionaries
+    socket_game_map.delete(socket.id);
+    player_game_map.delete(playerId);
+  });
+
+  // Handle player joining race
+  socket.on('player:join:event', (gameType) => {
+    console.log(`Player attempting to join ${gameType} game`);
+
+    let game;
+    if (games_in_queue[gameType]) {
+      game = games_in_queue[gameType];
+    } else {
+      const physicsWorld = new PhysicsWorld();
+      game = new Game(physicsWorld, 2, gameType);
+      games_in_queue[gameType] = game;
+    }
+
+    const { player, shouldStartGame } = game.addPlayer(socket.id);
+    player_game_map.set(player.playerId, game);
+    socket_game_map.set(socket.id, game);
+    console.log(`Player ${player.playerId} joined ${gameType} game`);
+    socket.emit('player-id', player.playerId);
 
     if (shouldStartGame) {
       console.log('Starting race game with required players');
-      startGame(race_game_in_queue);
-    } else {
-      console.log(`Waiting for more players: ${race_game_in_queue.getPlayerCount()}/${race_game_in_queue.requiredPlayers}`);
-      socket.emit('waitingRoom', {
-        currentPlayers: race_game_in_queue.getPlayerCount(),
-        requiredPlayers: race_game_in_queue.requiredPlayers,
-        isGameStarted: false
+      // remove game from queue
+      games_in_queue[gameType] = null;
+
+      // start game: add to active games
+      game.state = 'playing';
+      active_games.push(game);
+
+      console.log("Game players: ", game.players);
+
+      // Get game setup and broadcast to all players in the game
+      const setup = game.getSetup();
+      game.players.forEach((player, socketId) => {
+        console.log(`Sending game setup to player ${player.playerId} (socket: ${socketId})`);
+        io.to(socketId).emit('gameSetup', setup);
       });
-    }
-  });
-
-  // Handle player joining battle
-  socket.on('player:join:battle', () => {
-    console.log('Player attempting to join battle');
-    if (!battle_game_in_queue) {
-      battle_game_in_queue = new Game(physicsWorld, 2, 'battle');
-      battle_game_in_queue.socket = socket;
-    }
-    const { player, shouldStartGame } = battle_game_in_queue.addPlayer(socket.id);
-    console.log(`Player ${player.playerId} joined battle game`);
-    socket.emit('playerId', player.playerId);
-
-    if (shouldStartGame) {
-      startGame(battle_game_in_queue);
     } else {
+      console.log(`Waiting for more players: ${game.getPlayerCount()}/${game.requiredPlayers}`);
       socket.emit('waitingRoom', {
-        currentPlayers: battle_game_in_queue.getPlayerCount(),
-        requiredPlayers: battle_game_in_queue.requiredPlayers,
-        isGameStarted: false
+        currentPlayers: game.getPlayerCount(),
+        requiredPlayers: game.requiredPlayers
       });
     }
   });
@@ -283,11 +253,15 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('Client disconnected:', socket.id);
-    const game = findGameByPlayerId(socket.id);
+
+    const game = socket_game_map.get(socket.id);
     if (game) {
       game.handleDisconnect(socket.id);
       // Broadcast updated game state to all players in the game
-      game.socket.emit('gameState', game.getState());
+      game.players.forEach((socketId) => {
+        io.to(socketId).emit('gameState', game.getState());
+      });
+      socket_game_map.delete(socket.id);
     }
   });
 });

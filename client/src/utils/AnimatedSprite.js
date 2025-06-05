@@ -1,5 +1,3 @@
-import p5 from 'p5';
-
 export class AnimatedSprite {
   constructor({ images = [] }) {
     this.images = images;

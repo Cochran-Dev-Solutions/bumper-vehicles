@@ -5,9 +5,4 @@ export default class InputManager {
     this.events = [];
     this.current = {};
   }
-
-  // creates event listeners for events
-  handleEvents() { }
-
-  // TODO: track events...
 }

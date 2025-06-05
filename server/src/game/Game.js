@@ -8,7 +8,6 @@ export default class Game {
     this.type = type; // 'race' or 'battle'
     this.state = 'waiting'; // 'waiting' or 'playing'
     this.players = new Map();
-    this.socket = null;
     this.disconnectedPlayers = new Map();
     this.RECONNECT_TIMEOUT = 5000; // 5 seconds to reconnect
     this.lastCleanupTime = Date.now();
@@ -37,12 +36,7 @@ export default class Game {
     const player = this.players.get(socketId);
     if (player) {
       player.disconnected = true;
-      // Set a timeout to remove the player if they don't reconnect
-      setTimeout(() => {
-        if (player.disconnected) {
-          this.removePlayer(socketId);
-        }
-      }, 5000);
+      this.disconnectedPlayers.set(player.playerId, player);
     }
   }
 
@@ -55,8 +49,13 @@ export default class Game {
     return { success: false };
   }
 
+  // immediately delete a player from game
   removePlayer(socketId) {
-    this.players.delete(socketId);
+    const player = this.players.get(socketId);
+    if (player) {
+      this.physicsWorld.removeEntity(player);
+      this.players.delete(socketId);
+    }
   }
 
   getPlayerBySocketId(socketId) {
