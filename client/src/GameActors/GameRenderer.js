@@ -109,6 +109,10 @@ class GameRenderer {
       this.updateState(state);
     });
 
+    socket.on('playerRemoved', ({ playerId }) => {
+      this.removePlayer(playerId);
+    });
+
     socket.on('disconnect', () => {
       if (this.ableToReconnect) {
         this.attemptReconnect();
@@ -155,6 +159,10 @@ class GameRenderer {
         this.updateState(state);
       });
 
+      socket.on('playerRemoved', ({ playerId }) => {
+        this.removePlayer(playerId);
+      });
+
       return true;
     } catch (error) {
       console.error('Failed to connect to socket:', error);
@@ -197,6 +205,26 @@ class GameRenderer {
       const actor = this.id_actor_map.get(actorState.id);
       if (actor) actor.updateState(actorState)
     });
+  }
+
+  /**
+   * Remove a player from the game
+   * @param {string} playerId - The ID of the player to remove
+   */
+  removePlayer(playerId) {
+    const actor = this.id_actor_map.get(playerId);
+    if (actor) {
+      // Remove from actors array
+      const index = this.actors.indexOf(actor);
+      if (index > -1) {
+        this.actors.splice(index, 1);
+      }
+
+      // Remove from id_actor_map
+      this.id_actor_map.delete(playerId);
+
+      console.log(`Player ${playerId} removed from game`);
+    }
   }
 }
 

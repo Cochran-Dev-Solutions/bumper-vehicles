@@ -20,9 +20,8 @@ function displayRacePanel(p) {
   const y = (p.height - panelHeight) / 2;
 
   // Panel background
-  p.fill(50);
-  p.stroke(255);
-  p.strokeWeight(2);
+  p.fill(100, 100, 100);
+  p.noStroke();
   p.rect(x, y, panelWidth, panelHeight);
 
   // Panel content
@@ -49,9 +48,8 @@ function displayBattlePanel(p) {
   const y = (p.height - panelHeight) / 2;
 
   // Panel background
-  p.fill(50, 0, 0);
-  p.stroke(255);
-  p.strokeWeight(2);
+  p.fill(100, 100, 100);
+  p.noStroke();
   p.rect(x, y, panelWidth, panelHeight);
 
   // Panel content
@@ -150,8 +148,7 @@ const mapScene = {
       display: function () {
         const p = sceneManager.getCanvas();
 
-        p.stroke(255);
-        p.strokeWeight(2);
+        p.noStroke();
 
         if (this.isInside(mouse, this)) {
           p.fill(175);
@@ -182,8 +179,7 @@ const mapScene = {
       display: function () {
         const p = sceneManager.getCanvas();
 
-        p.stroke(255);
-        p.strokeWeight(2);
+        p.noStroke();
 
         if (this.isInside(mouse, this)) {
           p.fill(175);
@@ -223,8 +219,7 @@ const mapScene = {
         this.x = x + panelWidth / 2 - 110;
         this.y = y + panelHeight - 60;
 
-        p.stroke(255);
-        p.strokeWeight(2);
+        p.noStroke();
 
         if (this.isInside(mouse, this)) {
           p.fill(175);
@@ -264,8 +259,7 @@ const mapScene = {
         this.x = x + panelWidth / 2 + 10;
         this.y = y + panelHeight - 60;
 
-        p.stroke(255);
-        p.strokeWeight(2);
+        p.noStroke();
 
         if (this.isInside(mouse, this)) {
           p.fill(175);
@@ -310,8 +304,7 @@ const mapScene = {
         this.x = x + panelWidth - 40;
         this.y = y + 10;
 
-        p.stroke(255);
-        p.strokeWeight(2);
+        p.noStroke();
 
         if (this.isInside(mouse, this)) {
           p.fill(175);

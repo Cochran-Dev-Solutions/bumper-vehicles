@@ -39,13 +39,6 @@ export class PlayerActor extends DynamicActor {
       right: keyManager.pressed('right')
     };
 
-    // Update facing direction based on left/right input
-    if (this.inputs.left) {
-      this.facingRight = false;
-    } else if (this.inputs.right) {
-      this.facingRight = true;
-    }
-
     this.sendInputs();
   }
 

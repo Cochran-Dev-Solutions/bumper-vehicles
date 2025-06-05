@@ -90,7 +90,7 @@ class SceneManager {
         const closed = w / 2 - (this.time / this.duration) * w / 2;
 
         // Set fill color to red
-        sceneManager.p.fill('red');
+        sceneManager.p.fill(255, 255, 255);
         sceneManager.p.noStroke();
 
         // Draw the sliding rectangles
@@ -120,7 +120,7 @@ class SceneManager {
         const closed = 0 + (this.time / this.duration) * w / 2;
 
         // Set fill color to red
-        sceneManager.p.fill('red');
+        sceneManager.p.fill(255, 255, 255);
         sceneManager.p.noStroke();
 
         // Draw the sliding rectangles

@@ -9,9 +9,7 @@ export default class Game {
     this.state = 'waiting'; // 'waiting' or 'playing'
     this.players = new Map();
     this.disconnectedPlayers = new Map();
-    this.reconnect_timeout = 5000; // 5 seconds to reconnect
-    this.lastCleanupTime = Date.now();
-    this.cleanup_interval = 1000; // Check for timed-out players every second
+    this.reconnect_timeout = 6000; // 6 seconds to reconnect
   }
 
   addPlayer(socketId) {
@@ -32,11 +30,28 @@ export default class Game {
     return { player, shouldStartGame };
   }
 
-  handleDisconnect(socketId) {
+  handleDisconnect(socketId, io) {
     const player = this.players.get(socketId);
     if (player) {
       player.disconnected = true;
       this.disconnectedPlayers.set(player.playerId, player);
+
+      // Set timeout to remove player after 6 seconds if they haven't reconnected
+      setTimeout(() => {
+        // Check if player is still disconnected
+        if (player.disconnected) {
+          console.log(`Player ${player.playerId} timed out after ${this.reconnect_timeout}ms`);
+
+          // Remove player from game
+          this.removePlayer(socketId);
+
+          // Clean up maps
+          this.disconnectedPlayers.delete(player.playerId);
+
+          // Notify all players about the removal
+          io.emit('playerRemoved', { playerId: player.playerId });
+        }
+      }, this.reconnect_timeout);
     }
   }
 
@@ -95,8 +110,6 @@ export default class Game {
     });
 
     // Send new game state to players
-    // Optionally--send updated gate state
-    // less frequently than update() is called
     const newGameState = this.getState();
     this.players.forEach((player, socketId) => {
       io.to(socketId).emit('gameState', newGameState);
@@ -124,7 +137,8 @@ export default class Game {
         id: player.playerId,
         x: player.position.x,
         y: player.position.y,
-        disconnected: player.disconnected
+        disconnected: player.disconnected,
+        flags: player.flags
       };
     });
     return { actors };

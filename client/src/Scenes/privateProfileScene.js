@@ -24,6 +24,7 @@ const privateProfileScene = {
     p.fill(255);
     p.textSize(24);
     p.textAlign(p.LEFT, p.TOP);
+    p.noStroke();
     p.text(`Username: ${this.profileData.username}`, 50, 50);
     p.text(`Level: ${this.profileData.level}`, 50, 90);
     p.text(`Experience: ${this.profileData.experience}`, 50, 130);
@@ -38,9 +39,7 @@ const privateProfileScene = {
         const p = sceneManager.getCanvas();
         if (!p) return; // Guard clause to prevent null canvas access
 
-        p.stroke(255);
-        p.strokeWeight(5);
-
+        p.noStroke();
         if (this.isInside(mouse, this)) {
           p.fill(175);
           mouse.setCursor('pointer');

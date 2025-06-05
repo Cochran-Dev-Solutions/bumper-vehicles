@@ -17,7 +17,6 @@ import { dirname, join } from 'path';
 
 // External Files
 import { PhysicsWorld } from './src/physics/PhysicsWorld.js';
-import { PlayerEntity } from './src/game/PlayerEntity.js';
 import Game from './src/game/Game.js';
 import Database from './src/database/database.js';
 import User from './src/database/user.js';
@@ -250,8 +249,16 @@ io.on('connection', (socket) => {
 
     const game = socket_game_map.get(socket.id);
     if (game) {
-      game.handleDisconnect(socket.id);
-      socket_game_map.delete(socket.id);
+      if (game.state === "playing") {
+        game.handleDisconnect(socket.id, io);
+        socket_game_map.delete(socket.id);
+      } else {
+        const playerId = game.getPlayerBySocketId(socket.id).playerId;
+        game.removePlayer(socket.id);
+        socket_game_map.delete(socket.id);
+        player_game_map.delete(playerId);
+        io.emit('playerRemoved', { playerId: playerId });
+      }
     }
   });
 });

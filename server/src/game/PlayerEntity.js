@@ -13,6 +13,9 @@ export class PlayerEntity extends PhysicsEntity {
       right: false
     };
     this.disconnected = false;
+    this.flags = {
+      facing: 'right' // Can be 'left' or 'right'
+    };
   }
 
   /**
@@ -21,6 +24,13 @@ export class PlayerEntity extends PhysicsEntity {
    */
   updateInput(newInput) {
     this.input = { ...newInput };
+
+    // Update facing direction based on input
+    if (this.input.left) {
+      this.flags.facing = 'left';
+    } else if (this.input.right) {
+      this.flags.facing = 'right';
+    }
   }
 
   /**

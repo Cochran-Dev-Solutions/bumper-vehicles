@@ -21,8 +21,10 @@ class GameActor {
     this.imageNames = [];
     this.spriteImages = [];
 
-    // used for moving objects
-    this.facingRight = true;
+    // Initialize flags from server or default
+    this.flags = config.flags || {
+      facing: 'right'
+    };
   }
 
   async loadImages() {
@@ -57,7 +59,7 @@ class GameActor {
       this.p.translate(this.x, this.y);
 
       // Flip horizontally if facing left
-      if (!this.facingRight) {
+      if (this.flags.facing === 'left') {
         this.p.scale(-1, 1);
       }
 
@@ -74,7 +76,7 @@ class GameActor {
       this.p.translate(this.x, this.y);
 
       // Flip horizontally if facing left
-      if (!this.facingRight) {
+      if (this.flags.facing === 'left') {
         this.p.scale(-1, 1);
       }
 
