@@ -161,14 +161,7 @@ io.on('connection', (socket) => {
       // Update the player's socket ID in the game
       const player = game.getPlayerByPlayerId(playerId);
       if (player) {
-        // Store the old socket ID
-        const oldSocketId = player.socketId;
-        // Update the player's socket ID
-        player.socketId = socket.id;
-
-        // Update the player's entry in the game's players Map
-        game.players.delete(oldSocketId);
-        game.players.set(socket.id, player);
+        game.handleReconnect(socket.id, player.playerId);
 
         // Send reconnection success and current game state
         socket.emit('reconnect:success');
@@ -189,6 +182,7 @@ io.on('connection', (socket) => {
     // clean up dictionaries
     socket_game_map.delete(socket.id);
     player_game_map.delete(playerId);
+    socket.disconnect();
   });
 
   // Handle player joining race
@@ -238,7 +232,7 @@ io.on('connection', (socket) => {
 
   // Handle player input
   socket.on('playerInput', (data) => {
-    const game = findGameByPlayerId(data.playerId);
+    const game = player_game_map.get(data.playerId);
     if (game) {
       const player = game.getPlayerBySocketId(socket.id);
       if (player) {
@@ -257,10 +251,6 @@ io.on('connection', (socket) => {
     const game = socket_game_map.get(socket.id);
     if (game) {
       game.handleDisconnect(socket.id);
-      // Broadcast updated game state to all players in the game
-      game.players.forEach((socketId) => {
-        io.to(socketId).emit('gameState', game.getState());
-      });
       socket_game_map.delete(socket.id);
     }
   });
@@ -273,10 +263,7 @@ const PHYSICS_UPDATE_INTERVAL = 1000 / 60;
 setInterval(() => {
   // Update all active games
   active_games.forEach(game => {
-    game.update();
-    game.players.forEach((player, socketId) => {
-      io.to(socketId).emit('gameState', game.getState());
-    });
+    game.update(io);
   });
 }, PHYSICS_UPDATE_INTERVAL);
 

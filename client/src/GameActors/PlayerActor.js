@@ -1,11 +1,10 @@
-import { AnimatedSprite } from '../utils/AnimatedSprite.js';
 import keyManager from '../EventObjects/KeyManager.js';
 import socket from '../networking/socket.js';
 import DynamicActor from './DynamicActor.js';
 
 export class PlayerActor extends DynamicActor {
   constructor(config) {
-    super(config);
+    super({ ...config, isAnimated: true });
 
     // names of images we want to load for our player
     this.imageNames.push(
@@ -14,8 +13,6 @@ export class PlayerActor extends DynamicActor {
       'Penguin/penguin_walk03.png',
       'Penguin/penguin_walk04.png'
     );
-
-    this.disconnected = false;
 
     this.isLocalPlayer = config.isLocalPlayer;
     this.socket_id = config.socket_id || null;
@@ -59,7 +56,7 @@ export class PlayerActor extends DynamicActor {
     const currentTime = Date.now();
     if (socket.id && currentTime - this.lastInputUpdate >= this.inputUpdateInterval) {
       socket.emit('playerInput', {
-        playerId: this.playerId,
+        playerId: this.id,
         input: this.inputs
       });
       this.lastInputUpdate = currentTime;
@@ -67,7 +64,6 @@ export class PlayerActor extends DynamicActor {
   }
 
   update() {
-    console.log("Testing player: ", this.isLocalPlayer);
     if (this.isLocalPlayer) {
       this.updateInputs();
       this.sendInputs();

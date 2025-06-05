@@ -9,9 +9,9 @@ export default class Game {
     this.state = 'waiting'; // 'waiting' or 'playing'
     this.players = new Map();
     this.disconnectedPlayers = new Map();
-    this.RECONNECT_TIMEOUT = 5000; // 5 seconds to reconnect
+    this.reconnect_timeout = 5000; // 5 seconds to reconnect
     this.lastCleanupTime = Date.now();
-    this.CLEANUP_INTERVAL = 1000; // Check for timed-out players every second
+    this.cleanup_interval = 1000; // Check for timed-out players every second
   }
 
   addPlayer(socketId) {
@@ -41,10 +41,18 @@ export default class Game {
   }
 
   handleReconnect(socketId, playerId) {
-    const player = this.players.get(socketId);
-    if (player && player.playerId === playerId) {
-      player.disconnected = false;
-      return { success: true };
+    console.log("Testing handle reconnect: ", socketId, playerId);
+    // Find player by playerId instead of socketId
+    for (const [oldSocketId, player] of this.players) {
+      if (player.playerId === playerId) {
+        // Update the player's socket ID to the new one
+        this.players.delete(oldSocketId);
+        this.players.set(socketId, player);
+        player.disconnected = false;
+        player.socketId = socketId;
+        this.disconnectedPlayers.delete(playerId);
+        return { success: true };
+      }
     }
     return { success: false };
   }
@@ -55,6 +63,9 @@ export default class Game {
     if (player) {
       this.physicsWorld.removeEntity(player);
       this.players.delete(socketId);
+      if (player.disconnected) {
+        this.disconnectedPlayers.delete(player.playerId);
+      }
     }
   }
 
@@ -75,12 +86,20 @@ export default class Game {
     return this.players.size;
   }
 
-  update() {
+  update(io) {
     // Update all players
     this.players.forEach(player => {
       if (!player.disconnected) {
         player.update();
       }
+    });
+
+    // Send new game state to players
+    // Optionally--send updated gate state
+    // less frequently than update() is called
+    const newGameState = this.getState();
+    this.players.forEach((player, socketId) => {
+      io.to(socketId).emit('gameState', newGameState);
     });
   }
 
@@ -99,41 +118,15 @@ export default class Game {
   }
 
   getState() {
-    const players = {};
+    const actors = {};
     this.players.forEach((player, socketId) => {
-      players[socketId] = {
-        playerId: player.playerId,
+      actors[socketId] = {
+        id: player.playerId,
         x: player.position.x,
         y: player.position.y,
         disconnected: player.disconnected
       };
     });
-    return { players };
-  }
-
-  cleanupDisconnectedPlayers() {
-    const now = Date.now();
-    if (now - this.lastCleanupTime < this.CLEANUP_INTERVAL) {
-      return null;
-    }
-    this.lastCleanupTime = now;
-
-    // Check for timed-out players
-    for (const [playerId, data] of this.disconnectedPlayers.entries()) {
-      if (now - data.timestamp > this.RECONNECT_TIMEOUT) {
-        console.log(`Player ${playerId} timed out, removing from game`);
-        this.disconnectedPlayers.delete(playerId);
-
-        // Find and remove the player from the game
-        const playerEntry = Object.entries(this.players).find(([_, p]) => p.playerId === playerId);
-        if (playerEntry) {
-          const [socketId, player] = playerEntry;
-          this.physicsWorld.removeEntity(player);
-          this.players.delete(socketId);
-          return { playerId, socketId }; // Return info about removed player
-        }
-      }
-    }
-    return null;
+    return { actors };
   }
 } 

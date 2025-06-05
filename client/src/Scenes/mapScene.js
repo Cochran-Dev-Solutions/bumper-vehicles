@@ -287,7 +287,6 @@ const mapScene = {
         if (socket.connected && gameInfo.player_id) {
           hasJoined = false;
           socket.emit('player:delete', gameInfo.player_id);
-          socket.disconnect();
         } else {
           alert("Error. Try Again.");
         }
@@ -332,11 +331,12 @@ const mapScene = {
       onClick: function () {
         if (!activePanel) return;
 
-        if (hasJoined) {
-          socket.emit('player:cancel');
-        }
         activePanel = null;
         hasJoined = false;
+
+        if (socket.connected && gameInfo.player_id) {
+          socket.emit('player:delete', gameInfo.player_id);
+        }
       }
     })
   ]

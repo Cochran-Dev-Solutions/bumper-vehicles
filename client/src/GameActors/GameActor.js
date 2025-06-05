@@ -1,4 +1,5 @@
 import { loadImageAsync } from "../utils/images";
+import { AnimatedSprite } from "../utils/AnimatedSprite";
 
 class GameActor {
   constructor(config) {
@@ -6,7 +7,10 @@ class GameActor {
     this.x = config.x;
     this.y = config.y;
     this.id = config.id; // unique id for back-end syncing
-    this.p = p; // p5 instance
+    this.p = config.p; // p5 instance
+
+    // for players
+    this.disconnected = false;
 
     // display options:
     // 1) static image 
@@ -21,13 +25,21 @@ class GameActor {
     this.facingRight = true;
   }
 
-  loadImages() {
-    // load each image
-    this.imageNames.forEach(async (imageName, i) => {
+  async loadImages() {
+    // Create an array of promises for each image
+    const imagePromises = this.imageNames.map(async (imageName, i) => {
       const loadedImg = await loadImageAsync(this.p, imageName);
-      if (i == 0) this.image = loadedImg;
       this.spriteImages.push(loadedImg);
     });
+
+    // Wait for all images to load
+    await Promise.all(imagePromises);
+
+    if (this.isAnimated) {
+      this.initSprite();
+    } else {
+      this.image = this.spriteImages[0];
+    }
   }
 
   /**
@@ -39,13 +51,6 @@ class GameActor {
     this.sprite.setAnimationSpeed(8); // Default walking animation speed
   }
 
-  /**
-   * @param {p5.Image} image - p5.Image object for display
-   */
-  initImage(image) {
-    this.image = image;
-  }
-
   display() {
     if (this.isAnimated) {
       this.p.push();
@@ -54,6 +59,12 @@ class GameActor {
       // Flip horizontally if facing left
       if (!this.facingRight) {
         this.p.scale(-1, 1);
+      }
+
+      // Add blinking effect if disconnected
+      if (this.disconnected) {
+        const alpha = this.p.sin(this.p.frameCount * 0.1) * 127 + 128; // Oscillate between 128 and 255
+        this.p.tint(255, alpha);
       }
 
       this.sprite.display(this.p, -15, -15, 30, 30);
@@ -67,9 +78,20 @@ class GameActor {
         this.p.scale(-1, 1);
       }
 
+      // Add blinking effect if disconnected
+      if (this.disconnected) {
+        const alpha = this.p.sin(this.p.frameCount * 0.1) * 127 + 128; // Oscillate between 128 and 255
+        this.p.tint(255, alpha);
+      }
+
       // TODO: display image
       this.p.pop();
     }
+  }
+
+  updateState(newState) {
+    const { id, ...stateToUpdate } = newState;
+    Object.assign(this, stateToUpdate);
   }
 
   update() {
