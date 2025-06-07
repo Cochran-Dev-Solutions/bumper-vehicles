@@ -6,6 +6,8 @@ class GameActor {
     this.p = config.p;
     this.x = config.x;
     this.y = config.y;
+    this.width = config.width;
+    this.height = config.height;
     this.id = config.id; // unique id for back-end syncing
     this.p = config.p; // p5 instance
 
@@ -54,6 +56,10 @@ class GameActor {
   }
 
   display() {
+    this.p.fill(255, 0, 0);
+    this.p.noStroke();
+    this.p.rect(this.x, this.y, this.width, this.height);
+
     if (this.isAnimated) {
       this.p.push();
       this.p.translate(this.x, this.y);
@@ -86,7 +92,14 @@ class GameActor {
         this.p.tint(255, alpha);
       }
 
-      // TODO: display image
+      // Display the image if it exists, otherwise show a fallback shape
+      if (this.image) {
+        this.p.image(this.image, 0, 0, this.width, this.height);
+      } else {
+        // Fallback to a colored rectangle
+        this.p.fill(100);
+        this.p.rect(0, 0, this.width, this.height);
+      }
       this.p.pop();
     }
   }

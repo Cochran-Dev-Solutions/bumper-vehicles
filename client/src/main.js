@@ -1,3 +1,4 @@
+import './index.css';
 import p5 from 'p5';
 import socket from './networking/socket.js';
 import keyManager from './EventObjects/KeyManager.js';

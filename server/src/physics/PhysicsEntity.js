@@ -2,9 +2,9 @@ import { Entity } from './Entity.js';
 import { Vec2 } from '../utils/vector.js';
 
 export class PhysicsEntity extends Entity {
-  constructor(position, size, mass = 1) {
-    super(position, size);
-    this.mass = mass;
+  constructor(config) {
+    super(config);
+    this.mass = config.mass || 1;
     this.velocity = new Vec2(0, 0);
     this.acceleration = new Vec2(0, 0);
     this.maxSpeed = 5; // Default max speed

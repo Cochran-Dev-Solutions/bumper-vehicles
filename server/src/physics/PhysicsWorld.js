@@ -1,6 +1,9 @@
+import { TileMap } from './TileMap.js';
+
 export class PhysicsWorld {
   constructor() {
     this.entities = [];
+    this.tileMap = new TileMap();
   }
 
   /**
@@ -26,8 +29,21 @@ export class PhysicsWorld {
    * Update all entities in the physics world
    */
   update() {
-    for (const entity of this.entities) {
+    // Update all entities
+    this.entities.forEach(entity => {
+      const oldPosition = { x: entity.boundingBox.left, y: entity.boundingBox.top };
+      const oldSize = { x: entity.size.x, y: entity.size.y };
+
       entity.update();
-    }
+
+      // Check if position or size changed
+      if ((oldPosition.x !== entity.boundingBox.left ||
+        oldPosition.y !== entity.boundingBox.top ||
+        oldSize.x !== entity.size.x ||
+        oldSize.y !== entity.size.y)) {
+        // Mark the entity as changed in its game
+        entity.game.markActorChanged(entity);
+      }
+    });
   }
 } 

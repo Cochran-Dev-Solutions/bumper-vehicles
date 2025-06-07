@@ -16,7 +16,6 @@ import { Strategy } from "passport-local";
 import { dirname, join } from 'path';
 
 // External Files
-import { PhysicsWorld } from './src/physics/PhysicsWorld.js';
 import Game from './src/game/Game.js';
 import Database from './src/database/database.js';
 import User from './src/database/user.js';
@@ -160,7 +159,7 @@ io.on('connection', (socket) => {
       // Update the player's socket ID in the game
       const player = game.getPlayerByPlayerId(playerId);
       if (player) {
-        game.handleReconnect(socket.id, player.playerId);
+        game.handleReconnect(socket.id, player.id);
 
         // Send reconnection success and current game state
         socket.emit('reconnect:success');
@@ -170,7 +169,7 @@ io.on('connection', (socket) => {
   });
 
   // Case 1: Player has permanently disconnected from active game
-  // Case 2: Playe rleft waiting room
+  // Case 2: Player left waiting room
   socket.on('player:delete', (playerId) => {
     // remove player from game
     const game = player_game_map.get(playerId);
@@ -192,16 +191,15 @@ io.on('connection', (socket) => {
     if (games_in_queue[gameType]) {
       game = games_in_queue[gameType];
     } else {
-      const physicsWorld = new PhysicsWorld();
-      game = new Game(physicsWorld, 2, gameType);
+      game = new Game({ type: gameType });
       games_in_queue[gameType] = game;
     }
 
     const { player, shouldStartGame } = game.addPlayer(socket.id);
-    player_game_map.set(player.playerId, game);
+    player_game_map.set(player.id, game);
     socket_game_map.set(socket.id, game);
-    console.log(`Player ${player.playerId} joined ${gameType} game`);
-    socket.emit('player-id', player.playerId);
+    console.log(`Player ${player.id} joined ${gameType} game`);
+    socket.emit('player-id', player.id);
 
     if (shouldStartGame) {
       console.log('Starting race game with required players');
@@ -212,14 +210,8 @@ io.on('connection', (socket) => {
       game.state = 'playing';
       active_games.push(game);
 
-      console.log("Game players: ", game.players);
-
-      // Get game setup and broadcast to all players in the game
-      const setup = game.getSetup();
-      game.players.forEach((player, socketId) => {
-        console.log(`Sending game setup to player ${player.playerId} (socket: ${socketId})`);
-        io.to(socketId).emit('gameSetup', setup);
-      });
+      // start game
+      game.start(io);
     } else {
       console.log(`Waiting for more players: ${game.getPlayerCount()}/${game.requiredPlayers}`);
       socket.emit('waitingRoom', {
@@ -253,7 +245,7 @@ io.on('connection', (socket) => {
         game.handleDisconnect(socket.id, io);
         socket_game_map.delete(socket.id);
       } else {
-        const playerId = game.getPlayerBySocketId(socket.id).playerId;
+        const playerId = game.getPlayerBySocketId(socket.id).id;
         game.removePlayer(socket.id);
         socket_game_map.delete(socket.id);
         player_game_map.delete(playerId);

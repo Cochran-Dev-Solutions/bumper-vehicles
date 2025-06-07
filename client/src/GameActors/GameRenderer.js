@@ -1,5 +1,7 @@
 import socket from "../networking/socket.js";
 import { PlayerActor } from "../GameActors/PlayerActor.js";
+import { BlockActor } from './BlockActor.js';
+import { BouncyBallActor } from './BouncyBallActor.js';
 
 function showReconnectingOverlay() {
   const container = document.createElement('div');
@@ -54,6 +56,10 @@ class GameRenderer {
   constructor() {
     this.actors = [];
     this.id_actor_map = new Map();
+    this.type_actor_map = new Map([
+      ['block', BlockActor],
+      ['bouncy_ball', BouncyBallActor]
+    ]);
 
     // initalized on setup
     this.p = null; // p5.js instance
@@ -75,32 +81,43 @@ class GameRenderer {
     this.socket_id = gameInfo.socket_id;
     this.player_id = gameInfo.player_id;
 
-    const setup = gameInfo.initial_game_state;
-
     // Create players
-    Object.entries(gameInfo.initial_game_state.players).forEach((entry) => {
-      const socket_id = entry[0],
-        player = entry[1];
-
+    gameInfo.initial_game_state.players.forEach(player => {
       const newPlayer = new PlayerActor({
         p: this.p,
-        isLocalPlayer: (player.playerId === this.player_id) ? true : false,
+        isLocalPlayer: (player.id === this.player_id),
         x: player.x,
         y: player.y,
-        id: player.playerId,
+        width: player.width,
+        height: player.height,
+        id: player.id,
         socket_id: this.socket_id
       });
-      if (player.playerId === this.player_id) {
+      if (player.id === this.player_id) {
         this.localPlayer = newPlayer;
       }
       this.actors.push(newPlayer);
-      this.id_actor_map.set(player.playerId, newPlayer);
+      this.id_actor_map.set(player.id, newPlayer);
     });
 
-    console.log(this.id_actor_map);
-
-    // Create other actors
-    // TODO
+    // Create passive actors
+    gameInfo.initial_game_state.passive_actors.forEach(actor => {
+      const ActorClass = this.type_actor_map.get(actor.type);
+      if (ActorClass) {
+        const newActor = new ActorClass({
+          p: this.p,
+          x: actor.x,
+          y: actor.y,
+          width: actor.width,
+          height: actor.height,
+          id: actor.id
+        });
+        this.actors.push(newActor);
+        this.id_actor_map.set(actor.id, newActor);
+      } else {
+        console.warn(`Unknown actor type: ${actor.type}`);
+      }
+    });
 
     // Load necessary images used for actors
     await Promise.all(this.actors.map(actor => actor.loadImages()));

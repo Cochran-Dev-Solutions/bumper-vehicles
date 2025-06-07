@@ -1,11 +1,17 @@
 import { Vec2 } from '../utils/vector.js';
-import { BoundingBox } from '../utils/BoundingBox.js';
+import { BoundingBox } from './BoundingBox.js';
 
 export class Entity {
-  constructor(position, size) {
-    this.position = position; // Vec2
-    this.size = size; // Vec2
-    this.boundingBox = new BoundingBox(position, size);
+  constructor(config) {
+    this.position = config.position; // Vec2
+    this.size = config.size; // Vec2
+    this.boundingBox = new BoundingBox(this);
+    this.game = config.game;
+    this.tileMap = config.tileMap;
+    this.type = config.type;
+    this.id = config.id;
+    this.hasUpdate = config.hasUpdate !== undefined ? config.hasUpdate : true;
+    this.type_of_actor = config.type_of_actor || 'passive_static'; // Default to passive_static
   }
 
   /**
