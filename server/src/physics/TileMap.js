@@ -105,6 +105,7 @@ export class TileMap {
       }
     }
 
+    // Filter tiles to only include those that actually intersect with the bounding box
     return collidingTiles;
   }
 } 

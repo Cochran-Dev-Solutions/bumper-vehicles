@@ -62,7 +62,7 @@ class GameActor {
 
     if (this.isAnimated) {
       this.p.push();
-      this.p.translate(this.x, this.y);
+      this.p.translate(this.x + this.width / 2, this.y + this.width / 2);
 
       // Flip horizontally if facing left
       if (this.flags.facing === 'left') {
@@ -75,11 +75,11 @@ class GameActor {
         this.p.tint(255, alpha);
       }
 
-      this.sprite.display(this.p, -15, -15, 30, 30);
+      this.sprite.display(this.p, -this.width / 2, -this.height / 2, this.width, this.height);
       this.p.pop();
     } else {
       this.p.push();
-      this.p.translate(this.x, this.y);
+      this.p.translate(this.x + this.width / 2, this.y + this.height / 2);
 
       // Flip horizontally if facing left
       if (this.flags.facing === 'left') {
@@ -94,7 +94,7 @@ class GameActor {
 
       // Display the image if it exists, otherwise show a fallback shape
       if (this.image) {
-        this.p.image(this.image, 0, 0, this.width, this.height);
+        this.p.image(this.image, -this.width / 2, -this.height / 2, this.width, this.height);
       } else {
         // Fallback to a colored rectangle
         this.p.fill(100);

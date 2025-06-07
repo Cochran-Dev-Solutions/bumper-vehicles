@@ -63,20 +63,21 @@ export class PlayerEntity extends PhysicsEntity {
     const collidingTiles = this.tileMap.getCollidingTiles('block', this.boundingBox);
 
     for (const tile of collidingTiles) {
-      console.log("X collision: ", tile.position, this.position);
-      // Check if moving right and colliding with left side of tile
-      if (this.boundingBox.right > tile.position.x) {
-        this.position.x = tile.position.x - this.size.x;
-        this.boundingBox.updateX();
-        this.velocity.x = 0;
-        return true;
-      }
-      // Check if moving left and colliding with right side of tile
-      else if (this.boundingBox.left < tile.position.x + tile.size.x) {
-        this.position.x = tile.position.x + tile.size.x;
-        this.boundingBox.updateX();
-        this.velocity.x = 0;
-        return true;
+      if (tile.boundingBox.intersects(this.boundingBox)) {
+        // Check if moving right and colliding with left side of tile
+        if (this.boundingBox.left < tile.position.x) {
+          this.position.x = tile.position.x - this.size.x;
+          this.boundingBox.updateX();
+          this.velocity.x = 0;
+          return true;
+        }
+        // Check if moving left and colliding with right side of tile
+        else if (this.boundingBox.left > tile.position.x) {
+          this.position.x = tile.position.x + tile.size.x;
+          this.boundingBox.updateX();
+          this.velocity.x = 0;
+          return true;
+        }
       }
     }
 
@@ -91,20 +92,21 @@ export class PlayerEntity extends PhysicsEntity {
     const collidingTiles = this.tileMap.getCollidingTiles('block', this.boundingBox);
 
     for (const tile of collidingTiles) {
-      console.log("Y collision: ", tile.position, this.position);
-      // Check if moving down and colliding with top of tile
-      if (this.boundingBox.bottom > tile.position.y) {
-        this.position.y = tile.position.y - this.size.y;
-        this.boundingBox.updateY();
-        this.velocity.y = 0;
-        return true;
-      }
-      // Check if moving up and colliding with bottom of tile
-      else if (this.boundingBox.top < tile.position.y + tile.size.y) {
-        this.position.y = tile.position.y + tile.size.y;
-        this.boundingBox.updateY();
-        this.velocity.y = 0;
-        return true;
+      if (tile.boundingBox.intersects(this.boundingBox)) {
+        // Check if moving down and colliding with top of tile
+        if (this.boundingBox.top < tile.position.y) {
+          this.position.y = tile.position.y - this.size.y;
+          this.boundingBox.updateY();
+          this.velocity.y = 0;
+          return true;
+        }
+        // Check if moving up and colliding with bottom of tile
+        else if (this.boundingBox.top > tile.position.y) {
+          this.position.y = tile.position.y + tile.size.y;
+          this.boundingBox.updateY();
+          this.velocity.y = 0;
+          return true;
+        }
       }
     }
 
