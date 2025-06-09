@@ -39,7 +39,7 @@ Button.registerType('circle', rectToCircle);
 sceneManager.addScene("profile", privateProfileScene);
 sceneManager.addScene("map", mapScene);
 sceneManager.addScene("game", gameScene);
-sceneManager.setScene("profile");
+sceneManager.setScene("map");
 
 // Create a new sketch
 const sketch = (p) => {
