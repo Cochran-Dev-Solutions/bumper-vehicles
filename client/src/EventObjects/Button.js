@@ -31,7 +31,9 @@ export default class Button {
     }
   }
 
-  update() {
+  update(x, y) {
+    this.x = x || this.x;
+    this.y = y || this.y;
     this.display();
   }
 }

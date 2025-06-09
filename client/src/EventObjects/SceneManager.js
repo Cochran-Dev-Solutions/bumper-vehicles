@@ -55,11 +55,6 @@ class SceneManager {
   displayScene() {
     if (this.currentScene) {
       this.currentScene.display(this.sceneParameters);
-
-      for (let i = 0; i < this.currentScene.buttons.length; i++) {
-        const button = this.currentScene.buttons[i];
-        button.display();
-      }
     }
   }
 

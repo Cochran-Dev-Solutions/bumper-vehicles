@@ -66,7 +66,7 @@ const sketch = (p) => {
   // Handle window resize
   p.windowResized = () => {
     p.resizeCanvas(window.innerWidth, window.innerHeight);
-    window.location.reload();
+    // window.location.reload();
   };
 
   p.draw = () => {

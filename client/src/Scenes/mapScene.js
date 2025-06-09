@@ -113,6 +113,85 @@ async function initializeGame(gameType) {
     return false;
   }
 }
+const buttons = {
+  'race': new Button({
+    width: 80,
+    height: 80,
+    display: function () {
+      const p = sceneManager.getCanvas();
+      p.noStroke();
+      if (this.isInside(mouse, this)) {
+        p.fill(175);
+        mouse.setCursor('pointer');
+      } else {
+        p.fill(200, 200, 200, 200);
+      }
+      p.rect(this.x, this.y, this.width, this.height);
+      p.fill(0);
+      p.textSize(16);
+      p.textAlign(p.CENTER, p.CENTER);
+      p.text('Race', this.x + this.width / 2, this.y + this.height / 2);
+    },
+    onClick: function () {
+      activePanel = 'race';
+      hasJoined = false;
+    }
+  }),
+  'battle': new Button({
+    width: 80,
+    height: 80,
+    display: function () {
+      const p = sceneManager.getCanvas();
+      p.noStroke();
+      if (this.isInside(mouse, this)) {
+        p.fill(175);
+        mouse.setCursor('pointer');
+      } else {
+        p.fill(200, 200, 200, 200);
+      }
+      p.rect(this.x, this.y, this.width, this.height);
+      p.fill(0);
+      p.textSize(16);
+      p.textAlign(p.CENTER, p.CENTER);
+      p.text('Battle', this.x + this.width / 2, this.y + this.height / 2);
+    },
+    onClick: function () {
+      activePanel = 'battle';
+      hasJoined = false;
+    }
+  }),
+  'join': new Button({
+    width: 100,
+    height: 40,
+    display: function () {
+      if (!activePanel || hasJoined) return;
+      const p = sceneManager.getCanvas();
+      const panelWidth = 400;
+      const panelHeight = 300;
+      const x = (p.width - panelWidth) / 2;
+      const y = (p.height - panelHeight) / 2;
+      this.x = x + panelWidth / 2 - 110;
+      this.y = y + panelHeight - 60;
+      p.noStroke();
+      if (this.isInside(mouse, this)) {
+        p.fill(175);
+        mouse.setCursor('pointer');
+      } else {
+        p.fill(200, 200, 200, 200);
+      }
+      p.rect(this.x, this.y, this.width, this.height);
+      p.fill(0);
+      p.textSize(16);
+      p.textAlign(p.CENTER, p.CENTER);
+      p.text('Join', this.x + this.width / 2, this.y + this.height / 2);
+    },
+    onClick: function () {
+      if (hasJoined) return;
+      hasJoined = true;
+      initializeGame(activePanel);
+    }
+  })
+};
 
 const mapScene = {
   name: "Map Scene",
@@ -128,211 +207,19 @@ const mapScene = {
   },
   display: function () {
     const p = sceneManager.getCanvas();
-
-    // Display background or map elements here
-
-    // Display active panel if any
     if (activePanel === 'race') {
       displayRacePanel(p);
+      buttons['join'].update(200, 300);
     } else if (activePanel === 'battle') {
       displayBattlePanel(p);
+      buttons['join'].update(200, 300);
     }
+
+    // Update button positions
+    buttons['race'].update(100, 100);
+    buttons['battle'].update(200, 100);
   },
-  buttons: [
-    // Race button
-    new Button({
-      x: 100,
-      y: 100,
-      width: 80,
-      height: 80,
-      display: function () {
-        const p = sceneManager.getCanvas();
-
-        p.noStroke();
-
-        if (this.isInside(mouse, this)) {
-          p.fill(175);
-          mouse.setCursor('pointer');
-        } else {
-          p.fill(200, 200, 200, 200);
-        }
-
-        p.rect(this.x, this.y, this.width, this.height);
-
-        // Draw race icon
-        p.fill(0);
-        p.textSize(16);
-        p.textAlign(p.CENTER, p.CENTER);
-        p.text('Race', this.x + this.width / 2, this.y + this.height / 2);
-      },
-      onClick: function () {
-        activePanel = 'race';
-        hasJoined = false;
-      }
-    }),
-    // Battle button
-    new Button({
-      x: 200,
-      y: 100,
-      width: 80,
-      height: 80,
-      display: function () {
-        const p = sceneManager.getCanvas();
-
-        p.noStroke();
-
-        if (this.isInside(mouse, this)) {
-          p.fill(175);
-          mouse.setCursor('pointer');
-        } else {
-          p.fill(200, 200, 200, 200);
-        }
-
-        p.rect(this.x, this.y, this.width, this.height);
-
-        // Draw battle icon
-        p.fill(0);
-        p.textSize(16);
-        p.textAlign(p.CENTER, p.CENTER);
-        p.text('Battle', this.x + this.width / 2, this.y + this.height / 2);
-      },
-      onClick: function () {
-        activePanel = 'battle';
-        hasJoined = false;
-      }
-    }),
-    // Join button (only active when panel is open and not joined)
-    new Button({
-      x: 0, // Will be positioned relative to panel
-      y: 0,
-      width: 100,
-      height: 40,
-      display: function () {
-        if (!activePanel || hasJoined) return;
-
-        const p = sceneManager.getCanvas();
-        const panelWidth = 400;
-        const panelHeight = 300;
-        const x = (p.width - panelWidth) / 2;
-        const y = (p.height - panelHeight) / 2;
-
-        this.x = x + panelWidth / 2 - 110;
-        this.y = y + panelHeight - 60;
-
-        p.noStroke();
-
-        if (this.isInside(mouse, this)) {
-          p.fill(175);
-          mouse.setCursor('pointer');
-        } else {
-          p.fill(200, 200, 200, 200);
-        }
-
-        p.rect(this.x, this.y, this.width, this.height);
-
-        p.fill(0);
-        p.textSize(16);
-        p.textAlign(p.CENTER, p.CENTER);
-        p.text('Join', this.x + this.width / 2, this.y + this.height / 2);
-      },
-      onClick: function () {
-        if (hasJoined) return;
-        hasJoined = true;
-        initializeGame(activePanel);
-      }
-    }),
-    // Cancel button (only active when panel is open and joined)
-    new Button({
-      x: 0,
-      y: 0,
-      width: 100,
-      height: 40,
-      display: function () {
-        if (!activePanel || !hasJoined) return;
-
-        const p = sceneManager.getCanvas();
-        const panelWidth = 400;
-        const panelHeight = 300;
-        const x = (p.width - panelWidth) / 2;
-        const y = (p.height - panelHeight) / 2;
-
-        this.x = x + panelWidth / 2 + 10;
-        this.y = y + panelHeight - 60;
-
-        p.noStroke();
-
-        if (this.isInside(mouse, this)) {
-          p.fill(175);
-          mouse.setCursor('pointer');
-        } else {
-          p.fill(200, 200, 200, 200);
-        }
-
-        p.rect(this.x, this.y, this.width, this.height);
-
-        p.fill(0);
-        p.textSize(16);
-        p.textAlign(p.CENTER, p.CENTER);
-        p.text('Cancel', this.x + this.width / 2, this.y + this.height / 2);
-      },
-      onClick: function () {
-        if (!activePanel || !hasJoined) return;
-
-        if (socket.connected && gameInfo.player_id) {
-          hasJoined = false;
-          socket.emit('player:delete', gameInfo.player_id);
-        } else {
-          alert("Error. Try Again.");
-        }
-      }
-    }),
-    // Exit button (only active when panel is open)
-    new Button({
-      x: 0,
-      y: 0,
-      width: 30,
-      height: 30,
-      display: function () {
-        if (!activePanel) return;
-
-        const p = sceneManager.getCanvas();
-        const panelWidth = 400;
-        const panelHeight = 300;
-        const x = (p.width - panelWidth) / 2;
-        const y = (p.height - panelHeight) / 2;
-
-        this.x = x + panelWidth - 40;
-        this.y = y + 10;
-
-        p.noStroke();
-
-        if (this.isInside(mouse, this)) {
-          p.fill(175);
-          mouse.setCursor('pointer');
-        } else {
-          p.fill(200, 200, 200, 200);
-        }
-
-        p.rect(this.x, this.y, this.width, this.height);
-
-        // Draw X
-        p.stroke(0);
-        p.strokeWeight(2);
-        p.line(this.x + 5, this.y + 5, this.x + this.width - 5, this.y + this.height - 5);
-        p.line(this.x + this.width - 5, this.y + 5, this.x + 5, this.y + this.height - 5);
-      },
-      onClick: function () {
-        if (!activePanel) return;
-
-        activePanel = null;
-        hasJoined = false;
-
-        if (socket.connected && gameInfo.player_id) {
-          socket.emit('player:delete', gameInfo.player_id);
-        }
-      }
-    })
-  ]
+  buttons: Object.values(buttons)
 };
 
 export default mapScene;
