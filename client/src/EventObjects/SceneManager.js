@@ -15,9 +15,6 @@ class SceneManager {
     this.targetScene = null;
     this.setup = function () { };
     this.p = null;
-
-    // extra configuration details to pass to scenes
-    this.sceneParameters = config.sceneParameters || {};
   }
 
   attachCanvas(p5Instance) {
@@ -31,13 +28,14 @@ class SceneManager {
   addScene(name, scene) {
     this.scenes[name] = {
       name: scene.name,
-      init: scene.init,
-      display: scene.display,
-      buttons: scene.buttons || []
+      init: scene.init || function () { },
+      panels: scene.panels || [],
+      display: scene.display || function () { }
     };
   }
 
   setScene(name) {
+
     // adds this.handleButtons() as callback to mouse.onClick()
     mouse.removeAllCallbacks();
     mouse.onClick(() => {
@@ -46,7 +44,6 @@ class SceneManager {
 
     if (this.scenes.hasOwnProperty(name)) {
       this.currentScene = this.scenes[name];
-      this.currentScene.init(this.sceneParameters);
     } else {
       console.log(`Scene '${name}' does not exist.`);
     }
@@ -54,21 +51,25 @@ class SceneManager {
 
   displayScene() {
     if (this.currentScene) {
-      this.currentScene.display(this.sceneParameters);
+      // display scene
+      this.currentScene.display();
 
-      for (let i = 0; i < this.currentScene.buttons.length; i++) {
-        const button = this.currentScene.buttons[i];
-        button.display();
-      }
+      // display each UI panel in the scene
+      this.currentScene.panels.forEach((panel) => {
+        panel.display();
+      });
     }
   }
 
   handleButtons() {
     if (!this.transitioning && this.currentScene) {
-      for (let i = 0; i < this.currentScene.buttons.length; i++) {
-        const button = this.currentScene.buttons[i];
-        button.handleClick(mouse);
-      }
+      this.currentScene.panels.forEach((panel) => {
+        if (panel.active) {
+          panel.buttons.forEach((button) => {
+            button.handleClick(mouse);
+          });
+        }
+      });
     }
   }
 

@@ -1,23 +1,24 @@
 export default class Button {
+  static types = {};
+
+  static registerType(type, func) {
+    Button.types[type] = func;
+  }
+
   constructor(config) {
     this.display = config.display || function () { };
     this.onClick = config.onClick || function () { };
-    this.x = config.x;
-    this.y = config.y;
+    this.x = config.x || null;
+    this.y = config.y || null;
     this.width = config.width;
     this.height = config.height;
+
     // Extra args
     this.args = config.args || {};
 
     this.shape = config.shape || 'rect';
     this.side = config.side || 'left';
     this.theta = config.theta || 0;
-  }
-
-  static types = {};
-
-  static registerType(type, func) {
-    Button.types[type] = func;
   }
 
   // Assumes obj is a rectangle
@@ -31,7 +32,9 @@ export default class Button {
     }
   }
 
-  update() {
+  update(x, y) {
+    this.x = x ? x : this.x;
+    this.y = y ? y : this.y;
     this.display();
   }
 }
