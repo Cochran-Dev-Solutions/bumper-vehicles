@@ -1,4 +1,4 @@
-import { StaticEntity } from '../physics/StaticEntity.js';
+import { StaticEntity } from './StaticEntity.js';
 import { Vec2 } from '../utils/vector.js';
 
 export class BlockEntity extends StaticEntity {

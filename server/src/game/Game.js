@@ -1,5 +1,5 @@
 import { PhysicsWorld } from '../physics/PhysicsWorld.js';
-import { PlayerEntity } from './PlayerEntity.js';
+import { PlayerEntity } from '../game_entities/PlayerEntity.js';
 import mapManager from './Map.js';
 import { Vec2 } from '../utils/vector.js';
 
@@ -11,14 +11,19 @@ export default class Game {
     this.state = 'waiting'; // 'waiting' or 'playing'
     // players to be sent to the front-end
     this.players = new Map();
-    // passive actors that have no controls, but have position and size data
-    this.passive_actors = []; // all non-player actors
+
+    // non-player-actors: passive actors that have no controls, but have position and size data
+    this.passive_actors = [];
+
+    this.actor_lists = {};
+
     this.disconnectedPlayers = new Map();
     this.reconnect_timeout = 6000; // 6 seconds to reconnect
     this.playerIdCounter = 0;
     this.passiveActorIdCounter = 0;
     this.changed_actors = new Set();
     this.spawn_points = []; // Will store available spawn points
+    this.taken_spawn_points = new Map(); // Maps player ID to spawn point index
 
     // Set up the game immediately
     this.setup();
@@ -79,18 +84,27 @@ export default class Game {
   }
 
   /**
-   * Get a random spawn point and remove it from available spawn points
-   * @returns {Vec2|null} The spawn point position or null if no spawn points available
+   * Get a random spawn point and mark it as taken
+   * @returns {Object|null} Object containing position and index, or null if no spawn points available
    */
   getRandomSpawnPoint() {
-    if (this.spawn_points.length === 0) {
+    // Find available spawn points (not in taken_spawn_points)
+    const availableSpawnPoints = this.spawn_points.filter((_, index) =>
+      !Array.from(this.taken_spawn_points.values()).includes(index)
+    );
+
+    if (availableSpawnPoints.length === 0) {
       console.error('No spawn points available');
       return null;
     }
-    const randomIndex = Math.floor(Math.random() * this.spawn_points.length);
-    const spawnPoint = this.spawn_points[randomIndex];
-    this.spawn_points.splice(randomIndex, 1); // Remove the used spawn point
-    return spawnPoint;
+
+    const randomIndex = Math.floor(Math.random() * availableSpawnPoints.length);
+    const spawnPoint = availableSpawnPoints[randomIndex];
+
+    // Find the original index in spawn_points array
+    const originalIndex = this.spawn_points.indexOf(spawnPoint);
+
+    return { position: spawnPoint, index: originalIndex };
   }
 
   /**
@@ -99,20 +113,23 @@ export default class Game {
    * @returns {PlayerEntity} The created player entity
    */
   addPlayer(socketId) {
-    const spawnPoint = this.getRandomSpawnPoint();
-    if (!spawnPoint) {
+    const spawnData = this.getRandomSpawnPoint();
+    if (!spawnData) {
       console.error('Cannot add player: no spawn points available');
       return null;
     }
 
     const player = new PlayerEntity({
-      position: spawnPoint,
-      size: new Vec2(50, 50),
+      position: spawnData.position,
+      radius: 25,
       socketId: socketId,
       id: this.generatePlayerId(),
       tileMap: this.physicsWorld.tileMap,
       game: this
     });
+
+    // Mark spawn point as taken
+    this.taken_spawn_points.set(player.id, spawnData.index);
 
     this.players.set(socketId, player);
     this.physicsWorld.addEntity(player);
@@ -166,6 +183,9 @@ export default class Game {
   removePlayer(socketId) {
     const player = this.players.get(socketId);
     if (player) {
+      // Free up the spawn point
+      this.taken_spawn_points.delete(player.id);
+
       this.physicsWorld.removeEntity(player);
       this.players.delete(socketId);
       if (player.disconnected) {
@@ -269,14 +289,14 @@ export default class Game {
         id: player.id,
         x: player.position.x,
         y: player.position.y,
-        width: player.size.x,
-        height: player.size.y,
+        radius: player.radius,
         flags: player.flags,
         type: 'player'
       })),
       passive_actors: this.passive_actors.map(actor => ({
         id: actor.id,
         type: actor.type,
+        type_of_actor: actor.type_of_actor,
         x: actor.position.x,
         y: actor.position.y,
         width: actor.size.x,

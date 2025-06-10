@@ -3,7 +3,7 @@ import { Vec2 } from '../utils/vector.js';
 
 export class PhysicsEntity extends Entity {
   constructor(config) {
-    super(config);
+    super({ ...config, type_of_actor: "passive_dynamic" });
     this.mass = config.mass || 1;
     this.velocity = new Vec2(0, 0);
     this.acceleration = new Vec2(0, 0);
@@ -51,11 +51,11 @@ export class PhysicsEntity extends Entity {
 
   updateX() {
     this.position.x += this.velocity.x;
-    this.boundingBox.updateX(this.position.x);
+    this.boundingBox.updateX();
   }
 
   updateY() {
     this.position.y += this.velocity.y;
-    this.boundingBox.updateY(this.position.y);
+    this.boundingBox.updateY();
   }
 } 

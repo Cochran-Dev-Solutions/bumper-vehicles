@@ -58,7 +58,7 @@ class GameActor {
   display() {
     this.p.fill(255, 0, 0);
     this.p.noStroke();
-    this.p.rect(this.x, this.y, this.width, this.height);
+    this.p.ellipse(this.x + this.width / 2, this.y + this.height / 2, this.width, this.height);
 
     if (this.isAnimated) {
       this.p.push();

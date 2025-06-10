@@ -190,6 +190,80 @@ const buttons = {
       hasJoined = true;
       initializeGame(activePanel);
     }
+  }),
+  // Cancel button (only active when panel is open and joined)
+  'cancel': new Button({
+    width: 100,
+    height: 40,
+    display: function () {
+      if (!activePanel || !hasJoined) return;
+
+      const p = sceneManager.getCanvas();
+
+
+      p.noStroke();
+
+      if (this.isInside(mouse, this)) {
+        p.fill(175);
+        mouse.setCursor('pointer');
+      } else {
+        p.fill(200, 200, 200, 200);
+      }
+
+      p.rect(this.x, this.y, this.width, this.height);
+
+      p.fill(0);
+      p.textSize(16);
+      p.textAlign(p.CENTER, p.CENTER);
+      p.text('Cancel', this.x + this.width / 2, this.y + this.height / 2);
+    },
+    onClick: function () {
+      if (!activePanel || !hasJoined) return;
+
+      if (socket.connected && gameInfo.player_id) {
+        hasJoined = false;
+        socket.emit('player:delete', gameInfo.player_id);
+      } else {
+        alert("Error. Try Again.");
+      }
+    }
+  }),
+  // Exit button (only active when panel is open)
+  'exit': new Button({
+    width: 30,
+    height: 30,
+    display: function () {
+      if (!activePanel) return;
+
+      const p = sceneManager.getCanvas();
+
+      p.noStroke();
+
+      if (this.isInside(mouse, this)) {
+        p.fill(175);
+        mouse.setCursor('pointer');
+      } else {
+        p.fill(200, 200, 200, 200);
+      }
+
+      p.rect(this.x, this.y, this.width, this.height);
+
+      // Draw X
+      p.stroke(0);
+      p.strokeWeight(2);
+      p.line(this.x + 5, this.y + 5, this.x + this.width - 5, this.y + this.height - 5);
+      p.line(this.x + this.width - 5, this.y + 5, this.x + 5, this.y + this.height - 5);
+    },
+    onClick: function () {
+      if (!activePanel) return;
+
+      activePanel = null;
+      hasJoined = false;
+
+      if (socket.connected && gameInfo.player_id) {
+        socket.emit('player:delete', gameInfo.player_id);
+      }
+    }
   })
 };
 
@@ -213,6 +287,23 @@ const mapScene = {
     } else if (activePanel === 'battle') {
       displayBattlePanel(p);
       buttons['join'].update(200, 300);
+    }
+
+    if (activePanel) {
+      const panelWidth = 400;
+      const panelHeight = 300;
+      const x = (p.width - panelWidth) / 2;
+      const y = (p.height - panelHeight) / 2;
+
+      buttons['exit'].update(x + panelWidth - 40, y + 10);
+    }
+    if (activePanel && hasJoined) {
+      const panelWidth = 400;
+      const panelHeight = 300;
+      const x = (p.width - panelWidth) / 2;
+      const y = (p.height - panelHeight) / 2;
+
+      buttons['cancel'].update(x + panelWidth / 2 + 10, y + panelHeight - 60);
     }
 
     // Update button positions

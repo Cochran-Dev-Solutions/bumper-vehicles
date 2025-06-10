@@ -24,6 +24,10 @@ class DynamicActor extends GameActor {
     // - Smoothly interpolating between server updates
     // - Handling reconciliation when server corrections arrive
   }
+
+  update() {
+    this.display();
+  }
 }
 
 export default DynamicActor;

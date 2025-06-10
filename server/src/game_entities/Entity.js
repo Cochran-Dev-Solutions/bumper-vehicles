@@ -1,5 +1,5 @@
 import { Vec2 } from '../utils/vector.js';
-import { BoundingBox } from './BoundingBox.js';
+import { BoundingBox } from '../physics/BoundingBox.js';
 
 export class Entity {
   constructor(config) {

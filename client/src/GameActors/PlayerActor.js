@@ -4,7 +4,7 @@ import DynamicActor from './DynamicActor.js';
 
 export class PlayerActor extends DynamicActor {
   constructor(config) {
-    super({ ...config, isAnimated: true });
+    super({ ...config, isAnimated: true, width: config.radius * 2, height: config.radius * 2 });
 
     // names of images we want to load for our player
     this.imageNames.push(
@@ -26,6 +26,8 @@ export class PlayerActor extends DynamicActor {
     };
     this.lastInputUpdate = 0;
     this.inputUpdateInterval = 1000 / 60; // 60fps
+
+    this.radius = config.radius;
   }
 
   /**

@@ -2,6 +2,7 @@ import socket from "../networking/socket.js";
 import { PlayerActor } from "../GameActors/PlayerActor.js";
 import { BlockActor } from './BlockActor.js';
 import { BouncyBallActor } from './BouncyBallActor.js';
+import sceneManager from "../EventObjects/SceneManager.js";
 
 function showReconnectingOverlay() {
   const container = document.createElement('div');
@@ -88,8 +89,7 @@ class GameRenderer {
         isLocalPlayer: (player.id === this.player_id),
         x: player.x,
         y: player.y,
-        width: player.width,
-        height: player.height,
+        radius: player.radius,
         id: player.id,
         socket_id: this.socket_id
       });
@@ -159,6 +159,13 @@ class GameRenderer {
         if (this.ableToReconnect) {
           this.attemptReconnect();
         }
+      });
+
+      socket.on('game_not_found', () => {
+        this.ableToReconnect = false;
+        hideReconnectingOverlay();
+        socket.disconnect();
+        sceneManager.createTransition('map');
       });
 
       // Set up error handling

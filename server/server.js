@@ -165,6 +165,8 @@ io.on('connection', (socket) => {
         socket.emit('reconnect:success');
         socket.emit('gameState', game.getState());
       }
+    } else {
+      socket.emit('game_not_found', { playerId: playerId });
     }
   });
 
@@ -233,6 +235,8 @@ io.on('connection', (socket) => {
       }
     } else {
       console.log('Game not found for player:', data.playerId);
+      socket.emit('game_not_found', { playerId: data.playerId });
+      socket.disconnect();
     }
   });
 
