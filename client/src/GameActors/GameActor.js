@@ -3,7 +3,6 @@ import { AnimatedSprite } from "../utils/AnimatedSprite";
 
 class GameActor {
   constructor(config) {
-    this.p = config.p;
     this.x = config.x;
     this.y = config.y;
     this.width = config.width;

@@ -40,6 +40,7 @@ export class PlayerActor extends DynamicActor {
       left: keyManager.pressed('left'),
       right: keyManager.pressed('right')
     };
+    
 
     this.sendInputs();
   }

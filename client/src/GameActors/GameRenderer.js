@@ -77,10 +77,15 @@ class GameRenderer {
   }
 
   async setup(p5Instance, gameInfo) {
+    // initalize game state
     this.p = p5Instance;
     this.game_type = gameInfo.game_type;
     this.socket_id = gameInfo.socket_id;
     this.player_id = gameInfo.player_id;
+    this.actors = [];
+    this.id_actor_map = new Map();
+    this.ableToReconnect = true;
+    this.reconnect_attempts = 0;
 
     // Create players
     gameInfo.initial_game_state.players.forEach(player => {
