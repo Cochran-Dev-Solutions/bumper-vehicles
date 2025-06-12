@@ -22,7 +22,12 @@ export class PlayerActor extends DynamicActor {
       up: false,
       down: false,
       left: false,
-      right: false
+      right: false,
+      powerup1: false,
+      powerup2: false,
+      powerup3: false,
+      powerup4: false,
+      powerup5: false
     };
     this.lastInputUpdate = 0;
     this.inputUpdateInterval = 1000 / 60; // 60fps
@@ -34,11 +39,17 @@ export class PlayerActor extends DynamicActor {
    * Update the player's input state
    */
   updateInputs() {
+    console.log("Testing 1: ", keyManager.pressed('one'));
     this.inputs = {
       up: keyManager.pressed('up'),
       down: keyManager.pressed('down'),
       left: keyManager.pressed('left'),
-      right: keyManager.pressed('right')
+      right: keyManager.pressed('right'),
+      powerup1: keyManager.pressed('one'),
+      powerup2: keyManager.pressed('two'),
+      powerup3: keyManager.pressed('three'),
+      powerup4: keyManager.pressed('four'),
+      powerup5: keyManager.pressed('five')
     };
     
 

@@ -2,7 +2,7 @@ import Button from "../EventObjects/Button.js";
 import mouse from "../EventObjects/MouseManager.js";
 import sceneManager from "../EventObjects/SceneManager.js";
 import socket from "../networking/socket.js";
-import { gameInfo, updateGameInfo } from "../globals.js";
+import { gameInfo, updateGameInfo, userData } from "../globals.js";
 
 // Scene state
 let activePanel = null;
@@ -105,7 +105,7 @@ async function initializeGame(gameType) {
 
     // Now that our socket is setup,
     // send join message to server
-    socket.emit('player:join:event', gameInfo.game_type);
+    socket.emit('player:join:event', { gameType: gameType, userData: userData });
 
     return true;
   } catch (error) {

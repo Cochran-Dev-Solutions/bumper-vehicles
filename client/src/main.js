@@ -28,6 +28,13 @@ keyManager.register("down", "ArrowDown");
 keyManager.register("left", "ArrowLeft");
 keyManager.register("right", "ArrowRight");
 
+// register powerup keys 1-5
+keyManager.register("one", "1");
+keyManager.register("two", "2");
+keyManager.register("three", "3");
+keyManager.register("four", "4");
+keyManager.register("five", "5");
+
 /////////////////////////////////////////////////////
 // Register Button Shape Types
 /////////////////////////////////////////////////////

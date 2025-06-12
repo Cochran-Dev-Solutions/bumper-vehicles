@@ -1,15 +1,30 @@
 import { PhysicsEntity } from './PhysicsEntity.js';
 import { Vec2 } from '../utils/vector.js';
 
-export class PowerUpEntity extends PhysicsEntity {
+export default class PowerUpEntity extends PhysicsEntity {
   constructor(config) {
     super({ ...config, type: 'powerup' });
 
-    this.flags = {
-      facing: 'right' // Can be 'left' or 'right'
-    };
+    this.type = config.type;
+  }
 
-    // register empty lsit
+  activate(position) {
+    // update position & bounding box
+    this.position = position;
+    console.log("Activating powerup at position: ", this.position);
+
+
+
+    // TODO:
+    // - update bouding box
+    // - register in actor lists in game
+    // - add to passive_actor list in game
+
+    // this.flags = {
+    //   facing: 'right' // Can be 'left' or 'right'
+    // };
+
+    // // register empty lsit
     if (this.type in this.game.actor_lists) {
       this.game.actor_lists[this.type].push(this);
     } else {

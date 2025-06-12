@@ -1,4 +1,5 @@
 import { PhysicsEntity } from './PhysicsEntity.js';
+import PowerupEntity from './PowerupEntity.js';
 import { Vec2 } from '../utils/vector.js';
 
 export class PlayerEntity extends PhysicsEntity {
@@ -22,6 +23,18 @@ export class PlayerEntity extends PhysicsEntity {
     this.radius = config.radius;
     this.socketId = config.socketId;
     this.game = config.game;
+
+    console.log("User data: ", config.userData);
+    this.powerups = [];
+    for (const powerup_name of config.userData.powerups) {
+      this.powerups.push(new PowerupEntity({ 
+        type: powerup_name, 
+        game: this.game,
+        position: new Vec2(0, 0),
+        size: new Vec2(25, 25), 
+        tileMap: this.tileMap
+      }));
+    }
   }
 
   /**
@@ -54,6 +67,23 @@ export class PlayerEntity extends PhysicsEntity {
     } else if (this.input.down) {
       this.applyForce(new Vec2(0, this.moveForce));
     }
+
+    // if 1/2/3/4/5 key is pressed, activate the corresponding powerup
+    if (this.input.powerup1) {
+      this.activatePowerup(0);
+    } else if (this.input.powerup2) {
+      this.activatePowerup(1);
+    } else if (this.input.powerup3) {
+      this.activatePowerup(2);
+    } else if (this.input.powerup4) {
+      this.activatePowerup(3);
+    } else if (this.input.powerup5) {
+      this.activatePowerup(4);
+    }
+  }
+
+  activatePowerup(powerup_index) {
+    this.powerups[powerup_index].activate(this.position);
   }
 
   /* 

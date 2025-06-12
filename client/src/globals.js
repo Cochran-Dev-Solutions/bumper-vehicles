@@ -10,4 +10,8 @@ function updateGameInfo(newInfo) {
   Object.assign(gameInfo, newInfo);
 }
 
-export { gameInfo, updateGameInfo };
+const userData = {
+  powerups: ["mine", "bomb", "missle", "green_shell", "red_shell"],
+};
+
+export { gameInfo, updateGameInfo, userData };

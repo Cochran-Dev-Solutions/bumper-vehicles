@@ -186,8 +186,9 @@ io.on('connection', (socket) => {
   });
 
   // Handle player joining race
-  socket.on('player:join:event', (gameType) => {
-    console.log(`Player attempting to join ${gameType} game`);
+  socket.on('player:join:event', (data) => {
+    const gameType = data.gameType;
+    const userData = data.userData;
 
     let game;
     if (games_in_queue[gameType]) {
@@ -197,7 +198,7 @@ io.on('connection', (socket) => {
       games_in_queue[gameType] = game;
     }
 
-    const { player, shouldStartGame } = game.addPlayer(socket.id);
+    const { player, shouldStartGame } = game.addPlayer(socket.id, userData);
     player_game_map.set(player.id, game);
     socket_game_map.set(socket.id, game);
     console.log(`Player ${player.id} joined ${gameType} game`);

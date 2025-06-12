@@ -112,7 +112,7 @@ export default class Game {
    * @param {string} socketId - Socket ID of the player
    * @returns {PlayerEntity} The created player entity
    */
-  addPlayer(socketId) {
+  addPlayer(socketId, userData) {
     const spawnData = this.getRandomSpawnPoint();
     if (!spawnData) {
       console.error('Cannot add player: no spawn points available');
@@ -125,7 +125,8 @@ export default class Game {
       socketId: socketId,
       id: this.generatePlayerId(),
       tileMap: this.physicsWorld.tileMap,
-      game: this
+      game: this,
+      userData: userData
     });
 
     // Mark spawn point as taken
