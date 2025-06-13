@@ -33,13 +33,12 @@ export class PlayerActor extends DynamicActor {
     this.inputUpdateInterval = 1000 / 60; // 60fps
 
     this.radius = config.radius;
-  }
+  } 
 
   /**
    * Update the player's input state
    */
   updateInputs() {
-    console.log("Testing 1: ", keyManager.pressed('one'));
     this.inputs = {
       up: keyManager.pressed('up'),
       down: keyManager.pressed('down'),

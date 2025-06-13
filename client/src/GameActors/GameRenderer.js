@@ -3,6 +3,7 @@ import { PlayerActor } from "../GameActors/PlayerActor.js";
 import { BlockActor } from './BlockActor.js';
 import { BouncyBallActor } from './BouncyBallActor.js';
 import sceneManager from "../EventObjects/SceneManager.js";
+import keyManager from '../EventObjects/KeyManager.js';
 
 function showReconnectingOverlay() {
   const container = document.createElement('div');
@@ -74,6 +75,10 @@ class GameRenderer {
     this.max_reconnect_attempts = 5;
     this.reconnect_interval = 1000; // 1 second
     this.ableToReconnect = true;
+
+    this.popUpY = 1000;
+    this.activatePopUp = false;
+    this.timeToActivatePopUp = 50;
   }
 
   async setup(p5Instance, gameInfo) {
@@ -150,6 +155,32 @@ class GameRenderer {
 
   update() {
     this.actors.forEach(actor => actor.update());
+
+    this.timeToActivatePopUp--;
+    
+    if(keyManager.pressed('z')) {
+      console.log("Z pressed");
+      if(this.timeToActivatePopUp <= 0) {
+        this.timeToActivatePopUp = 50;
+        if(this.activatePopUp !== true) {
+          this.activatePopUp = true;
+        }
+        else {
+          this.activatePopUp = false;
+        }
+      }
+    }
+
+    if(this.activatePopUp === true) {
+      this.popUpY -= (this.popUpY - 600)/5;
+    }
+    else if(this.activatePopUp === false) {
+      this.popUpY -= (this.popUpY - 1000)/15;
+    }
+
+    this.p.fill(100, 100, 100);
+    this.p.rect(100, this.popUpY, 150, 50);
+    
   }
 
   async reinitializeGame() {
@@ -168,6 +199,7 @@ class GameRenderer {
 
       socket.on('game_not_found', () => {
         this.ableToReconnect = false;
+        console.log("game not found... leaving.");
         hideReconnectingOverlay();
         socket.disconnect();
         sceneManager.createTransition('map');

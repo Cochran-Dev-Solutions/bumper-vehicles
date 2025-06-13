@@ -36,7 +36,6 @@ export class PlayerEntity extends PhysicsEntity {
       }));
     }
   }
-
   /**
    * Update input state
    * @param {Object} newInput 
@@ -68,7 +67,7 @@ export class PlayerEntity extends PhysicsEntity {
       this.applyForce(new Vec2(0, this.moveForce));
     }
 
-    // if 1/2/3/4/5 key is pressed, activate the corresponding powerup
+    // if 1/2/3/4/5/Z key is pressed, activate the corresponding powerup
     if (this.input.powerup1) {
       this.activatePowerup(0);
     } else if (this.input.powerup2) {
@@ -79,6 +78,8 @@ export class PlayerEntity extends PhysicsEntity {
       this.activatePowerup(3);
     } else if (this.input.powerup5) {
       this.activatePowerup(4);
+    } else if (this.input.powerupZ) {
+      this.activatePowerup(5);  // Add Z key powerup activation
     }
   }
 
