@@ -16,11 +16,11 @@ export default class PowerUpEntity extends PhysicsEntity {
     this.size = new Vec2(25, 25);
 
 
-    // this.flags = {
-    //   facing: 'right' // Can be 'left' or 'right'
-    // };
+    this.flags = {
+      facing: 'right' // Can be 'left' or 'right'
+    };
 
-    passive_actor.push(this);
+    this.game.passive_actors.push(this);
 
     // // register empty lsit
     if (this.type in this.game.actor_lists) {

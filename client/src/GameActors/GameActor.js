@@ -29,6 +29,7 @@ class GameActor {
   }
 
   async loadImages() {
+    console.log("Loading images for actor: ", this.id);
     // Create an array of promises for each image
     const imagePromises = this.imageNames.map(async (imageName, i) => {
       const loadedImg = await loadImageAsync(this.p, imageName);
