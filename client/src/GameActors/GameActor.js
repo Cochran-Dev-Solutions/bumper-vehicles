@@ -31,7 +31,6 @@ class GameActor {
   }
 
   async loadImages() {
-    console.log("Loading images for actor: ", this.id);
     // Create an array of promises for each image
     const imagePromises = this.imageNames.map(async (imageName, i) => {
       const loadedImg = await loadImageAsync(this.p, imageName);
@@ -62,7 +61,7 @@ class GameActor {
     this.p.noStroke();
     this.p.ellipse(this.x + this.width / 2, this.y + this.height / 2, this.width, this.height);
 
-    if (this.isAnimated) {
+    if (this.isAnimated && this.sprite) {
       this.p.push();
       this.p.translate(this.x + this.width / 2, this.y + this.width / 2);
 

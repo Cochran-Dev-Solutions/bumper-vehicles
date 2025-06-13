@@ -56,7 +56,7 @@ function hideReconnectingOverlay() {
 }
 
 class GameRenderer {
-  constructor() {
+  constructor(config) {
     this.actors = [];
     this.id_actor_map = new Map();
     this.type_actor_map = new Map([
@@ -72,7 +72,7 @@ class GameRenderer {
     ]);
 
     // initalized on setup
-    this.p = null; // p5.js instance
+    this.p = config.p || null; // p5.js instance
     this.localPlayer = null;
     this.game_type = null;
     this.socket_id = null; // for syncing with back-end
@@ -87,20 +87,24 @@ class GameRenderer {
     this.popUpY = null;
     this.footerHeight = 100;
     this.activatePopUp = false;
-    this.powerupIcons = new Map(); // Store loaded powerup images
   }
 
   async setup(p5Instance, gameInfo) {
+    this.actors = [];
+    this.id_actor_map = new Map();
+    this.localPlayer = null;
+    this.reconnect_attempts = 0;
+    this.max_reconnect_attempts = 5;
+    this.reconnect_interval = 1000;
+    this.ableToReconnect = true;
+
     // initalize game state
     this.p = p5Instance;
     this.popUpY = this.p.height;
     this.game_type = gameInfo.game_type;
     this.socket_id = gameInfo.socket_id;
     this.player_id = gameInfo.player_id;
-    this.actors = [];
-    this.id_actor_map = new Map();
-    this.ableToReconnect = true;
-    this.reconnect_attempts = 0;
+
 
     // Create players
     gameInfo.initial_game_state.players.forEach(player => {
@@ -214,6 +218,8 @@ class GameRenderer {
     this.displayFooter();
   }
 
+  // reinitialize game connection
+  // waits for setup from background
   async reinitializeGame() {
     try {
       // Connect to the socket
@@ -320,5 +326,4 @@ class GameRenderer {
   }
 }
 
-const gameRenderer = new GameRenderer();
-export default gameRenderer;
+export default GameRenderer;

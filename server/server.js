@@ -222,7 +222,7 @@ io.on('connection', (socket) => {
     // Generate unique player ID before adding to game
     const playerId = generateUniquePlayerId();
     const { player, shouldStartGame } = game.addPlayer(socket.id, userData, playerId);
-    
+
     player_game_map.set(playerId, game);
     socket_game_map.set(socket.id, game);
     console.log(`Player ${playerId} joined ${gameType} game`);
@@ -292,7 +292,7 @@ setInterval(() => {
   for (let i = active_games.length - 1; i >= 0; i--) {
     const game = active_games[i];
     game.update(io);
-    
+
     // Remove inactive games
     if (game.state === 'inactive') {
       console.log(`Removing inactive game at index ${i}`);

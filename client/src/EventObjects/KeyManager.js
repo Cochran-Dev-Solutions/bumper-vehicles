@@ -12,7 +12,7 @@ class KeyManager extends InputManager {
 
     // registered actions
     this.actions = {};
-    
+
     // key press callbacks
     this.keyPressCallbacks = new Map();
   }
@@ -43,7 +43,7 @@ class KeyManager extends InputManager {
   // activates a key
   keyPressed(keyCode) {
     this.current[keyCode] = true;
-    
+
     // Check if there's a callback for this key
     const callback = this.keyPressCallbacks.get(keyCode);
     if (callback) {

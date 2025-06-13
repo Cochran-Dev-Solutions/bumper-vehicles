@@ -3,7 +3,9 @@ import mouse from "../EventObjects/MouseManager.js";
 import sceneManager from "../EventObjects/SceneManager.js";
 import socket from "../networking/socket.js";
 import { gameInfo } from "../globals.js";
-import gameRenderer from "../GameActors/GameRenderer.js";
+import GameRenderer from "../GameActors/GameRenderer.js";
+
+let gameRenderer;
 
 let loading = true;
 
@@ -35,6 +37,10 @@ const buttons = {
 const gameScene = {
   name: "Game Scene",
   init: async function () {
+    gameRenderer = new GameRenderer({
+      p: sceneManager.getCanvas()
+    });
+
     await gameRenderer.setup(sceneManager.getCanvas(), gameInfo);
     loading = false;
   },
@@ -45,7 +51,12 @@ const gameScene = {
       p.fill(255, 0, 0);
       p.text("Loading...", p.width / 2, p.height / 2);
     } else {
-      gameRenderer.update();
+      try {
+        gameRenderer.update();
+      } catch (error) {
+        console.error('Error updating game:', error);
+        sceneManager.createTransition('map');
+      }
     }
 
     // Update button position
