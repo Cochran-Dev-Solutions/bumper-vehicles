@@ -10,6 +10,8 @@ class GameActor {
     this.id = config.id; // unique id for back-end syncing
     this.p = config.p; // p5 instance
 
+    this.game = config.game;
+
     // for players
     this.disconnected = false;
 

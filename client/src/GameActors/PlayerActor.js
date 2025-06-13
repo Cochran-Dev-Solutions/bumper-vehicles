@@ -46,23 +46,17 @@ export class PlayerActor extends DynamicActor {
     await super.loadImages();
 
     if (!this.isLocalPlayer) return;
-
-    console.log("About to load powerups...");
     
     // Load powerup images
     for (const powerupName of this.powerups) {
       try {
-        const imagePath = `Powerups/${powerupName}.png`;
-        console.log("Attempting to load powerup: ", powerupName, imagePath);
+        const imagePath = this.game.powerupImages.get(powerupName);
         const loadedImg = await loadImageAsync(this.p, imagePath);
-        console.log("Successfully loaded powerup: ", powerupName);
         this.powerup_images.set(powerupName, loadedImg);
       } catch (error) {
         console.error("Failed to load powerup image:", powerupName, error);
       }
     }
-
-    console.log("We're done.");
   }
 
   /**

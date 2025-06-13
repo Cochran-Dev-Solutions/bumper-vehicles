@@ -67,7 +67,7 @@ class GameRenderer {
     // Powerup image mapping
     this.powerupImages = new Map([
       ['mine', 'Powerups/mine.png'],
-      ['missle', 'Powerups/missle.png'],
+      ['missile', 'Powerups/missile.png'],
       ['heart', 'Powerups/heart.png']
     ]);
 
@@ -112,7 +112,8 @@ class GameRenderer {
         radius: player.radius,
         id: player.id,
         socket_id: this.socket_id,
-        powerups: userData.powerups
+        powerups: userData.powerups,
+        game: this
       });
       if (player.id === this.player_id) {
         this.localPlayer = newPlayer;
@@ -131,7 +132,8 @@ class GameRenderer {
           y: actor.y,
           width: actor.width,
           height: actor.height,
-          id: actor.id
+          id: actor.id,
+          game: this
         });
         this.actors.push(newActor);
         this.id_actor_map.set(actor.id, newActor);
@@ -183,8 +185,6 @@ class GameRenderer {
     // Draw footer background
     this.p.fill(100, 100, 100);
     this.p.rect(0, this.popUpY, this.p.width, this.footerHeight);
-
-    console.log(this.localPlayer.powerups);
 
     // Draw powerup icons
     if (this.localPlayer && this.localPlayer.powerups) {
