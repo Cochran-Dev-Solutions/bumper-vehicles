@@ -16,6 +16,7 @@ class PowerupActor {
       // add this once we have an image for it
   }
   update() {
+    console.log("PowerupEntity updating.");
     this.display();
   }
 }

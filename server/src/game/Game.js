@@ -251,6 +251,7 @@ export default class Game {
           id: actor.id,
           type: 'player',
           disconnected: actor.disconnected,
+          powerups: actor.powerup_names,
           x: actor.boundingBox.left,
           y: actor.boundingBox.top,
           width: actor.size.x,

@@ -20,7 +20,10 @@ export default class PowerUpEntity extends PhysicsEntity {
       facing: 'right' // Can be 'left' or 'right'
     };
 
+    console.log("Game entities before: ", this.game.passive_actors.length);
+
     this.game.passive_actors.push(this);
+    this.game.physicsWorld.addEntity(this);
 
     // // register empty lsit
     if (this.type in this.game.actor_lists) {
@@ -29,6 +32,8 @@ export default class PowerUpEntity extends PhysicsEntity {
       this.game.actor_lists[this.type] = [];
       this.game.actor_lists[this.type].push(this);
     }
+
+    console.log("Game entities after: ", this.game.passive_actors.length);
   }
 
   /**

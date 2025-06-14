@@ -5,6 +5,7 @@ import { BouncyBallActor } from './BouncyBallActor.js';
 import sceneManager from "../EventObjects/SceneManager.js";
 import keyManager from '../EventObjects/KeyManager.js';
 import { userData } from "../globals.js";
+import PowerupActor from "./PowerupActor.js";
 
 function showReconnectingOverlay() {
   const container = document.createElement('div');
@@ -61,7 +62,8 @@ class GameRenderer {
     this.id_actor_map = new Map();
     this.type_actor_map = new Map([
       ['block', BlockActor],
-      ['bouncy_ball', BouncyBallActor]
+      ['bouncy_ball', BouncyBallActor],
+      ['powerup', PowerupActor]
     ]);
 
     // Powerup image mapping

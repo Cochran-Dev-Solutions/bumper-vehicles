@@ -30,12 +30,20 @@ export class PlayerActor extends DynamicActor {
       down: false,
       left: false,
       right: false,
-      powerup1: false,
-      powerup2: false,
-      powerup3: false,
-      powerup4: false,
-      powerup5: false
+      one: false,
+      two: false,
+      three: false,
+      four: false,
+      five: false
     };
+
+    keyManager.onGenericKeyPress((keyCode) => {
+      const action = keyManager.getActionForKeyCode(keyCode);
+      if (action && action === 'one' || action === 'two' || action === 'three' || action === 'four' || action === 'five') {
+        this.inputs[action] = true;
+      }
+    });
+
     this.lastInputUpdate = 0;
     this.inputUpdateInterval = 1000 / 60; // 60fps
 
@@ -57,24 +65,18 @@ export class PlayerActor extends DynamicActor {
         console.error("Failed to load powerup image:", powerupName, error);
       }
     }
+
+    
   }
 
   /**
    * Update the player's input state
    */
   updateInputs() {
-    this.inputs = {
-      up: keyManager.pressed('up'),
-      down: keyManager.pressed('down'),
-      left: keyManager.pressed('left'),
-      right: keyManager.pressed('right'),
-      powerup1: keyManager.pressed('one'),
-      powerup2: keyManager.pressed('two'),
-      powerup3: keyManager.pressed('three'),
-      powerup4: keyManager.pressed('four'),
-      powerup5: keyManager.pressed('five')
-    };
-    
+    this.inputs.up = keyManager.pressed('up');
+    this.inputs.down = keyManager.pressed('down');
+    this.inputs.left = keyManager.pressed('left');
+    this.inputs.right = keyManager.pressed('right');
 
     this.sendInputs();
   }
@@ -90,6 +92,12 @@ export class PlayerActor extends DynamicActor {
         input: this.inputs
       });
       this.lastInputUpdate = currentTime;
+
+      this.inputs.one = false;
+      this.inputs.two = false;
+      this.inputs.three = false;
+      this.inputs.four = false;
+      this.inputs.five = false;
     }
   }
 
