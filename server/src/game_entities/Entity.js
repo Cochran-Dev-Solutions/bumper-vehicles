@@ -5,6 +5,7 @@ export class Entity {
   constructor(config) {
     this.position = config.position; // Vec2
     this.size = config.size; // Vec2
+    this.radius = config.radius || null;
     this.boundingBox = new BoundingBox(this);
     this.game = config.game;
     this.tileMap = config.tileMap;

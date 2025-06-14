@@ -209,7 +209,8 @@ io.on('connection', (socket) => {
     const gameType = data.gameType;
     const userData = data.userData;
 
-    console.log("Printing games: ", games_in_queue, active_games);
+    // console.log("Printing games: ", games_in_queue, active_games);
+
 
     let game;
     if (games_in_queue[gameType]) {
@@ -293,9 +294,21 @@ setInterval(() => {
     const game = active_games[i];
     game.update(io);
 
-    // Remove inactive games
+    // Clean up inactive games
     if (game.state === 'inactive') {
       console.log(`Removing inactive game at index ${i}`);
+
+      // Remove all players from player_game_map
+      // game.players.forEach((player, socketId) => {
+      //   player_game_map.delete(player.id);
+      // });
+
+      // // Remove all players from socket_game_map
+      // game.players.forEach((player, socketId) => {
+      //   socket_game_map.delete(socketId);
+      // });
+
+      // Remove from active games
       active_games.splice(i, 1);
     }
   }

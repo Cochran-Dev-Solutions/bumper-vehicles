@@ -6,7 +6,7 @@ import { Vec2 } from '../utils/vector.js';
 export default class Game {
   constructor(config) {
     this.physicsWorld = new PhysicsWorld();
-    this.type = config.type; // 'race' or 'battle'
+    this.type = config.type; // 'race' or 'battle' or 'inactive'
     this.mapName = config.mapName || mapManager.getDefaultMap(this.type);
     this.state = 'waiting'; // 'waiting', 'playing', or 'inactive'
     // players to be sent to the front-end

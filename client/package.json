@@ -13,5 +13,8 @@
     "p5": "^1.9.1",
     "socket.io-client": "^4.7.4",
     "vite": "^5.1.4"
+  },
+  "resolutions": {
+    "esbuild": "^0.20.0"
   }
 }
