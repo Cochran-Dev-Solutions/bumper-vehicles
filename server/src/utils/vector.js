@@ -39,6 +39,10 @@ class Vec2 extends Vector {
     this.y = y;
   }
 
+  copy() {
+    return new Vec2(this.x, this.y);
+  }
+
   set(x, y) {
     this.x = x;
     this.y = y;

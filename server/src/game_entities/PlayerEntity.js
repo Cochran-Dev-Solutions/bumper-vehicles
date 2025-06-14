@@ -9,6 +9,7 @@ export class PlayerEntity extends PhysicsEntity {
     // entities this distinction is moot
     super({
       ...config,
+      type_of_actor: "active_dynamic",
       size: new Vec2(config.radius * 2, config.radius * 2),
       mass: 10,
       elasticity: 0.5
@@ -26,7 +27,6 @@ export class PlayerEntity extends PhysicsEntity {
       facing: 'right' // Can be 'left' or 'right'
     };
     this.socketId = config.socketId;
-    this.game = config.game;
 
 
     this.powerups = [];
@@ -104,8 +104,6 @@ export class PlayerEntity extends PhysicsEntity {
    * Update player state
    */
   update() {
-    if (this.disconnected) return;
-
     // handle inputs
     this.handleInputs();
 

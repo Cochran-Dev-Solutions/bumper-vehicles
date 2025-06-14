@@ -185,7 +185,7 @@ io.on('connection', (socket) => {
         socket.emit('gameState', game.getState());
       }
     } else {
-      socket.emit('game_not_found', { playerId: playerId });
+      socket.emit('game_not_found');
     }
   });
 
@@ -261,6 +261,7 @@ io.on('connection', (socket) => {
       }
     } else {
       console.log('Game not found for player:', data.playerId);
+      socket.emit('game_not_found');
       socket.disconnect();
     }
   });
@@ -278,7 +279,10 @@ io.on('connection', (socket) => {
         game.removePlayer(socket.id);
         socket_game_map.delete(socket.id);
         player_game_map.delete(playerId);
-        io.emit('playerRemoved', { playerId: playerId });
+        // Notify only players in this game
+        game.players.forEach((_, socketId) => {
+          io.to(socketId).emit('playerRemoved', { playerId: playerId });
+        });
       }
     }
   });
@@ -297,19 +301,18 @@ setInterval(() => {
     // Clean up inactive games
     if (game.state === 'inactive') {
       console.log(`Removing inactive game at index ${i}`);
+      // Remove from active games
+      active_games.splice(i, 1);
 
-      // Remove all players from player_game_map
-      // game.players.forEach((player, socketId) => {
-      //   player_game_map.delete(player.id);
-      // });
+      // console.log(active_games.length);
+      // console.log(games_in_queue['race']);
+      // console.log(player_game_map);
+      // console.log(socket_game_map);
 
       // // Remove all players from socket_game_map
       // game.players.forEach((player, socketId) => {
       //   socket_game_map.delete(socketId);
       // });
-
-      // Remove from active games
-      active_games.splice(i, 1);
     }
   }
 }, PHYSICS_UPDATE_INTERVAL);

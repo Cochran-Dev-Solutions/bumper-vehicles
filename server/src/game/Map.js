@@ -37,7 +37,17 @@ class MapManager {
 
   // returns scrip
   getMapScript(type, name) {
-    return this.maps[type][name];
+    const script = this.maps[type][name];
+    if (!script) return null;
+
+    // Create a deep copy of the script
+    return script.map(instruction => ({
+      type: instruction.type,
+      parameters: {
+        ...instruction.parameters,
+        position: instruction.parameters.position ? instruction.parameters.position.copy() : undefined
+      }
+    }));
   }
 
   getDefaultMap(type) {
@@ -50,13 +60,33 @@ const mapManager = new MapManager();
 
 const gs = TileMap.getGridSize();
 
-mapManager.createScript('race', 'example-race-map', [
+const script = [
   { type: 'spawn_point', parameters: { position: new Vec2(500, 300) } },
   { type: 'spawn_point', parameters: { position: new Vec2(200, 300) } },
-  { type: 'block', parameters: { position: new Vec2(gs * 2, gs * 1), size: new Vec2(gs, gs) } },
+
   { type: 'block', parameters: { position: new Vec2(gs * 4, gs * 1), size: new Vec2(gs, gs) } },
   { type: 'bouncy_ball', parameters: { position: new Vec2(gs * 3, gs * 2), radius: gs / 2 } },
   { type: 'bouncy_ball', parameters: { position: new Vec2(gs * 8, gs * 2), radius: gs / 2 } }
-]);
+];
+
+for (let i = 0; i < 10; i++) {
+  script.push({ type: 'block', parameters: { position: new Vec2(gs * i, 0), size: new Vec2(gs, gs) } });
+}
+
+for (let i = 0; i < 10; i++) {
+  script.push({ type: 'block', parameters: { position: new Vec2(gs * i, gs * 7), size: new Vec2(gs, gs) } });
+}
+
+for (let i = 1; i < 7; i++) {
+  script.push({ type: 'block', parameters: { position: new Vec2(0, gs * i), size: new Vec2(gs, gs) } });
+}
+
+for (let i = 1; i < 7; i++) {
+  script.push({ type: 'block', parameters: { position: new Vec2(gs * 9, gs * i), size: new Vec2(gs, gs) } });
+}
+
+mapManager.createScript('race', 'example-race-map', script);
+
+
 
 export default mapManager;

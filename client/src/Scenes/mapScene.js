@@ -97,10 +97,12 @@ async function initializeGame(gameType) {
       waitingRoom = newWaitingRoom;
     });
 
-    socket.on('gameSetup', (initial_game_state) => {
+    socket.on('gameSetup', function gameSetupHandler(initial_game_state) {
       console.log("Receiving Initial Game State: ", initial_game_state);
       gameInfo.initial_game_state = initial_game_state;
       sceneManager.createTransition('game');
+      // Remove this event listener after it's been called
+      socket.off('gameSetup', gameSetupHandler);
     });
 
     // Now that our socket is setup,

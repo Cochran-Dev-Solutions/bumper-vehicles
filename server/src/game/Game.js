@@ -70,6 +70,7 @@ export default class Game {
       }
     });
 
+
     // Set required players based on number of spawn points
     this.requiredPlayers = this.spawn_points.length;
   }
@@ -112,8 +113,11 @@ export default class Game {
       return null;
     }
 
+    console.log("Testing player spawn Data: ", spawnData);
+
     const player = new PlayerEntity({
       position: spawnData.position,
+      type: 'player',
       radius: TileMap.getGridSize() / 2,
       socketId: socketId,
       id: playerId,  // Use the provided playerId instead of generating one
@@ -144,14 +148,13 @@ export default class Game {
         if (player.disconnected) {
           console.log(`Player ${player.id} timed out after ${this.reconnect_timeout}ms`);
 
+          // Notify all players in this game about the removal
+          this.players.forEach((_, socketId) => {
+            io.to(socketId).emit('playerRemoved', { playerId: player.id });
+          });
+
           // Remove player from game
           this.removePlayer(socketId);
-
-          // Clean up maps
-          this.disconnectedPlayers.delete(player.id);
-
-          // Notify all players about the removal
-          io.emit('playerRemoved', { playerId: player.id });
         }
       }, this.reconnect_timeout);
     }
@@ -173,7 +176,7 @@ export default class Game {
     return { success: false };
   }
 
-  // immediately delete a player from game
+  // delete a player from game
   removePlayer(socketId) {
     const player = this.players.get(socketId);
     if (player) {
@@ -247,6 +250,7 @@ export default class Game {
         actors.push({
           id: actor.id,
           type: 'player',
+          disconnected: actor.disconnected,
           x: actor.boundingBox.left,
           y: actor.boundingBox.top,
           width: actor.size.x,
@@ -312,7 +316,6 @@ export default class Game {
   start(io) {
     // broadcast initial game state
     this.players.forEach((player, socketId) => {
-      console.log(`Sending game setup to player ${player.id} (socket: ${socketId})`);
       io.to(socketId).emit('gameSetup', this.getInitialState());
     });
   }
