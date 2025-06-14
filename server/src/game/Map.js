@@ -1,6 +1,7 @@
 import { BlockEntity } from '../game_entities/BlockEntity.js';
 import { BouncyBall } from '../game_entities/BouncyBall.js';
 import { Vec2 } from '../utils/vector.js';
+import { TileMap } from '../physics/TileMap.js';
 
 class MapManager {
   static defaultMaps = {
@@ -47,13 +48,15 @@ class MapManager {
 // singleton instance
 const mapManager = new MapManager();
 
+const gs = TileMap.getGridSize();
+
 mapManager.createScript('race', 'example-race-map', [
   { type: 'spawn_point', parameters: { position: new Vec2(500, 300) } },
   { type: 'spawn_point', parameters: { position: new Vec2(200, 300) } },
-  { type: 'block', parameters: { position: new Vec2(50, 50), size: new Vec2(50, 50) } },
-  { type: 'block', parameters: { position: new Vec2(150, 50), size: new Vec2(50, 50) } },
-  { type: 'bouncy_ball', parameters: { position: new Vec2(250, 150), radius: 25 } },
-  { type: 'bouncy_ball', parameters: { position: new Vec2(150, 150), radius: 25 } }
+  { type: 'block', parameters: { position: new Vec2(gs * 2, gs * 1), size: new Vec2(gs, gs) } },
+  { type: 'block', parameters: { position: new Vec2(gs * 4, gs * 1), size: new Vec2(gs, gs) } },
+  { type: 'bouncy_ball', parameters: { position: new Vec2(gs * 3, gs * 2), radius: gs / 2 } },
+  { type: 'bouncy_ball', parameters: { position: new Vec2(gs * 8, gs * 2), radius: gs / 2 } }
 ]);
 
 export default mapManager;

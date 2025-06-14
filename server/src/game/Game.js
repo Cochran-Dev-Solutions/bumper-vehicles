@@ -1,6 +1,7 @@
 import { PhysicsWorld } from '../physics/PhysicsWorld.js';
 import { PlayerEntity } from '../game_entities/PlayerEntity.js';
 import mapManager from './Map.js';
+import { TileMap } from '../physics/TileMap.js';
 import { Vec2 } from '../utils/vector.js';
 
 export default class Game {
@@ -113,7 +114,7 @@ export default class Game {
 
     const player = new PlayerEntity({
       position: spawnData.position,
-      radius: 25,
+      radius: TileMap.getGridSize() / 2,
       socketId: socketId,
       id: playerId,  // Use the provided playerId instead of generating one
       tileMap: this.physicsWorld.tileMap,

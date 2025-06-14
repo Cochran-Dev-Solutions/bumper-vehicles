@@ -10,8 +10,8 @@ export class BouncyBall extends PhysicsEntity {
       ...config,
       size: new Vec2(config.radius * 2, config.radius * 2),
       type: 'bouncy_ball',
-      mass: 2,
-      elasticity: 0.8
+      mass: 5,
+      elasticity: 1
     });
 
     this.flags = {

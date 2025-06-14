@@ -1,7 +1,12 @@
 export class TileMap {
+  static gridSize = 100;
+
   constructor() {
     this.collision_maps = {};
-    this.gridSize = 50;
+  }
+
+  static getGridSize() {
+    return TileMap.gridSize;
   }
 
   /**
@@ -11,8 +16,8 @@ export class TileMap {
    * @returns {string} - tile key in format "x,y"
    */
   getTileKey(x, y) {
-    const gridX = Math.floor(x / this.gridSize);
-    const gridY = Math.floor(y / this.gridSize);
+    const gridX = Math.floor(x / TileMap.getGridSize());
+    const gridY = Math.floor(y / TileMap.getGridSize());
     return `${gridX},${gridY}`;
   }
 
@@ -47,7 +52,7 @@ export class TileMap {
    * @returns {boolean} - true if position aligns with grid
    */
   isAlignedWithGrid(x, y) {
-    return x % this.gridSize === 0 && y % this.gridSize === 0;
+    return x % TileMap.getGridSize() === 0 && y % TileMap.getGridSize() === 0;
   }
 
   /**
@@ -89,10 +94,10 @@ export class TileMap {
     const collidingTiles = [];
 
     // Calculate the grid cells that the bounding box overlaps
-    const startX = Math.floor(boundingBox.left / this.gridSize);
-    const endX = Math.floor(boundingBox.right / this.gridSize);
-    const startY = Math.floor(boundingBox.top / this.gridSize);
-    const endY = Math.floor(boundingBox.bottom / this.gridSize);
+    const startX = Math.floor(boundingBox.left / TileMap.getGridSize());
+    const endX = Math.floor(boundingBox.right / TileMap.getGridSize());
+    const startY = Math.floor(boundingBox.top / TileMap.getGridSize());
+    const endY = Math.floor(boundingBox.bottom / TileMap.getGridSize());
 
     // Check each grid cell for a tile
     for (let x = startX; x <= endX; x++) {

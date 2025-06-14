@@ -10,11 +10,10 @@ export class PlayerEntity extends PhysicsEntity {
     super({
       ...config,
       size: new Vec2(config.radius * 2, config.radius * 2),
-      mass: 5,
-      elasticity: 0.8
+      mass: 10,
+      elasticity: 0.5
     });
-    this.moveForce = 2; // Force to apply for movement
-    this.maxMoveSpeed = 5;
+    this.moveForce = 6;
 
     this.input = {
       up: false,

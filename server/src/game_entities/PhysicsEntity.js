@@ -4,15 +4,15 @@ import { Vec2 } from '../utils/vector.js';
 export class PhysicsEntity extends Entity {
   constructor(config) {
     super({ ...config, type_of_actor: "passive_dynamic" });
-    this.dragCoefficient = 0.01; // Higher drag for more responsive movement
+    this.dragCoefficient = 0.2; // Higher drag for more responsive movement
     this.mass = config.mass || 1;
     this.velocity = new Vec2(0, 0);
     this.acceleration = new Vec2(0, 0);
-    this.maxSpeed = 5; // Default max speed
+    this.maxSpeed = 10; // Default max speed
     this.applyForces = new Vec2(0, 0);
     this.elasticity = config.elasticity || 1;
 
-
+    this.bounceForce = new Vec2(0, 0);
   }
 
   /**
@@ -29,8 +29,12 @@ export class PhysicsEntity extends Entity {
    */
   applyDrag() {
     // Scale drag force by mass so heavier objects experience more drag
-    const dragForce = this.velocity.scale(-this.dragCoefficient * Math.pow(this.mass, 2));
+    const dragForce = this.velocity.scale(-this.dragCoefficient);
     this.applyForce(dragForce);
+  }
+
+  applyBounces() {
+    this.applyForce(this.bounceForce);
   }
 
   /**
@@ -38,6 +42,8 @@ export class PhysicsEntity extends Entity {
    * Update acceleration & velocity respectively
    */
   processForces() {
+    this.applyBounces();
+
     // Calculate acceleration from forces
     this.acceleration = this.applyForces.scale(1 / this.mass);
 
@@ -52,6 +58,7 @@ export class PhysicsEntity extends Entity {
 
     // Reset forces
     this.applyForces = new Vec2(0, 0);
+    this.bounceForce = new Vec2(0, 0);
   }
 
   updateX() {
@@ -146,20 +153,32 @@ export class PhysicsEntity extends Entity {
       if (velocityAlongNormal < 0) {
         // Calculate impulse scalar
         const impulseScalar = -1 * velocityAlongNormal;
-        console.log("Impulse Scalar: ", impulseScalar);
 
         // Calculate impulse vector
         const impulseX = impulseScalar * nx;
         const impulseY = impulseScalar * ny;
 
-        // universal bounce factor for elastic collisions
-        const bounceFactor = 200;
+        const thisOriginalVelocity = new Vec2(this.velocity.x, this.velocity.y),
+          otherOriginalVelocity = new Vec2(other.velocity.x, other.velocity.y);
 
-        // Apply impulse to both objects, scaled by their mass ratios
-        other.velocity.x -= bounceFactor * impulseX * other.elasticity;
-        other.velocity.y -= bounceFactor * impulseY * other.elasticity;
-        this.velocity.x += bounceFactor * impulseX * this.elasticity;
-        this.velocity.y += bounceFactor * impulseY * this.elasticity;
+        const thisBounce = new Vec2(
+          impulseX * this.elasticity,
+          impulseY * this.elasticity
+        );
+
+        const otherBounce = new Vec2(
+          impulseX * other.elasticity,
+          impulseY * other.elasticity
+        );
+
+        // Calculate new velocities
+        this.velocity.x = thisBounce.x * Math.abs(otherOriginalVelocity.x);
+        this.velocity.y = thisBounce.y * Math.abs(otherOriginalVelocity.y);
+        other.velocity.x = -otherBounce.x * Math.abs(thisOriginalVelocity.x);
+        other.velocity.y = -otherBounce.y * Math.abs(thisOriginalVelocity.y);
+
+        this.bounceForce = thisBounce;
+        other.bounceForce = otherBounce;
 
         // Separate the objects to prevent sticking
         const overlap = (this.radius + other.radius) - distance;
