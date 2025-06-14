@@ -158,24 +158,38 @@ export class PhysicsEntity extends Entity {
         const impulseX = impulseScalar * nx;
         const impulseY = impulseScalar * ny;
 
-        const thisOriginalVelocity = new Vec2(this.velocity.x, this.velocity.y),
-          otherOriginalVelocity = new Vec2(other.velocity.x, other.velocity.y);
-
         const thisBounce = new Vec2(
           impulseX * this.elasticity,
           impulseY * this.elasticity
         );
 
         const otherBounce = new Vec2(
-          impulseX * other.elasticity,
-          impulseY * other.elasticity
+          -impulseX * other.elasticity,
+          -impulseY * other.elasticity
         );
 
-        // Calculate new velocities
-        this.velocity.x = thisBounce.x * Math.abs(otherOriginalVelocity.x);
-        this.velocity.y = thisBounce.y * Math.abs(otherOriginalVelocity.y);
-        other.velocity.x = -otherBounce.x * Math.abs(thisOriginalVelocity.x);
-        other.velocity.y = -otherBounce.y * Math.abs(thisOriginalVelocity.y);
+        // Calculate aligned velocity components
+        const alignedOtherX = this.velocity.x > 0
+          ? Math.max(other.velocity.x, 0)
+          : Math.min(other.velocity.x, 0);
+
+        const alignedOtherY = this.velocity.y > 0
+          ? Math.max(other.velocity.y, 0)
+          : Math.min(other.velocity.y, 0);
+
+        const alignedThisX = other.velocity.x > 0
+          ? Math.max(this.velocity.x, 0)
+          : Math.min(this.velocity.x, 0);
+
+        const alignedThisY = other.velocity.y > 0
+          ? Math.max(this.velocity.y, 0)
+          : Math.min(this.velocity.y, 0);
+
+        // Calculate new velocities using aligned components
+        this.velocity.x = (thisBounce.x + alignedOtherX) / (this.mass / 10);
+        this.velocity.y = (thisBounce.y + alignedOtherY) / (this.mass / 10);
+        other.velocity.x = (otherBounce.x + alignedThisX) / (other.mass / 10);
+        other.velocity.y = (otherBounce.y + alignedThisY) / (other.mass / 10);
 
         this.bounceForce = thisBounce;
         other.bounceForce = otherBounce;
