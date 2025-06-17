@@ -15,7 +15,7 @@ class KeyManager extends InputManager {
 
     // key press callbacks
     this.keyPressCallbacks = new Map();
-    
+
     // generic key press and release callbacks
     this.genericKeyPressCallbacks = [];
     this.genericKeyReleaseCallbacks = [];
@@ -77,7 +77,7 @@ class KeyManager extends InputManager {
   keyReleased(keyCode) {
     if (this.current[keyCode]) {
       delete this.current[keyCode];
-      
+
       // Call all generic key release callbacks
       this.genericKeyReleaseCallbacks.forEach(callback => callback(keyCode));
     }

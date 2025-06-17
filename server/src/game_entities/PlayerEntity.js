@@ -14,23 +14,33 @@ export class PlayerEntity extends PhysicsEntity {
       mass: 10,
       elasticity: 0.5
     });
-    this.moveForce = 6;
+
+    // Movement forces
+    this.normalMoveForce = 6;
+    this.boostMoveForce = 12;
+    this.currentMoveForce = this.normalMoveForce;
+
+    // Speed limits
+    this.maxNormalSpeed = 10;
+    this.maxBoostSpeed = 20;
+    this.maxSpeed = this.maxNormalSpeed;
 
     this.input = {
       up: false,
       down: false,
       left: false,
-      right: false
+      right: false,
+      space: false
     };
     this.disconnected = false;
     this.flags = {
-      facing: 'right' // Can be 'left' or 'right'
+      facing: 'right', // Can be 'left' or 'right'
+      about_to_boost: false,
+      boosting: false
     };
     this.socketId = config.socketId;
 
     this.powerup_time = 0;
-
-
     this.powerup_names = config.userData.powerups;
     this.powerups = [];
     for (const powerup_name of config.userData.powerups) {
@@ -43,6 +53,12 @@ export class PlayerEntity extends PhysicsEntity {
         tileMap: this.tileMap
       }));
     }
+
+    // Boost timers
+    this.boostChargeStartTime = null;
+    this.boostStartTime = null;
+    this.boostChargeDuration = 1000; // 1 second
+    this.boostDuration = 1000; // 1 second
   }
 
   /**
@@ -58,22 +74,71 @@ export class PlayerEntity extends PhysicsEntity {
     } else if (this.input.right) {
       this.flags.facing = 'right';
     }
+
+    // Handle boost input
+    if (this.input.space && !this.flags.about_to_boost && !this.flags.boosting) {
+      this.startBoostCharge();
+    }
+  }
+
+  startBoostCharge() {
+    this.flags.about_to_boost = true;
+    this.boostChargeStartTime = Date.now();
+    this.game.markActorChanged(this);
+  }
+
+  updateBoostState() {
+    const currentTime = Date.now();
+
+    // Handle boost charge phase
+    if (this.flags.about_to_boost) {
+      if (currentTime - this.boostChargeStartTime >= this.boostChargeDuration) {
+        this.flags.about_to_boost = false;
+        this.flags.boosting = true;
+        this.boostStartTime = currentTime;
+        this.game.markActorChanged(this);
+      }
+    }
+    // Handle boost phase
+    else if (this.flags.boosting) {
+      if (currentTime - this.boostStartTime >= this.boostDuration) {
+        this.endBoost();
+      }
+    }
+  }
+
+  endBoost() {
+    this.flags.boosting = false;
+    this.maxSpeed = this.maxNormalSpeed;
+    this.currentMoveForce = this.normalMoveForce;
+    this.game.markActorChanged(this);
   }
 
   /**
    * Process inputs
    */
   handleInputs() {
+    // Update boost state
+    this.updateBoostState();
+
+    if (this.flags.boosting) {
+      this.maxSpeed = this.maxBoostSpeed;
+      this.currentMoveForce = this.boostMoveForce;
+    } else {
+      this.maxSpeed = this.maxNormalSpeed;
+      this.currentMoveForce = this.normalMoveForce;
+    }
+
     if (this.input.left && this.velocity) {
-      this.applyForce(new Vec2(-this.moveForce, 0));
+      this.applyForce(new Vec2(-this.currentMoveForce, 0));
     } else if (this.input.right) {
-      this.applyForce(new Vec2(this.moveForce, 0));
+      this.applyForce(new Vec2(this.currentMoveForce, 0));
     }
 
     if (this.input.up) {
-      this.applyForce(new Vec2(0, -this.moveForce));
+      this.applyForce(new Vec2(0, -this.currentMoveForce));
     } else if (this.input.down) {
-      this.applyForce(new Vec2(0, this.moveForce));
+      this.applyForce(new Vec2(0, this.currentMoveForce));
     }
 
     // if 1/2/3/4/5/Z key is pressed, activate the corresponding powerup
@@ -131,5 +196,33 @@ export class PlayerEntity extends PhysicsEntity {
 
     // Handle collisions with tiles
     this.handleTileCollisions();
+  }
+
+  getInitialState() {
+    return {
+      id: this.id,
+      type: this.type,
+      type_of_actor: this.type_of_actor,
+      type: 'player',
+      radius: this.radius,
+      x: this.boundingBox.left,
+      y: this.boundingBox.top,
+      width: this.size.x,
+      height: this.size.y,
+      disconnected: this.disconnected,
+      powerups: this.powerup_names,
+      flags: this.flags
+    };
+  }
+
+  getUpdatedState() {
+    return {
+      id: this.id,
+      x: this.boundingBox.left,
+      y: this.boundingBox.top,
+      disconnected: this.disconnected,
+      powerups: this.powerup_names,
+      flags: this.flags
+    };
   }
 } 

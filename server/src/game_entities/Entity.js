@@ -22,4 +22,20 @@ export class Entity {
   update() {
     throw new Error('update() method must be implemented by subclass');
   }
+
+  /**
+   * Get the initial state of the entity when it's first created
+   * Must be implemented by subclasses
+   */
+  getInitialState() {
+    throw new Error('getInitialState() method must be implemented by subclass');
+  }
+
+  /**
+   * Get the updated state of the entity when it changes
+   * Must be implemented by subclasses
+   */
+  getUpdatedState() {
+    throw new Error('getUpdatedState() method must be implemented by subclass');
+  }
 } 

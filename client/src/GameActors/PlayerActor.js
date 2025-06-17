@@ -34,8 +34,14 @@ export class PlayerActor extends DynamicActor {
       two: false,
       three: false,
       four: false,
-      five: false
+      five: false,
+      space: false
     };
+
+    // Boost oscillation variables
+    this.oscillationTime = 0;
+    this.oscillationSpeed = 0.1;
+    this.oscillationAmplitude = 0.5;
 
     keyManager.onGenericKeyPress((keyCode) => {
       const action = keyManager.getActionForKeyCode(keyCode);
@@ -74,6 +80,7 @@ export class PlayerActor extends DynamicActor {
     this.inputs.down = keyManager.pressed('down');
     this.inputs.left = keyManager.pressed('left');
     this.inputs.right = keyManager.pressed('right');
+    this.inputs.space = keyManager.pressed('space');
 
     this.sendInputs();
   }
@@ -95,6 +102,7 @@ export class PlayerActor extends DynamicActor {
       this.inputs.three = false;
       this.inputs.four = false;
       this.inputs.five = false;
+      this.inputs.space = false;
     }
   }
 
@@ -104,10 +112,18 @@ export class PlayerActor extends DynamicActor {
       this.sendInputs();
     }
 
-    // temp
     this.p.fill(255, 0, 0);
     this.p.noStroke();
     this.p.ellipse(this.x + this.width / 2, this.y + this.height / 2, this.width, this.height);
+
+    // Update oscillation for boost effects
+    if (this.flags?.about_to_boost || this.flags?.boosting) {
+      this.oscillationTime += this.oscillationSpeed;
+      this.rotation = Math.sin(this.oscillationTime) * this.oscillationAmplitude;
+    } else {
+      this.rotation = 0;
+      this.oscillationTime = 0;
+    }
 
     this.display();
   }

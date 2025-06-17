@@ -1,16 +1,28 @@
 import { loadImageAsync } from "../utils/images";
 import { AnimatedSprite } from "../utils/AnimatedSprite";
 
-class GameActor {
+export default class GameActor {
   constructor(config) {
+    this.p = config.p;
+    this.game = config.game;
+    this.id = config.id;
+    this.type = config.type;
     this.x = config.x;
     this.y = config.y;
     this.width = config.width;
     this.height = config.height;
-    this.id = config.id; // unique id for back-end syncing
-    this.p = config.p; // p5 instance
+    this.isAnimated = config.isAnimated || false;
+    this.images = [];
+    this.imageNames = [];
+    this.currentImageIndex = 0;
+    this.animationSpeed = 0.1;
+    this.animationCounter = 0;
+    this.flags = config.flags || {};
 
-    this.game = config.game;
+    // Rotation variables
+    this.rotation = 0;
+    this.rotationSpeed = 0.2;
+    this.rotationDirection = 1;
 
     // for players
     this.disconnected = false;
@@ -18,16 +30,9 @@ class GameActor {
     // display options:
     // 1) static image 
     // 2) animated sprite
-    this.isAnimated = config.isAnimated || false;
     this.image = null;
     this.sprite = null;
-    this.imageNames = [];
     this.spriteImages = [];
-
-    // Initialize flags from server or default
-    this.flags = config.flags || {
-      facing: 'right'
-    };
   }
 
   async loadImages() {
@@ -60,6 +65,7 @@ class GameActor {
     if (this.isAnimated && this.sprite) {
       this.p.push();
       this.p.translate(this.x + this.width / 2, this.y + this.width / 2);
+      this.p.rotate(this.rotation);
 
       // Flip horizontally if facing left
       if (this.flags.facing === 'left') {
@@ -77,6 +83,7 @@ class GameActor {
     } else {
       this.p.push();
       this.p.translate(this.x + this.width / 2, this.y + this.height / 2);
+      this.p.rotate(this.rotation);
 
       // Flip horizontally if facing left
       if (this.flags.facing === 'left') {
@@ -110,5 +117,3 @@ class GameActor {
     throw new Error('Method update() must be implemented by subclass');
   }
 }
-
-export default GameActor;

@@ -25,4 +25,22 @@ export class BlockEntity extends StaticEntity {
     // Add this block to the tile map
     this.tileMap.addEntity('block', this, config.position.x, config.position.y);
   }
+
+  getInitialState() {
+    return {
+      id: this.id,
+      type: this.type,
+      type_of_actor: this.type_of_actor,
+      type: this.type,
+      x: this.position.x,
+      y: this.position.y,
+      width: this.size.x,
+      height: this.size.y
+    };
+  }
+
+  getUpdatedState() {
+    // Blocks are static and don't change state
+    return null;
+  }
 } 

@@ -19,7 +19,7 @@ keyManager.register("W", "KeyW");
 keyManager.register("A", "KeyA");
 keyManager.register("S", "KeyS");
 keyManager.register("D", "KeyD");
-keyManager.register("Space", "Space");
+keyManager.register("space", ' ');
 keyManager.register("Shift", "ShiftLeft");
 // keyManager.register("Ctrl", "ControlLeft");
 // keyManager.register("Ctrl", "ControlRight");

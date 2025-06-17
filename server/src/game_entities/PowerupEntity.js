@@ -32,14 +32,24 @@ export default class PowerUpEntity extends PhysicsEntity {
     }
   }
 
-  getState() {
+  getInitialState() {
     return {
       id: this.id,
       type: this.type,
+      type_of_actor: this.type_of_actor,
       x: this.position.x,
       y: this.position.y,
       width: this.size.x,
       height: this.size.y,
+      powerup_type: this.powerup_type
+    };
+  }
+
+  getUpdatedState() {
+    return {
+      id: this.id,
+      x: this.position.x,
+      y: this.position.y,
       powerup_type: this.powerup_type
     };
   }

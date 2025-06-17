@@ -241,34 +241,8 @@ export default class Game {
    * @returns {Array} Array of actor state data
    */
   getChangedActorsState() {
-    const actors = Array.from(this.changed_actors).map(actor => {
-      if (actor.socketId) { // It's a player
-        return {
-          id: actor.id,
-          type: 'player',
-          disconnected: actor.disconnected,
-          powerups: actor.powerup_names,
-          x: actor.boundingBox.left,
-          y: actor.boundingBox.top,
-          width: actor.size.x,
-          height: actor.size.y,
-          flags: actor.flags
-        };
-      } else { // It's a passive actor
-        return {
-          id: actor.id,
-          type: actor.type,
-          x: actor.boundingBox.left,
-          y: actor.boundingBox.top,
-          width: actor.size.x,
-          height: actor.size.y
-        };
-      }
-    });
-
-    // Clear the changed actors set after getting their state
+    const actors = Array.from(this.changed_actors).map(actor => actor.getUpdatedState());
     this.changed_actors.clear();
-
     return actors;
   }
 
@@ -285,14 +259,8 @@ export default class Game {
    * @returns {Array} Array of new actor state data
    */
   getNewActorsState() {
-    const actors = Array.from(this.new_actors).map(actor => {
-      return actor.getState();
-    });
-
-
-    // Clear the new actors set after getting their state
+    const actors = Array.from(this.new_actors).map(actor => actor.getInitialState());
     this.new_actors.clear();
-
     return actors;
   }
 
@@ -315,23 +283,8 @@ export default class Game {
   getInitialState() {
     return {
       type: this.type,
-      players: Array.from(this.players.values()).map(player => ({
-        id: player.id,
-        x: player.position.x,
-        y: player.position.y,
-        radius: player.radius,
-        flags: player.flags,
-        type: 'player'
-      })),
-      passive_actors: this.passive_actors.map(actor => ({
-        id: actor.id,
-        type: actor.type,
-        type_of_actor: actor.type_of_actor,
-        x: actor.position.x,
-        y: actor.position.y,
-        width: actor.size.x,
-        height: actor.size.y
-      }))
+      players: Array.from(this.players.values()).map(player => player.getInitialState()),
+      passive_actors: this.passive_actors.map(actor => actor.getInitialState())
     };
   }
 

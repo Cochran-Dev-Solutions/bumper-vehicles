@@ -72,4 +72,26 @@ export class BouncyBall extends PhysicsEntity {
 
     this.handleTileCollisions();
   }
+
+  getInitialState() {
+    return {
+      id: this.id,
+      type: this.type,
+      type_of_actor: this.type_of_actor,
+      x: this.position.x,
+      y: this.position.y,
+      width: this.size.x,
+      height: this.size.y,
+      flags: this.flags
+    };
+  }
+
+  getUpdatedState() {
+    return {
+      id: this.id,
+      x: this.position.x,
+      y: this.position.y,
+      flags: this.flags
+    };
+  }
 } 
