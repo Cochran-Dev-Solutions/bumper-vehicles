@@ -12,6 +12,11 @@ export class PhysicsEntity extends Entity {
     this.applyForces = new Vec2(0, 0);
     this.elasticity = config.elasticity || 1;
 
+    // for when a boosted player bumps a physics-bound entity
+    this.originalMaxSpeed = this.maxSpeed;
+    this.speedBoostTimer = null;
+    this.speedBoostDuration = 1000; // 1 second in milliseconds
+
     this.bounceForce = new Vec2(0, 0);
   }
 
@@ -210,9 +215,81 @@ export class PhysicsEntity extends Entity {
         other.boundingBox.updateX();
         other.boundingBox.updateY();
 
+        // Transfer speed between entities
+        this.transferSpeed(other);
+        other.transferSpeed(this);
+
         return true;
       }
     }
     return false;
+  }
+
+  handleCollision(otherEntity) {
+    if (otherEntity instanceof PhysicsEntity) {
+      // Calculate collision response
+      const dx = otherEntity.position.x - this.position.x;
+      const dy = otherEntity.position.y - this.position.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      // Normalize collision vector
+      const nx = dx / distance;
+      const ny = dy / distance;
+
+      // Calculate relative velocity
+      const relativeVelocityX = this.velocity.x - otherEntity.velocity.x;
+      const relativeVelocityY = this.velocity.y - otherEntity.velocity.y;
+
+      // Calculate relative velocity in terms of the normal direction
+      const velocityAlongNormal = relativeVelocityX * nx + relativeVelocityY * ny;
+
+      // Do not resolve if velocities are separating
+      if (velocityAlongNormal > 0) return;
+
+      // Calculate restitution
+      const restitution = 0.8;
+
+      // Calculate impulse scalar
+      const impulseScalar = -(1 + restitution) * velocityAlongNormal;
+      const impulseX = impulseScalar * nx;
+      const impulseY = impulseScalar * ny;
+
+      // Apply impulse
+      this.velocity.x += impulseX;
+      this.velocity.y += impulseY;
+      otherEntity.velocity.x -= impulseX;
+      otherEntity.velocity.y -= impulseY;
+
+      // Transfer speed between entities
+      this.transferSpeed(otherEntity);
+      otherEntity.transferSpeed(this);
+    }
+  }
+
+  transferSpeed(otherEntity) {
+    // Clear any existing speed boost timer
+    if (this.speedBoostTimer) {
+      clearTimeout(this.speedBoostTimer);
+    }
+
+    // Set our max speed to match the other entity's current max speed
+    this.maxSpeed = otherEntity.maxSpeed;
+
+    // Set a timer to reset our speed after 1 second
+    this.speedBoostTimer = setTimeout(() => {
+      this.maxSpeed = this.originalMaxSpeed;
+      this.speedBoostTimer = null;
+    }, this.speedBoostDuration);
+  }
+
+  getState() {
+    return {
+      x: this.position.x,
+      y: this.position.y,
+      width: this.boundingBox.width,
+      height: this.boundingBox.height,
+      velocity: this.velocity,
+      maxSpeed: this.maxSpeed
+    };
   }
 }
