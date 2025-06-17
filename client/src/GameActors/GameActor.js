@@ -33,7 +33,7 @@ class GameActor {
   async loadImages() {
     // Create an array of promises for each image
     const imagePromises = this.imageNames.map(async (imageName, i) => {
-      const loadedImg = await loadImageAsync(this.p, imageName);
+      const loadedImg = await this.game.loadImage(imageName);
       this.spriteImages.push(loadedImg);
     });
 
@@ -57,11 +57,6 @@ class GameActor {
   }
 
   display() {
-
-    this.p.fill(255, 0, 0);
-    this.p.noStroke();
-    this.p.ellipse(this.x + this.width / 2, this.y + this.height / 2, this.width, this.height);
-
     if (this.isAnimated && this.sprite) {
       this.p.push();
       this.p.translate(this.x + this.width / 2, this.y + this.width / 2);
@@ -100,7 +95,7 @@ class GameActor {
       } else {
         // Fallback to a colored rectangle
         this.p.fill(100);
-        this.p.rect(0, 0, this.width, this.height);
+        this.p.rect(-this.width / 2, -this.height / 2, this.width, this.height);
       }
       this.p.pop();
     }

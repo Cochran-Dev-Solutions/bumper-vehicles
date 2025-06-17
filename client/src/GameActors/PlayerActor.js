@@ -20,7 +20,7 @@ export class PlayerActor extends DynamicActor {
 
     // Store powerup names from userData
     this.powerups = config.powerups || [];
-    
+
     // Map to store loaded powerup images
     this.powerup_images = new Map();
 
@@ -46,7 +46,6 @@ export class PlayerActor extends DynamicActor {
 
     this.lastInputUpdate = 0;
     this.inputUpdateInterval = 1000 / 60; // 60fps
-
     this.radius = config.radius;
   }
 
@@ -54,7 +53,7 @@ export class PlayerActor extends DynamicActor {
     await super.loadImages();
 
     if (!this.isLocalPlayer) return;
-    
+
     // Load powerup images
     for (const powerupName of this.powerups) {
       try {
@@ -65,8 +64,6 @@ export class PlayerActor extends DynamicActor {
         console.error("Failed to load powerup image:", powerupName, error);
       }
     }
-
-    
   }
 
   /**
@@ -106,6 +103,11 @@ export class PlayerActor extends DynamicActor {
       this.updateInputs();
       this.sendInputs();
     }
+
+    // temp
+    this.p.fill(255, 0, 0);
+    this.p.noStroke();
+    this.p.ellipse(this.x + this.width / 2, this.y + this.height / 2, this.width, this.height);
 
     this.display();
   }

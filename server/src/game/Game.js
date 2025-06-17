@@ -22,6 +22,7 @@ export default class Game {
     this.reconnect_timeout = 6000; // 6 seconds to reconnect
     this.passiveActorIdCounter = 0;
     this.changed_actors = new Set();
+    this.new_actors = new Set(); // Track newly added actors
     this.spawn_points = []; // Will store available spawn points
     this.taken_spawn_points = new Map(); // Maps player ID to spawn point index
 
@@ -113,8 +114,6 @@ export default class Game {
       return null;
     }
 
-    console.log("Testing player spawn Data: ", spawnData);
-
     const player = new PlayerEntity({
       position: spawnData.position,
       type: 'player',
@@ -133,7 +132,7 @@ export default class Game {
     this.physicsWorld.addEntity(player);
 
     const shouldStartGame = this.players.size >= this.requiredPlayers;
-    return { player, shouldStartGame };
+    return shouldStartGame;
   }
 
   handleDisconnect(socketId, io) {
@@ -242,12 +241,9 @@ export default class Game {
    * @returns {Array} Array of actor state data
    */
   getChangedActorsState() {
-    const actors = [];
-
-    // Iterate directly over changed actors
-    this.changed_actors.forEach(actor => {
+    const actors = Array.from(this.changed_actors).map(actor => {
       if (actor.socketId) { // It's a player
-        actors.push({
+        return {
           id: actor.id,
           type: 'player',
           disconnected: actor.disconnected,
@@ -257,21 +253,45 @@ export default class Game {
           width: actor.size.x,
           height: actor.size.y,
           flags: actor.flags
-        });
+        };
       } else { // It's a passive actor
-        actors.push({
+        return {
           id: actor.id,
           type: actor.type,
           x: actor.boundingBox.left,
           y: actor.boundingBox.top,
           width: actor.size.x,
           height: actor.size.y
-        });
+        };
       }
     });
 
     // Clear the changed actors set after getting their state
     this.changed_actors.clear();
+
+    return actors;
+  }
+
+  /**
+   * Mark an actor as new
+   * @param {Entity} actor - The actor that is new
+   */
+  markActorNew(actor) {
+    this.new_actors.add(actor);
+  }
+
+  /**
+   * Get state data for all new actors
+   * @returns {Array} Array of new actor state data
+   */
+  getNewActorsState() {
+    const actors = Array.from(this.new_actors).map(actor => {
+      return actor.getState();
+    });
+
+
+    // Clear the new actors set after getting their state
+    this.new_actors.clear();
 
     return actors;
   }
@@ -283,7 +303,8 @@ export default class Game {
   getState() {
     return {
       type: this.type,
-      actors: this.getChangedActorsState()
+      actors: this.getChangedActorsState(),
+      new_actors: this.getNewActorsState()
     };
   }
 

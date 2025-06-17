@@ -222,7 +222,7 @@ io.on('connection', (socket) => {
 
     // Generate unique player ID before adding to game
     const playerId = generateUniquePlayerId();
-    const { player, shouldStartGame } = game.addPlayer(socket.id, userData, playerId);
+    const shouldStartGame = game.addPlayer(socket.id, userData, playerId);
 
     player_game_map.set(playerId, game);
     socket_game_map.set(socket.id, game);

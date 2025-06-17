@@ -6,6 +6,7 @@ import sceneManager from "../EventObjects/SceneManager.js";
 import keyManager from '../EventObjects/KeyManager.js';
 import { userData } from "../globals.js";
 import PowerupActor from "./PowerupActor.js";
+import { loadImageAsync } from "../utils/images.js";
 
 function showReconnectingOverlay() {
   const container = document.createElement('div');
@@ -89,6 +90,29 @@ class GameRenderer {
     this.popUpY = null;
     this.footerHeight = 100;
     this.activatePopUp = false;
+
+    // Image cache to prevent loading the same image multiple times
+    this.imageCache = new Map();
+  }
+
+  /**
+   * Load an image through the cache. If the image is already loaded, return the cached version.
+   * @param {string} imagePath - The path to the image
+   * @returns {Promise<p5.Image>} The loaded image
+   */
+  async loadImage(imagePath) {
+    if (this.imageCache.has(imagePath)) {
+      return this.imageCache.get(imagePath);
+    }
+
+    try {
+      const loadedImg = await loadImageAsync(this.p, imagePath);
+      this.imageCache.set(imagePath, loadedImg);
+      return loadedImg;
+    } catch (error) {
+      console.error(`Failed to load image: ${imagePath}`, error);
+      throw error;
+    }
   }
 
   async setup(p5Instance, gameInfo) {
@@ -130,9 +154,9 @@ class GameRenderer {
 
     // Create passive actors
     gameInfo.initial_game_state.passive_actors.forEach(actor => {
-      const ActorClass = this.type_actor_map.get(actor.type);
-      if (ActorClass) {
-        const newActor = new ActorClass({
+      const ActorConstructor = this.type_actor_map.get(actor.type);
+      if (ActorConstructor) {
+        const newActor = new ActorConstructor({
           p: this.p,
           x: actor.x,
           y: actor.y,
@@ -301,9 +325,33 @@ class GameRenderer {
   }
 
   updateState(state) {
+    // Handle changed actors
     Object.values(state.actors).forEach(actorState => {
       const actor = this.id_actor_map.get(actorState.id);
       if (actor) actor.updateState(actorState)
+    });
+
+    // Handle new actors
+    state.new_actors.forEach(async actor => {
+      const ActorConstructor = this.type_actor_map.get(actor.type);
+      if (ActorConstructor) {
+        const newActor = new ActorConstructor({
+          p: this.p,
+          game: this,
+          ...actor
+        });
+        this.actors.push(newActor);
+        this.id_actor_map.set(actor.id, newActor);
+
+        // Load images for the new actor
+        try {
+          await newActor.loadImages();
+        } catch (error) {
+          console.error(`Failed to load images for actor ${actor.id}:`, error);
+        }
+      } else {
+        console.warn(`Unknown actor type: ${actor.type}`);
+      }
     });
   }
 

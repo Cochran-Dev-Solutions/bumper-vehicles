@@ -35,7 +35,8 @@ export class PlayerEntity extends PhysicsEntity {
     this.powerups = [];
     for (const powerup_name of config.userData.powerups) {
       this.powerups.push(new PowerupEntity({
-        type: powerup_name,
+        id: this.game.generatePassiveActorId(),
+        powerup_type: powerup_name,
         game: this.game,
         position: new Vec2(0, 0),
         size: new Vec2(25, 25),
@@ -43,6 +44,7 @@ export class PlayerEntity extends PhysicsEntity {
       }));
     }
   }
+
   /**
    * Update input state
    * @param {Object} newInput 
@@ -77,29 +79,23 @@ export class PlayerEntity extends PhysicsEntity {
     // if 1/2/3/4/5/Z key is pressed, activate the corresponding powerup
     if (this.input.one && this.powerups.length > 0) {
       this.activatePowerup(0);
-      this.powerups.splice(0, 1);
-      this.powerup_names.splice(0, 1);
     } else if (this.input.two && this.powerups.length > 1) {
       this.activatePowerup(1);
-      this.powerups.splice(1, 1);
-      this.powerup_names.splice(1, 1);
     } else if (this.input.three && this.powerups.length > 2) {
       this.activatePowerup(2);
-      this.powerups.splice(2, 1);
-      this.powerup_names.splice(2, 1);
     } else if (this.input.four && this.powerups.length > 3) {
       this.activatePowerup(3);
-      this.powerups.splice(3, 1);
-      this.powerup_names.splice(3, 1);
     } else if (this.input.five && this.powerups.length > 4) {
       this.activatePowerup(4);
-      this.powerups.splice(4, 1);
-      this.powerup_names.splice(4, 1);
-    } 
+    }
+
+    this.input = {};
   }
 
   activatePowerup(powerup_index) {
     this.powerups[powerup_index].activate(this.position);
+    this.powerups.splice(powerup_index, 1);
+    this.powerup_names.splice(powerup_index, 1);
   }
 
   handlePlayerCollisions() {

@@ -5,13 +5,12 @@ export default class PowerUpEntity extends PhysicsEntity {
   constructor(config) {
     super({ ...config, type: 'powerup' });
 
-    this.type = config.type;
+    this.powerup_type = config.powerup_type;
   }
 
   activate(position) {
     // update position & bounding box
-    this.position = position;
-    console.log("Activating powerup at position: ", this.position);
+    this.position = position.copy();
 
     this.size = new Vec2(25, 25);
 
@@ -20,10 +19,9 @@ export default class PowerUpEntity extends PhysicsEntity {
       facing: 'right' // Can be 'left' or 'right'
     };
 
-    console.log("Game entities before: ", this.game.passive_actors.length);
-
     this.game.passive_actors.push(this);
     this.game.physicsWorld.addEntity(this);
+    this.game.markActorNew(this);
 
     // // register empty lsit
     if (this.type in this.game.actor_lists) {
@@ -32,8 +30,18 @@ export default class PowerUpEntity extends PhysicsEntity {
       this.game.actor_lists[this.type] = [];
       this.game.actor_lists[this.type].push(this);
     }
+  }
 
-    console.log("Game entities after: ", this.game.passive_actors.length);
+  getState() {
+    return {
+      id: this.id,
+      type: this.type,
+      x: this.position.x,
+      y: this.position.y,
+      width: this.size.x,
+      height: this.size.y,
+      powerup_type: this.powerup_type
+    };
   }
 
   /**
