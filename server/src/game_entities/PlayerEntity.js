@@ -20,11 +20,6 @@ export class PlayerEntity extends PhysicsEntity {
     this.boostMoveForce = 12;
     this.currentMoveForce = this.normalMoveForce;
 
-    // Speed limits
-    this.maxNormalSpeed = 10;
-    this.maxBoostSpeed = 20;
-    this.maxSpeed = this.maxNormalSpeed;
-
     this.input = {
       up: false,
       down: false,
@@ -57,8 +52,8 @@ export class PlayerEntity extends PhysicsEntity {
     // Boost timers
     this.boostChargeStartTime = null;
     this.boostStartTime = null;
-    this.boostChargeDuration = 1000; // 1 second
-    this.boostDuration = 1000; // 1 second
+    this.boostChargeDuration = 1000;
+    this.boostDuration = 1000;
   }
 
   /**
@@ -101,6 +96,8 @@ export class PlayerEntity extends PhysicsEntity {
     }
     // Handle boost phase
     else if (this.flags.boosting) {
+      this.maxSpeed = this.boostMaxSpeed;
+      this.currentMoveForce = this.boostMoveForce;
       if (currentTime - this.boostStartTime >= this.boostDuration) {
         this.endBoost();
       }
@@ -108,8 +105,9 @@ export class PlayerEntity extends PhysicsEntity {
   }
 
   endBoost() {
+    console.log("End BOost: ", this.maxSpeed, this.currentMoveForce);
     this.flags.boosting = false;
-    this.maxSpeed = this.maxNormalSpeed;
+    this.maxSpeed = this.originalMaxSpeed;
     this.currentMoveForce = this.normalMoveForce;
     this.game.markActorChanged(this);
   }
@@ -120,14 +118,6 @@ export class PlayerEntity extends PhysicsEntity {
   handleInputs() {
     // Update boost state
     this.updateBoostState();
-
-    if (this.flags.boosting) {
-      this.maxSpeed = this.maxBoostSpeed;
-      this.currentMoveForce = this.boostMoveForce;
-    } else {
-      this.maxSpeed = this.maxNormalSpeed;
-      this.currentMoveForce = this.normalMoveForce;
-    }
 
     if (this.input.left && this.velocity) {
       this.applyForce(new Vec2(-this.currentMoveForce, 0));
