@@ -67,13 +67,6 @@ class GameRenderer {
       ['powerup', PowerupActor]
     ]);
 
-    // Powerup image mapping
-    this.powerupImages = new Map([
-      ['mine', 'Powerups/mine.png'],
-      ['missile', 'Powerups/missile.png'],
-      ['heart', 'Powerups/heart.png']
-    ]);
-
     // initalized on setup
     this.p = config.p || null; // p5.js instance
     this.localPlayer = null;
@@ -142,8 +135,9 @@ class GameRenderer {
         radius: player.radius,
         id: player.id,
         socket_id: this.socket_id,
-        powerups: userData.powerups,
-        game: this
+        powerups: player.powerups,
+        game: this,
+        lives: player.lives
       });
       if (player.id === this.player_id) {
         this.localPlayer = newPlayer;
@@ -195,10 +189,50 @@ class GameRenderer {
       this.ableToReconnect = true;
     });
 
+    socket.on('local-state-specific-data', (data) => {
+      if (data.attributeName && data.attributeValue !== undefined) {
+        this.localPlayer[data.attributeName] = data.attributeValue;
+      }
+    });
+
     // Set up Z key press callback
     keyManager.onKeyPress('z', () => {
       this.activatePopUp = !this.activatePopUp;
     });
+  }
+
+  async displayLives() {
+    if (!this.localPlayer) return;
+    const heartImage = await this.loadImage('Powerups/heart.png');
+
+    const lives = this.localPlayer.lives;
+    const iconSize = 40;
+    const x = this.p.width - iconSize - 15;
+    const y = 15;
+    this.p.push();
+    if (heartImage) {
+      this.p.image(heartImage, x, y, iconSize, iconSize);
+    }
+    this.p.fill(255);
+    this.p.textAlign(this.p.CENTER, this.p.BOTTOM);
+    this.p.textSize(28);
+    this.p.text(lives, x + iconSize / 2, y + iconSize - 5);
+    this.p.pop();
+  }
+
+  displayBoostArc() {
+    if (!this.localPlayer) return;
+    // Draw an arc at the bottom right
+    const arcSize = 40;
+    const x = this.p.width - 85;
+    const y = 35;
+    this.p.push();
+    this.p.noFill();
+    this.p.stroke(0, 200, 255);
+    this.p.strokeWeight(8);
+    // Draw the arc from 0 to boostReloadPercentage (in degrees)
+    this.p.arc(x, y, arcSize, arcSize, -this.p.HALF_PI, -this.p.HALF_PI + this.p.radians(this.localPlayer.boostReloadPercentage));
+    this.p.pop();
   }
 
   displayFooter() {
@@ -236,12 +270,17 @@ class GameRenderer {
         }
       });
     }
+
   }
 
   update() {
     this.actors.forEach(actor => actor.update());
 
     this.displayFooter();
+
+    // Draw lives and boost arc
+    this.displayLives();
+    this.displayBoostArc();
   }
 
   // reinitialize game connection

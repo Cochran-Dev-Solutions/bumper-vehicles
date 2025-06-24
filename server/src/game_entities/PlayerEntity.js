@@ -15,6 +15,8 @@ export class PlayerEntity extends PhysicsEntity {
       elasticity: 0.5
     });
 
+    this.lives = 3;
+
     // Movement forces
     this.normalMoveForce = 6;
     this.boostMoveForce = 12;
@@ -44,7 +46,6 @@ export class PlayerEntity extends PhysicsEntity {
         powerup_type: powerup_name,
         game: this.game,
         position: new Vec2(0, 0),
-        size: new Vec2(25, 25),
         tileMap: this.tileMap
       }));
     }
@@ -52,8 +53,12 @@ export class PlayerEntity extends PhysicsEntity {
     // Boost timers
     this.boostChargeStartTime = null;
     this.boostStartTime = null;
+    this.boostReloadStartTime = 0;
     this.boostChargeDuration = 1000;
     this.boostDuration = 1000;
+    this.boostReloadDuration = 10000;
+
+    this.socket = config.socket;
   }
 
   /**
@@ -77,9 +82,11 @@ export class PlayerEntity extends PhysicsEntity {
   }
 
   startBoostCharge() {
-    this.flags.about_to_boost = true;
-    this.boostChargeStartTime = Date.now();
-    this.game.markActorChanged(this);
+    if (Date.now() - this.boostReloadStartTime >= this.boostReloadDuration) {
+      this.flags.about_to_boost = true;
+      this.boostChargeStartTime = Date.now();
+      this.game.markActorChanged(this);
+    }
   }
 
   updateBoostState() {
@@ -87,12 +94,16 @@ export class PlayerEntity extends PhysicsEntity {
 
     // Handle boost charge phase
     if (this.flags.about_to_boost) {
+      // this.boostReloadStartTime += (Date.now() - this.boostReloadStartTime) / ((currentTime - this.boostChargeStartTime) / this.boostChargeDuration);
+      this.boostReloadStartTime = currentTime;
       if (currentTime - this.boostChargeStartTime >= this.boostChargeDuration) {
         this.flags.about_to_boost = false;
         this.flags.boosting = true;
         this.boostStartTime = currentTime;
         this.game.markActorChanged(this);
       }
+
+      this.updateClient('boostReloadPercentage', Math.max(360 * (this.boostChargeDuration - (currentTime - this.boostChargeStartTime) * 1) / this.boostChargeDuration, 0));
     }
     // Handle boost phase
     else if (this.flags.boosting) {
@@ -101,11 +112,15 @@ export class PlayerEntity extends PhysicsEntity {
       if (currentTime - this.boostStartTime >= this.boostDuration) {
         this.endBoost();
       }
+    } else {
+      // emit back boost recharge state
+      this.updateClient('boostReloadPercentage', ((Math.min(currentTime - this.boostReloadStartTime, this.boostReloadDuration)) / this.boostReloadDuration) * 360);
     }
+
+
   }
 
   endBoost() {
-    console.log("End BOost: ", this.maxSpeed, this.currentMoveForce);
     this.flags.boosting = false;
     this.maxSpeed = this.originalMaxSpeed;
     this.currentMoveForce = this.normalMoveForce;
@@ -148,7 +163,7 @@ export class PlayerEntity extends PhysicsEntity {
   }
 
   activatePowerup(powerup_index) {
-    this.powerups[powerup_index].activate(this.position);
+    this.powerups[powerup_index].activate(this);
     this.powerups.splice(powerup_index, 1);
     this.powerup_names.splice(powerup_index, 1);
   }
@@ -159,6 +174,16 @@ export class PlayerEntity extends PhysicsEntity {
       // Skip self
       if (otherPlayer.id === this.id) return;
       this.handleCircularCollision(otherPlayer);
+    });
+  }
+
+
+  // updates the client in control of this specific player entity
+  // used for sending back data that only the client in control needs
+  updateClient(attributeName, attributeValue) {
+    this.socket.emit('local-state-specific-data', {
+      attributeName,
+      attributeValue
     });
   }
 
@@ -177,7 +202,7 @@ export class PlayerEntity extends PhysicsEntity {
       this.applyDrag();
     }
 
-    // update X and check for collisions along the x-axis
+    // update position
     this.updateX();
     this.updateY();
 
@@ -201,6 +226,7 @@ export class PlayerEntity extends PhysicsEntity {
       height: this.size.y,
       disconnected: this.disconnected,
       powerups: this.powerup_names,
+      lives: this.lives,
       flags: this.flags
     };
   }
@@ -212,7 +238,8 @@ export class PlayerEntity extends PhysicsEntity {
       y: this.boundingBox.top,
       disconnected: this.disconnected,
       powerups: this.powerup_names,
-      flags: this.flags
+      flags: this.flags,
+      lives: this.lives
     };
   }
 } 

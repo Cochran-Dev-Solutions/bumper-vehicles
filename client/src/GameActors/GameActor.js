@@ -21,8 +21,10 @@ export default class GameActor {
 
     // Rotation variables
     this.rotation = 0;
-    this.rotationSpeed = 0.2;
-    this.rotationDirection = 1;
+    this.scaleX = 1;
+    this.scaleY = 1;
+    this.opacity = 1;
+
 
     // for players
     this.disconnected = false;
@@ -66,16 +68,9 @@ export default class GameActor {
       this.p.push();
       this.p.translate(this.x + this.width / 2, this.y + this.width / 2);
       this.p.rotate(this.rotation);
-
-      // Flip horizontally if facing left
-      if (this.flags.facing === 'left') {
-        this.p.scale(-1, 1);
-      }
-
-      // Add blinking effect if disconnected
-      if (this.disconnected) {
-        const alpha = this.p.sin(this.p.frameCount * 0.1) * 127 + 128; // Oscillate between 128 and 255
-        this.p.tint(255, alpha);
+      this.p.scale(this.scaleX, this.scaleY);
+      if (this.opacity < 1) {
+        this.p.tint(255, this.opacity * 255);
       }
 
       this.sprite.display(this.p, -this.width / 2, -this.height / 2, this.width, this.height);
@@ -84,16 +79,9 @@ export default class GameActor {
       this.p.push();
       this.p.translate(this.x + this.width / 2, this.y + this.height / 2);
       this.p.rotate(this.rotation);
-
-      // Flip horizontally if facing left
-      if (this.flags.facing === 'left') {
-        this.p.scale(-1, 1);
-      }
-
-      // Add blinking effect if disconnected
-      if (this.disconnected) {
-        const alpha = this.p.sin(this.p.frameCount * 0.1) * 127 + 128; // Oscillate between 128 and 255
-        this.p.tint(255, alpha);
+      this.p.scale(this.scaleX, this.scaleY);
+      if (this.opacity < 1) {
+        this.p.tint(255, this.opacity * 255);
       }
 
       // Display the image if it exists, otherwise show a fallback shape

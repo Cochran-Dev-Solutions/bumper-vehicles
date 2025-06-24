@@ -14,4 +14,5 @@ const userData = {
   powerups: ["mine", "missile", "heart"],
 };
 
+
 export { gameInfo, updateGameInfo, userData };

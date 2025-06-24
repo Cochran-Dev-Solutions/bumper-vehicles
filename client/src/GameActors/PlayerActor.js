@@ -1,6 +1,7 @@
 import keyManager from '../EventObjects/KeyManager.js';
 import socket from '../networking/socket.js';
 import DynamicActor from './DynamicActor.js';
+import PowerupActor from './PowerupActor.js';
 import { loadImageAsync } from '../utils/images.js';
 
 export class PlayerActor extends DynamicActor {
@@ -17,6 +18,7 @@ export class PlayerActor extends DynamicActor {
 
     this.isLocalPlayer = config.isLocalPlayer;
     this.socket_id = config.socket_id || null;
+    this.lives = config.lives;
 
     // Store powerup names from userData
     this.powerups = config.powerups || [];
@@ -53,6 +55,8 @@ export class PlayerActor extends DynamicActor {
     this.lastInputUpdate = 0;
     this.inputUpdateInterval = 1000 / 60; // 60fps
     this.radius = config.radius;
+
+    this.boostReloadPercentage = 360; // 360 means boost is ready
   }
 
   async loadImages() {
@@ -63,7 +67,7 @@ export class PlayerActor extends DynamicActor {
     // Load powerup images
     for (const powerupName of this.powerups) {
       try {
-        const imagePath = this.game.powerupImages.get(powerupName);
+        const imagePath = PowerupActor.powerupTypes.get(powerupName).imageURL;
         const loadedImg = await loadImageAsync(this.p, imagePath);
         this.powerup_images.set(powerupName, loadedImg);
       } catch (error) {
@@ -123,6 +127,15 @@ export class PlayerActor extends DynamicActor {
     } else {
       this.rotation = 0;
       this.oscillationTime = 0;
+    }
+
+    this.scaleX = (this.flags.facing === 'left') ? -1 : 1;
+
+    // Add blinking effect if disconnected
+    if (this.disconnected) {
+      this.opacity = this.p.sin(this.p.frameCount * 0.1) * 0.5 + 0.5;
+    } else {
+      this.opacity = 1;
     }
 
     this.display();
