@@ -23,6 +23,7 @@ export default class Game {
     this.passiveActorIdCounter = 0;
     this.changed_actors = new Set();
     this.new_actors = new Set(); // Track newly added actors
+    this.removed_actors = new Set();
     this.spawn_points = []; // Will store available spawn points
     this.taken_spawn_points = new Map(); // Maps player ID to spawn point index
 
@@ -265,6 +266,16 @@ export default class Game {
     return actors;
   }
 
+  markActorRemoved(actor) {
+    this.removed_actors.add(actor.id);
+  }
+
+  getRemovedActorsIds() {
+    const actorIds = Array.from(this.removed_actors);
+    this.removed_actors.clear();
+    return actorIds;
+  }
+
   /**
    * Get current game state
    * @returns {Object} Game state data
@@ -273,7 +284,8 @@ export default class Game {
     return {
       type: this.type,
       actors: this.getChangedActorsState(),
-      new_actors: this.getNewActorsState()
+      new_actors: this.getNewActorsState(),
+      removed_actor_ids: this.getRemovedActorsIds()
     };
   }
 

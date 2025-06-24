@@ -5,7 +5,21 @@ class PowerupActor extends DynamicActor {
     ['mine', {
       imageURL: 'Powerups/mine.png',
       display: function (p) {
-        this.rotation += 0.02;
+        if (this.deactivated) {
+          // todo: explosion instead of shake
+          this.rotation += Math.sin(Date.now() / 125) / 20;
+
+          this.blowUpTime++;
+          if (this.blowUpTime > 50) {
+            this.superRemoveFromGame();
+          }
+        } else {
+          this.rotation += 0.02;
+        }
+      },
+      removeFromGame() {
+        this.blowUpTime = 0;
+        this.deactivated = true;
       }
     }],
     ['missile', {
@@ -32,9 +46,15 @@ class PowerupActor extends DynamicActor {
     if (powerupData) {
       this.imageNames.push(powerupData.imageURL);
       // Create a per-instance display function that calls the shared one with the correct context
-      this.displayPowerup = function (p) {
-        powerupData.display.call(this, p);
+      this.displayPowerup = function () {
+        powerupData.display.call(this, this.p);
       };
+      if (powerupData.removeFromGame) {
+        this.superRemoveFromGame = super.removeFromGame;
+        this.removeFromGame = function () {
+          powerupData.removeFromGame.call(this, this.p);
+        };
+      }
       this.powerupData = powerupData;
     } else {
       console.warn(`No data found for powerup type: ${config.powerup_type}`);

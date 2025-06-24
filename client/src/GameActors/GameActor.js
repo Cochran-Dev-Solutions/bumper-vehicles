@@ -101,6 +101,17 @@ export default class GameActor {
     Object.assign(this, stateToUpdate);
   }
 
+  removeFromGame() {
+    // Remove from id_actor_map
+    this.game.id_actor_map.delete(this.id);
+
+    // Remove from actors array
+    const idx = this.game.actors.indexOf(this);
+    if (idx !== -1) {
+      this.game.actors.splice(idx, 1);
+    }
+  }
+
   update() {
     throw new Error('Method update() must be implemented by subclass');
   }

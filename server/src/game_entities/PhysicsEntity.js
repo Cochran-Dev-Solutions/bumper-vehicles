@@ -13,7 +13,7 @@ export class PhysicsEntity extends Entity {
     this.boostMaxSpeed = config.boostMaxSpeed || 20;
     this.maxSpeed = this.originalMaxSpeed;
     this.applyForces = new Vec2(0, 0);
-    this.elasticity = config.elasticity
+    this.elasticity = config.elasticity || 0.5;
 
     this.bumpBoostTimer = null;
     this.bumpBoostDuration = 500; // m/s

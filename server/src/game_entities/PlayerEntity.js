@@ -166,6 +166,7 @@ export class PlayerEntity extends PhysicsEntity {
     this.powerups[powerup_index].activate(this);
     this.powerups.splice(powerup_index, 1);
     this.powerup_names.splice(powerup_index, 1);
+    this.updateClient('powerups', this.powerup_names);
   }
 
   handlePlayerCollisions() {
@@ -176,7 +177,6 @@ export class PlayerEntity extends PhysicsEntity {
       this.handleCircularCollision(otherPlayer);
     });
   }
-
 
   // updates the client in control of this specific player entity
   // used for sending back data that only the client in control needs

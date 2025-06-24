@@ -392,6 +392,14 @@ class GameRenderer {
         console.warn(`Unknown actor type: ${actor.type}`);
       }
     });
+
+    // handle removed actors
+    state.removed_actor_ids.forEach((id) => {
+      const actor = this.id_actor_map.get(id);
+      if (actor) {
+        actor.removeFromGame();
+      }
+    });
   }
 
   /**
