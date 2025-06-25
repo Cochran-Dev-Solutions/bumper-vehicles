@@ -9,7 +9,7 @@ export default class PowerupEntity extends PhysicsEntity {
         this.game.players.forEach((player) => {
           const collided = this.handleCircularCollision(player);
           if (collided) {
-            this.player.lives--;
+            player.lives--;
             this.game.markActorChanged(this.player);
             this.remove();
           }
