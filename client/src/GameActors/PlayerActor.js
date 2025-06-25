@@ -9,12 +9,14 @@ export class PlayerActor extends DynamicActor {
     super({ ...config, isAnimated: true, width: config.radius * 2, height: config.radius * 2 });
 
     // names of images we want to load for our player
-    this.imageNames.push(
-      'Penguin/penguin_walk01.png',
-      'Penguin/penguin_walk02.png',
-      'Penguin/penguin_walk03.png',
-      'Penguin/penguin_walk04.png'
-    );
+    // this.imageNames.push(
+    //   'Penguin/penguin_walk01.png',
+    //   'Penguin/penguin_walk02.png',
+    //   'Penguin/penguin_walk03.png',
+    //   'Penguin/penguin_walk04.png'
+    // );
+
+    this.imageNames.push('BVC_Example.png');
 
     this.isLocalPlayer = config.isLocalPlayer;
     this.socket_id = config.socket_id || null;
@@ -116,7 +118,7 @@ export class PlayerActor extends DynamicActor {
       this.sendInputs();
     }
 
-    this.p.fill(255, 0, 0);
+    this.p.fill(255, 0, 0, 100);
     this.p.noStroke();
     this.p.ellipse(this.x + this.width / 2, this.y + this.height / 2, this.width, this.height);
 
@@ -125,8 +127,22 @@ export class PlayerActor extends DynamicActor {
       this.oscillationTime += this.oscillationSpeed;
       this.rotation = Math.sin(this.oscillationTime) * this.oscillationAmplitude;
     } else {
-      this.rotation = 0;
       this.oscillationTime = 0;
+
+      if (this.isLocalPlayer) {
+        // Directional rotation based on input using keyManager
+        if (keyManager.pressed('up') && keyManager.pressed('left')) {
+          this.rotation += (this.p.radians(45) - this.rotation) / 25;
+        } else if (keyManager.pressed('up') && keyManager.pressed('right')) {
+          this.rotation += (this.p.radians(-45) - this.rotation) / 25;
+        } else if (keyManager.pressed('down') && keyManager.pressed('left')) {
+          this.rotation += (this.p.radians(-45) - this.rotation) / 25;
+        } else if (keyManager.pressed('down') && keyManager.pressed('right')) {
+          this.rotation += (this.p.radians(45) - this.rotation) / 25;
+        } else {
+          this.rotation += (0 - this.rotation) / 25;
+        }
+      }
     }
 
     this.scaleX = (this.flags.facing === 'left') ? -1 : 1;
@@ -138,6 +154,13 @@ export class PlayerActor extends DynamicActor {
       this.opacity = 1;
     }
 
+    // temporarily scale the player
+    this.scaleX *= 1.2;
+    this.scaleY *= 1.2;
+
     this.display();
+
+    this.scaleX = 1;
+    this.scaleY = 1;
   }
 } 
