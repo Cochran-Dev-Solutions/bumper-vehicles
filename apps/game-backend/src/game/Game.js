@@ -62,7 +62,7 @@ export default class Game {
           ...instruction.parameters,
           id: this.generatePassiveActorId(),
           tileMap: this.physicsWorld.tileMap,
-          game: this
+          game: this,
         });
         if (entity.hasUpdate) {
           this.physicsWorld.addEntity(entity);
@@ -70,7 +70,6 @@ export default class Game {
         this.passive_actors.push(entity);
       }
     });
-
 
     // Set required players based on number of spawn points
     this.requiredPlayers = this.spawn_points.length;
@@ -82,8 +81,9 @@ export default class Game {
    */
   getRandomSpawnPoint() {
     // Find available spawn points (not in taken_spawn_points)
-    const availableSpawnPoints = this.spawn_points.filter((_, index) =>
-      !Array.from(this.taken_spawn_points.values()).includes(index)
+    const availableSpawnPoints = this.spawn_points.filter(
+      (_, index) =>
+        !Array.from(this.taken_spawn_points.values()).includes(index)
     );
 
     if (availableSpawnPoints.length === 0) {
@@ -119,11 +119,11 @@ export default class Game {
       type: "player",
       radius: TileMap.getGridSize() / 2,
       socketId: socket.id,
-      id: playerId,  // Use the provided playerId instead of generating one
+      id: playerId, // Use the provided playerId instead of generating one
       tileMap: this.physicsWorld.tileMap,
       game: this,
       userData: userData,
-      socket: socket
+      socket: socket,
     });
 
     // Mark spawn point as taken
@@ -146,7 +146,9 @@ export default class Game {
       setTimeout(() => {
         // Check if player is still disconnected
         if (player.disconnected) {
-          console.log(`Player ${player.id} timed out after ${this.reconnect_timeout}ms`);
+          console.log(
+            `Player ${player.id} timed out after ${this.reconnect_timeout}ms`
+          );
 
           // Notify all players in this game about the removal
           this.players.forEach((_, socketId) => {
@@ -242,7 +244,9 @@ export default class Game {
    * @returns {Array} Array of actor state data
    */
   getChangedActorsState() {
-    const actors = Array.from(this.changed_actors).map(actor => actor.getUpdatedState());
+    const actors = Array.from(this.changed_actors).map((actor) =>
+      actor.getUpdatedState()
+    );
     this.changed_actors.clear();
     return actors;
   }
@@ -260,7 +264,9 @@ export default class Game {
    * @returns {Array} Array of new actor state data
    */
   getNewActorsState() {
-    const actors = Array.from(this.new_actors).map(actor => actor.getInitialState());
+    const actors = Array.from(this.new_actors).map((actor) =>
+      actor.getInitialState()
+    );
     this.new_actors.clear();
     return actors;
   }
@@ -284,7 +290,7 @@ export default class Game {
       type: this.type,
       actors: this.getChangedActorsState(),
       new_actors: this.getNewActorsState(),
-      removed_actor_ids: this.getRemovedActorsIds()
+      removed_actor_ids: this.getRemovedActorsIds(),
     };
   }
 
@@ -295,8 +301,12 @@ export default class Game {
   getInitialState() {
     return {
       type: this.type,
-      players: Array.from(this.players.values()).map(player => player.getInitialState()),
-      passive_actors: this.passive_actors.map(actor => actor.getInitialState())
+      players: Array.from(this.players.values()).map((player) =>
+        player.getInitialState()
+      ),
+      passive_actors: this.passive_actors.map((actor) =>
+        actor.getInitialState()
+      ),
     };
   }
 
@@ -306,4 +316,4 @@ export default class Game {
       io.to(socketId).emit("gameSetup", this.getInitialState());
     });
   }
-} 
+}

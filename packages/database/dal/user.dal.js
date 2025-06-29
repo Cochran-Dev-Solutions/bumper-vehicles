@@ -6,16 +6,61 @@ class UserDal {
   constructor() {
     this.userModel = new UserModel(database.getConnection());
     this.redisClient = null;
-    this.initRedis();
+    this.redisInitialized = false;
+    this.redisInitPromise = null;
+  }
+
+  async ensureRedisInitialized() {
+    if (this.redisInitialized) {
+      return this.redisClient;
+    }
+
+    if (this.redisInitPromise) {
+      // Another request is already initializing Redis
+      return this.redisInitPromise;
+    }
+
+    this.redisInitPromise = this.initRedis();
+    try {
+      await this.redisInitPromise;
+      this.redisInitialized = true;
+      return this.redisClient;
+    } finally {
+      this.redisInitPromise = null;
+    }
   }
 
   async initRedis() {
     try {
       this.redisClient = getRedisClient();
+      console.log("Redis client initialized for UserDal");
     } catch (error) {
       console.warn("Redis not available for caching:", error.message);
       this.redisClient = null;
     }
+  }
+
+  // Example method that uses Redis (lazy loaded)
+  async getUserWithCache(userId) {
+    const redis = await this.ensureRedisInitialized();
+
+    if (redis) {
+      // Try cache first
+      const cached = await redis.get(`user:${userId}`);
+      if (cached) {
+        return JSON.parse(cached);
+      }
+    }
+
+    // Fallback to database
+    const user = await this.userModel.findById(userId);
+
+    // Cache the result if Redis is available
+    if (redis && user) {
+      await redis.setex(`user:${userId}`, 300, JSON.stringify(user)); // 5 min cache
+    }
+
+    return user;
   }
 
   // Invalidate cache when data changes

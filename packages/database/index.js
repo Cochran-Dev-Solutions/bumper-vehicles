@@ -6,18 +6,31 @@ dotenv.config();
 
 class DatabaseConnection {
   constructor() {
+    this.pool = null;
     this.connection = null;
   }
 
   async connect() {
     try {
-      this.connection = await mysql.createConnection({
+      // Use connection pool for better performance
+      this.pool = mysql.createPool({
         uri: process.env.DB_URL,
         timezone: "Z",
         dateStrings: true,
+        // Pool configuration
+        connectionLimit: 10,
+        // Connection timeout
+        connectTimeout: 60000,
+        // Enable connection compression
+        compress: true,
       });
 
-      console.log("Database connected successfully");
+      // Test the pool with a single connection
+      this.connection = await this.pool.getConnection();
+      await this.connection.ping();
+      this.connection.release();
+
+      console.log("Database pool connected successfully");
 
       // Also connect to Redis
       try {
@@ -30,7 +43,7 @@ class DatabaseConnection {
         );
       }
 
-      return this.connection;
+      return this.pool;
     } catch (error) {
       console.error("Database connection failed:", error.message);
       throw error;
@@ -38,10 +51,10 @@ class DatabaseConnection {
   }
 
   async disconnect() {
-    if (this.connection) {
+    if (this.pool) {
       try {
-        await this.connection.end();
-        console.log("Database disconnected");
+        await this.pool.end();
+        console.log("Database pool disconnected");
       } catch (error) {
         console.error("Error disconnecting from database:", error.message);
       }
@@ -56,16 +69,17 @@ class DatabaseConnection {
   }
 
   getConnection() {
-    if (!this.connection) {
+    if (!this.pool) {
       throw new Error("Database not connected. Call connect() first.");
     }
-    return this.connection;
+    return this.pool;
   }
 
   async testConnection() {
     try {
-      const connection = this.getConnection();
+      const connection = await this.pool.getConnection();
       await connection.execute("SELECT 1");
+      connection.release();
       console.log("Database connection test successful");
       return true;
     } catch (error) {
