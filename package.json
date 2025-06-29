@@ -1,16 +1,22 @@
 {
   "name": "bumper-vehicles",
   "version": "1.0.0",
-  "description": "Multiplayer bumper vehicles game",
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "postinstall": "cd server && npm install && cd ../client && npm install",
-    "build": "cd client && npm run build",
-    "start": "cd server && npm start"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "engines": {
-    "node": ">=18.0.0"
-  },
-  "dependencies": {
-    "bumper-vehicles": "file:"
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.12.3",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "devDependencies": {
+    "eslint": "^9.29.0",
+    "vite": "^7.0.0"
   }
 }

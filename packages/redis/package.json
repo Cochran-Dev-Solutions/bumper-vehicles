@@ -1,0 +1,17 @@
+{
+  "name": "@bumper-vehicles/redis",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "UNLICENSED",
+  "type": "module",
+  "dependencies": {
+    "redis": "^4.6.13",
+    "dotenv": "^16.6.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.29.0"
+  },
+  "scripts": {
+    "lint": "eslint ."
+  }
+}

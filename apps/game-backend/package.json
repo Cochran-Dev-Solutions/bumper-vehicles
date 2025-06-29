@@ -1,0 +1,28 @@
+{
+  "name": "game-backend",
+  "version": "1.0.0",
+  "main": "server.js",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@fastify/cors": "^11.0.1",
+    "@fastify/secure-session": "^8.2.0",
+    "@fastify/swagger": "^9.5.1",
+    "@fastify/swagger-ui": "^5.2.3",
+    "@bumper-vehicles/database": "workspace:*",
+    "@bumper-vehicles/mailer": "workspace:*",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.6.0",
+    "fastify": "^5.4.0",
+    "mysql2": "^3.9.0",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon server.js",
+    "start": "node server.js",
+    "lint": "eslint ."
+  }
+}

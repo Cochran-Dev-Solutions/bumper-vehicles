@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bumper Vehicles</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background-color: #1a1a1a;
+      }
+
+      #app-canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        z-index: 1;
+        width: 100vw;
+        height: 100vh;
+      }
+
+      #html-content {
+        position: absolute;
+        left: 0;
+        top: 0;
+        z-index: 2;
+        width: 100vw;
+        height: 100vh;
+        pointer-events: none;
+      }
+
+      form {
+        z-index: 2;
+      }
+
+      #overlay-canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        z-index: 3;
+        width: 100vw;
+        height: 100vh;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="app-canvas"></div>
+    <div id="html-content"></div>
+    <div id="overlay-canvas"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "@bumper-vehicles/mailer",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "UNLICENSED",
+  "type": "module",
+  "dependencies": {
+    "nodemailer": "^6.9.8",
+    "dotenv": "^16.6.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.29.0"
+  },
+  "scripts": {
+    "lint": "eslint ."
+  }
+}
