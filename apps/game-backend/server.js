@@ -119,7 +119,7 @@ const start = async () => {
     await fastify.listen({ port: process.env.PORT || 3000, host: "0.0.0.0" });
     console.log(`Server listening on port ${process.env.PORT || 3000}`);
     console.log(
-      `API Documentation available at: http://localhost:3000/documentation`
+      "API Documentation available at: http://localhost:3000/documentation"
     );
 
     // Initialize WebSocket manager after Fastify server is ready
