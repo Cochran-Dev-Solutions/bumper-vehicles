@@ -48,7 +48,7 @@ class MailerService {
       }
 
       const mailOptions = {
-        from: `"Bumper Vehicles" <no-reply@bumpervehicles.com>`,
+        from: "\"Bumper Vehicles\" <no-reply@bumpervehicles.com>",
         to: email,
         subject: "Verify Your Email - Bumper Vehicles",
         html: `
