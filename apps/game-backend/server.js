@@ -13,9 +13,14 @@ import webSocketManager from "./src/game/websocket-manager.js";
 
 const fastify = Fastify({ logger: true });
 
+const allowedOrigin =
+  process.env.NODE_ENV === "production"
+    ? process.env.PROD_FRONTEND_HOST_URL
+    : process.env.LOCAL_FRONTEND_HOST_URL;
+
 // Add CORS headers
 fastify.addHook("onRequest", async (request, reply) => {
-  reply.header("Access-Control-Allow-Origin", "http://localhost:5173");
+  reply.header("Access-Control-Allow-Origin", allowedOrigin);
   reply.header(
     "Access-Control-Allow-Methods",
     "GET, POST, PUT, PATCH, DELETE, OPTIONS"
@@ -104,6 +109,11 @@ const start = async () => {
     // Register routes after Swagger plugins
     registerUserRoutes(fastify);
     registerAuthRoutes(fastify);
+
+    // Register health check route
+    fastify.get("/health", async (request, reply) => {
+      return { status: "ok" };
+    });
 
     // Start the server
     await fastify.listen({ port: process.env.PORT || 3000, host: "0.0.0.0" });

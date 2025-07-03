@@ -1,8 +1,12 @@
-import mysql from "mysql2/promise";
 import dotenv from "dotenv";
+dotenv.config();
+import mysql from "mysql2/promise";
 import redis from "@bumper-vehicles/redis";
 
-dotenv.config();
+const dbUrl =
+  process.env.NODE_ENV === "production"
+    ? process.env.PROD_DB_URL
+    : process.env.LOCAL_DB_URL;
 
 class DatabaseConnection {
   constructor() {
@@ -14,7 +18,7 @@ class DatabaseConnection {
     try {
       // Use connection pool for better performance
       this.pool = mysql.createPool({
-        uri: process.env.DB_URL,
+        uri: dbUrl,
         timezone: "Z",
         dateStrings: true,
         // Pool configuration

@@ -1,7 +1,11 @@
-import { createClient } from "redis";
 import dotenv from "dotenv";
-
 dotenv.config();
+import { createClient } from "redis";
+
+const redisUrl =
+  process.env.NODE_ENV === "production"
+    ? process.env.PROD_REDIS_URL
+    : process.env.LOCAL_REDIS_URL;
 
 class RedisConnection {
   constructor() {
@@ -11,7 +15,11 @@ class RedisConnection {
   async connect() {
     try {
       this.client = createClient({
-        url: process.env.REDIS_URL || "redis://localhost:6379",
+        url: redisUrl,
+        socket: {
+          tls: true,
+          checkServerIdentity: () => undefined, // disables hostname verification
+        },
       });
 
       this.client.on("error", (err) => {
@@ -23,6 +31,7 @@ class RedisConnection {
       });
 
       await this.client.connect();
+
       return this.client;
     } catch (error) {
       console.error("Redis connection failed:", error.message);
