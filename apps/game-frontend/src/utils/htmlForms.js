@@ -197,7 +197,7 @@ export function createForm({
       submit.style.cursor = "not-allowed";
 
       // Disable extra buttons too
-      const extraButtons = form.querySelectorAll('button[type="button"]');
+      const extraButtons = form.querySelectorAll("button[type=\"button\"]");
       extraButtons.forEach((btn) => {
         btn.disabled = true;
         btn.style.background = "#f3f3f3";

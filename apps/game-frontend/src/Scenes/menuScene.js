@@ -131,7 +131,7 @@ const privateProfileScene = {
     p.textSize(24);
     p.textAlign(p.CENTER, p.TOP);
     p.noStroke();
-    p.text(`Menu Scene:`, p.width / 2, 50);
+    p.text("Menu Scene:", p.width / 2, 50);
 
     Button.setAlignment("center", "center");
     buttons["play"].update(p.width / 2, 200);
