@@ -10,7 +10,7 @@ class Socket {
   connect() {
     return new Promise((resolve) => {
       // Connect to the server
-      const serverUrl = import.meta.env.VITE_API_URL || window.location.origin;
+      const serverUrl = import.meta.env.VITE_API_URL;
       this.socket = io(serverUrl);
 
       this.socket.on("connect", () => {
