@@ -27,7 +27,9 @@ jobs:
         run: |
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
           docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY }}
-      - name: Build and Push Docker image
+      - name: Build Docker image
+        run: pnpm docker:build:backend
+      - name: Push Docker image
         run: pnpm docker:push:backend
 
   deploy-frontend:
