@@ -14,13 +14,19 @@ class RedisConnection {
 
   async connect() {
     try {
-      this.client = createClient({
-        url: redisUrl,
-        socket: {
-          tls: true,
-          checkServerIdentity: () => undefined, // disables hostname verification
-        },
-      });
+      if (process.env.NODE_ENV === "production") {
+        this.client = createClient({
+          url: redisUrl,
+          socket: {
+            tls: true,
+            checkServerIdentity: () => undefined, // disables hostname verification
+          },
+        });
+      } else {
+        this.client = createClient({
+          url: redisUrl,
+        });
+      }
 
       this.client.on("error", (err) => {
         console.error("Redis Client Error:", err);

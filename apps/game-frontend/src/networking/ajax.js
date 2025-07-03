@@ -2,11 +2,11 @@
 // get user data, etc.
 
 class AJAX {
-  constructor(baseURL) {
-    this.baseURL =
-      import.meta.env.VITE_NODE_ENV === "production"
-        ? import.meta.env.VITE_PROD_API_URL
-        : import.meta.env.VITE_LOCAL_API_URL;
+  constructor() {
+    const apiUrl =
+      import.meta.env.VITE_PROD_API_URL || import.meta.env.VITE_LOCAL_API_URL;
+    console.log(apiUrl);
+    this.baseURL = apiUrl;
   }
 
   async request(

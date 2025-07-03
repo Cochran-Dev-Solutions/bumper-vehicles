@@ -44,7 +44,10 @@ jobs:
         with:
           node-version: 20
       - run: pnpm install
-      - run: pnpm -F game-frontend build
+      - name: Build game-frontend
+        env:
+          VITE_PROD_API_URL: ${{ secrets.VITE_PROD_API_URL }}
+        run: pnpm -F game-frontend build
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
