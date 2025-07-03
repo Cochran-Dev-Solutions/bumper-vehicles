@@ -18,6 +18,8 @@ const allowedOrigin =
     ? process.env.PROD_FRONTEND_HOST_URL
     : process.env.LOCAL_FRONTEND_HOST_URL;
 
+console.log("Checking allowed origin...");
+
 // Add CORS headers
 fastify.addHook("onRequest", async (request, reply) => {
   reply.header("Access-Control-Allow-Origin", allowedOrigin);
