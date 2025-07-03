@@ -38,9 +38,5 @@ export default [
       reportUnusedDisableDirectives: true,
     },
     files: ["apps/game-frontend/**", "apps/landing-page-frontend/**"],
-    env: {
-      browser: true,
-      es2022: true,
-    },
   },
 ];
