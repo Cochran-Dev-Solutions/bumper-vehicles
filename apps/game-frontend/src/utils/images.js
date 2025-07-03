@@ -10,8 +10,9 @@ function loadImageAsync(p, src) {
     img.onerror = () => {
       reject(new Error(`Failed to load image: ${src}`));
     };
-    // Use the full path from the root of the project
-    img.src = "/src/Images/" + src;
+
+    // Use the public directory path for both development and production
+    img.src = "/Images/" + src;
   });
 }
 
