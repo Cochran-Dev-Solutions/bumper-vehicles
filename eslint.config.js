@@ -4,6 +4,14 @@ export default [
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: "module",
+      globals: {
+        // Node.js globals
+        process: "readonly",
+        __dirname: "readonly",
+        module: "readonly",
+        require: "readonly",
+        // ECMAScript 2022 globals (if needed, add more)
+      },
     },
     rules: {
       "no-unused-vars": "off",
@@ -19,16 +27,20 @@ export default [
       "packages/mailer/**",
       "packages/redis/**",
     ],
-    env: {
-      node: true,
-      es2022: true,
-    },
   },
   {
     ignores: ["dist/**"],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: "module",
+      globals: {
+        // Browser globals
+        window: "readonly",
+        document: "readonly",
+        navigator: "readonly",
+        console: "readonly",
+        // ECMAScript 2022 globals (if needed, add more)
+      },
     },
     rules: {
       "no-unused-vars": "off",
