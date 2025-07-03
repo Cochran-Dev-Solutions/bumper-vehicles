@@ -17,8 +17,8 @@ class WebSocketManager {
       cors: {
         origin:
           process.env.NODE_ENV === "production"
-            ? [PROD_FRONTEND_HOST_URL]
-            : [LOCAL_FRONTEND_HOST_URL],
+            ? [process.env.PROD_FRONTEND_HOST_URL]
+            : [process.env.LOCAL_FRONTEND_HOST_URL],
         methods: ["GET", "POST"],
         credentials: true,
       },
