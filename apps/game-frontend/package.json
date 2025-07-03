@@ -10,8 +10,8 @@
     "socket.io-client": "^4.8.1"
   },
   "scripts": {
-    "dev": "vite",
-    "build": "vite build --mode production",
+    "dev": "cross-env VITE_NODE_ENV=development vite",
+    "build": "cross-env VITE_NODE_ENV=production vite build",
     "preview": "vite preview",
     "lint": "eslint ."
   },

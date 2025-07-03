@@ -3,7 +3,10 @@
 
 class AJAX {
   constructor(baseURL) {
-    this.baseURL = baseURL || import.meta.env.VITE_API_URL || "";
+    this.baseURL =
+      import.meta.env.VITE_NODE_ENV === "production"
+        ? import.meta.env.VITE_PROD_API_URL
+        : import.meta.env.VITE_LOCAL_API_URL;
   }
 
   async request(

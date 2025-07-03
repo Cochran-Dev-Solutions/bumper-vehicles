@@ -3,17 +3,23 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+// Select the correct API URL based on VITE_NODE_ENV
+const isProduction = process.env.VITE_NODE_ENV === "production";
+const apiUrl = isProduction
+  ? process.env.VITE_PROD_API_URL
+  : process.env.VITE_LOCAL_API_URL;
+
 export default defineConfig({
   server: {
-    port: process.env.VITE_POR,
+    port: process.env.VITE_PORT,
     strictPort: true,
     proxy: {
       "/api": {
-        target: process.env.VITE_API_URL,
+        target: apiUrl,
         changeOrigin: true,
       },
       "/socket.io": {
-        target: process.env.VITE_API_URL,
+        target: apiUrl,
         changeOrigin: true,
         ws: true,
       },
@@ -29,7 +35,7 @@ export default defineConfig({
     cors: {
       origin: [
         `http://localhost:${process.env.VITE_PORT}`,
-        process.env.VITE_API_URL || "http://localhost:3000",
+        apiUrl || "http://localhost:3000",
       ],
       methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
       allowedHeaders: ["Content-Type", "Authorization"],
