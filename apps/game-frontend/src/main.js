@@ -51,7 +51,7 @@ sceneManager.addScene("profile", privateProfileScene);
 sceneManager.addScene("map", mapScene);
 sceneManager.addScene("game", gameScene);
 sceneManager.addScene("menu", menuScene);
-sceneManager.setScene("map");
+sceneManager.setScene("menu");
 sceneManager.addScene("login", loginScene);
 sceneManager.addScene("signup", signupScene);
 
