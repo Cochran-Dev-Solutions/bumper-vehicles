@@ -10,4 +10,10 @@ function updateGameInfo(newInfo) {
   Object.assign(gameInfo, newInfo);
 }
 
-export { gameInfo, updateGameInfo };
+let currentPublicUser = null;
+
+function updateCurrentPublicUser(username) {
+  currentPublicUser = username;
+}
+
+export { gameInfo, updateGameInfo, currentPublicUser, updateCurrentPublicUser };

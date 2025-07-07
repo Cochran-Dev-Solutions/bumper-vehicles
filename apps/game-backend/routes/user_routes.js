@@ -4,6 +4,7 @@ import {
   createUser,
   updateUserById,
   deleteUserById,
+  getUserByUsername,
 } from "../controllers/user_controllers.js";
 
 // User schema for validation and documentation
@@ -211,6 +212,33 @@ const routeOptions = {
     },
     handler: deleteUserById,
   },
+
+  // GET /users/username/:username
+  getUserByUsername: {
+    schema: {
+      tags: ["Users"],
+      summary: "Get user by username",
+      description: "Retrieve a user by their username",
+      params: {
+        type: "object",
+        properties: {
+          username: { type: "string", description: "User username" },
+        },
+        required: ["username"],
+      },
+      response: {
+        200: {
+          description: "User retrieved successfully",
+          ...userResponseSchema,
+        },
+        404: {
+          description: "User not found",
+          ...errorResponseSchema,
+        },
+      },
+    },
+    handler: getUserByUsername,
+  },
 };
 
 // Register routes with Fastify
@@ -229,4 +257,7 @@ export const registerUserRoutes = (fastify) => {
 
   // DELETE /users/:id
   fastify.delete("/users/:id", routeOptions.deleteUserById);
+
+  // GET /users/username/:username
+  fastify.get("/users/username/:username", routeOptions.getUserByUsername);
 };

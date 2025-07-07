@@ -6,6 +6,7 @@ import timeManager from "./EventObjects/TimeManager.js";
 import sceneManager from "./EventObjects/SceneManager.js";
 import Button from "./EventObjects/Button.js";
 import { rectToRect, rectToCircle } from "./utils/collisions.js";
+import { updateCurrentPublicUser } from "./globals.js";
 
 import privateProfileScene from "./Scenes/privateProfileScene.js";
 import mapScene from "./Scenes/mapScene.js";
@@ -13,6 +14,7 @@ import gameScene from "./Scenes/gameScene.js";
 import menuScene from "./Scenes/menuScene.js";
 import loginScene from "./Scenes/loginScene.js";
 import signupScene from "./Scenes/signupScene.js";
+import publicProfileScene from "./Scenes/publicProfileScene.js";
 
 /////////////////////////////////////////////////////
 // Register action labels for key codes
@@ -51,9 +53,20 @@ sceneManager.addScene("profile", privateProfileScene);
 sceneManager.addScene("map", mapScene);
 sceneManager.addScene("game", gameScene);
 sceneManager.addScene("menu", menuScene);
-sceneManager.setScene("menu");
 sceneManager.addScene("login", loginScene);
 sceneManager.addScene("signup", signupScene);
+sceneManager.addScene("publicProfile", publicProfileScene);
+
+// Parse the path for /user/:username
+const path = window.location.pathname;
+const userMatch = path.match(/^\/user\/([^/]+)$/);
+if (userMatch) {
+  const username = decodeURIComponent(userMatch[1]);
+  updateCurrentPublicUser(username);
+  sceneManager.setScene("publicProfile");
+} else {
+  sceneManager.setScene("menu");
+}
 
 // Create a new sketch
 const sketch = (p) => {
