@@ -50,6 +50,27 @@ export const getUserById = async (request, reply) => {
   }
 };
 
+// GET /users/username/:username - Get user by username
+export const getUserByUsername = async (request, reply) => {
+  try {
+    if (!userDal) {
+      throw new Error("UserDal not initialized");
+    }
+    const { username } = request.params;
+    const result = await userDal.getUserByUsername(username);
+    if (!result.success) {
+      return reply.status(404).send(result);
+    }
+    return reply.send(result);
+  } catch (error) {
+    return reply.status(500).send({
+      success: false,
+      message: "Failed to fetch user by username",
+      error: error.message,
+    });
+  }
+};
+
 // POST /users - Create new user
 export const createUser = async (request, reply) => {
   try {

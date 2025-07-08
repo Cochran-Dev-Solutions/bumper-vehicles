@@ -2,6 +2,7 @@ import Button from "../EventObjects/Button.js";
 import mouse from "../EventObjects/MouseManager.js";
 import sceneManager from "../EventObjects/SceneManager.js";
 import ajax from "../networking/ajax.js";
+import { updateCurrentPublicUser } from "../globals.js";
 
 const buttons = {
   play: new Button({
@@ -114,6 +115,34 @@ const buttons = {
       }
     },
   }),
+  publicProfile: new Button({
+    width: 300,
+    height: 50,
+    display: function () {
+      const p = sceneManager.getCanvas();
+      if (!p) return;
+      p.noStroke();
+      if (this.isInside(mouse, this)) {
+        p.fill(175);
+        mouse.setCursor("pointer");
+      } else {
+        p.fill(200, 200, 200, 200);
+      }
+      p.rect(this.x, this.y, this.width, this.height);
+      p.fill(0);
+      p.textSize(20);
+      p.textAlign(p.CENTER, p.CENTER);
+      p.text(
+        "View Public Profile (bumper_master2)",
+        this.x + this.width / 2,
+        this.y + this.height / 2
+      );
+    },
+    onClick: function () {
+      updateCurrentPublicUser("bumper_master2");
+      sceneManager.createTransition("publicProfile");
+    },
+  }),
 };
 
 const privateProfileScene = {
@@ -135,11 +164,12 @@ const privateProfileScene = {
 
     Button.setAlignment("center", "center");
     buttons["play"].update(p.width / 2, 200);
+    buttons["publicProfile"].update(p.width / 2, 265);
     if (!sceneManager.user || !sceneManager.user.logged_in) {
-      buttons["login"].update(p.width / 2, 275);
-      buttons["signup"].update(p.width / 2, 350);
+      buttons["login"].update(p.width / 2, 340);
+      buttons["signup"].update(p.width / 2, 415);
     } else if (sceneManager.user && sceneManager.user.logged_in) {
-      buttons["logout"].update(p.width / 2, 275);
+      buttons["logout"].update(p.width / 2, 340);
     }
   },
   buttons: Object.values(buttons),

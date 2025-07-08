@@ -10,7 +10,7 @@ let gameRenderer;
 let loading = true;
 
 const buttons = {
-  "disconnect": new Button({
+  disconnect: new Button({
     width: 100,
     height: 30,
     display: function () {
@@ -30,15 +30,15 @@ const buttons = {
     },
     onClick: function () {
       socket.disconnect();
-    }
-  })
+    },
+  }),
 };
 
 const gameScene = {
   name: "Game Scene",
   init: async function () {
     gameRenderer = new GameRenderer({
-      p: sceneManager.getCanvas()
+      p: sceneManager.getCanvas(),
     });
 
     await gameRenderer.setup(sceneManager.getCanvas(), gameInfo);
@@ -62,7 +62,7 @@ const gameScene = {
     // Update button position
     buttons["disconnect"].update(10, 10);
   },
-  buttons: Object.values(buttons)
+  buttons: Object.values(buttons),
 };
 
-export default gameScene; 
+export default gameScene;
