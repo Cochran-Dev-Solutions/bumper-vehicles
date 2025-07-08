@@ -35,6 +35,22 @@ class PowerupActor extends DynamicActor {
         this.scaleY += 0.75;
         this.opacity += (0 - this.opacity) / 15;
       }
+    }],
+    ['biggy', {
+      imageURL: 'Powerups/biggy.png',
+      display: function (p) {
+        this.scaleX += 0.75;
+        this.scaleY += 0.75;
+        this.opacity += (0 - this.opacity) / 15;
+      }
+    }],
+    ['magnet', {
+      imageURL: 'Powerups/magnet.png',
+      display: function (p) {
+        this.scaleX += 0.75;
+        this.scaleY += 0.75;
+        this.opacity += (0 - this.opacity) / 15;
+      }
     }]
   ]);
 

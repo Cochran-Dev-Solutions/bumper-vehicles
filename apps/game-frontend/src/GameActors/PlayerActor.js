@@ -59,6 +59,10 @@ export class PlayerActor extends DynamicActor {
     this.radius = config.radius;
 
     this.boostReloadPercentage = 360; // 360 means boost is ready
+    
+    // Magnet powerup variables
+    this.magnetDuration = null;
+    this.hasMagnet = false;
   }
 
   async loadImages() {
@@ -112,11 +116,26 @@ export class PlayerActor extends DynamicActor {
     }
   }
 
+  updateMagnet() {
+    if (this.hasMagnet && this.magnetDuration > 0) {
+      this.magnetDuration--;
+      this.p.fill(255, 0, 0, 100);
+      this.p.noStroke();
+      this.p.ellipse(this.x + this.width / 2, this.y + this.height / 2, this.width*4, this.height*4);
+      console.log("Ok should be displaying magnet");
+    } else {
+      this.hasMagnet = false;
+    }
+  }
+
+
   update() {
     if (this.isLocalPlayer) {
       this.updateInputs();
       this.sendInputs();
     }
+
+    this.updateMagnet();
 
     this.p.fill(255, 0, 0, 100);
     this.p.noStroke();
