@@ -24,6 +24,7 @@ keyManager.register("A", "KeyA");
 keyManager.register("S", "KeyS");
 keyManager.register("D", "KeyD");
 keyManager.register("space", " ");
+keyManager.register("enter", "Enter");
 keyManager.register("Shift", "ShiftLeft");
 // keyManager.register("Ctrl", "ControlLeft");
 // keyManager.register("Ctrl", "ControlRight");
@@ -46,28 +47,6 @@ keyManager.register("z", "z");
 Button.registerType("rect", rectToRect);
 Button.registerType("circle", rectToCircle);
 
-/////////////////////////////////////////////////////
-// Register Scenes
-/////////////////////////////////////////////////////
-sceneManager.addScene("profile", privateProfileScene);
-sceneManager.addScene("map", mapScene);
-sceneManager.addScene("game", gameScene);
-sceneManager.addScene("menu", menuScene);
-sceneManager.addScene("login", loginScene);
-sceneManager.addScene("signup", signupScene);
-sceneManager.addScene("publicProfile", publicProfileScene);
-
-// Parse the path for /user/:username
-const path = window.location.pathname;
-const userMatch = path.match(/^\/user\/([^/]+)$/);
-if (userMatch) {
-  const username = decodeURIComponent(userMatch[1]);
-  updateCurrentPublicUser(username);
-  sceneManager.setScene("publicProfile");
-} else {
-  sceneManager.setScene("menu");
-}
-
 // Create a new sketch
 const sketch = (p) => {
   p.setup = async () => {
@@ -76,6 +55,29 @@ const sketch = (p) => {
 
     // Attach canvas to scene manager
     sceneManager.attachCanvas(p);
+
+    // Register scenes
+    sceneManager.addScene("profile", privateProfileScene);
+    sceneManager.addScene("map", mapScene);
+    sceneManager.addScene("game", gameScene);
+    sceneManager.addScene("menu", menuScene);
+    sceneManager.addScene("login", loginScene);
+    sceneManager.addScene("signup", signupScene);
+    sceneManager.addScene("publicProfile", publicProfileScene);
+
+    // Parse the path for /user/:username
+    const path = window.location.pathname;
+    const userMatch = path.match(/^\/user\/([^/]+)$/);
+    if (userMatch) {
+      const username = decodeURIComponent(userMatch[1]);
+      updateCurrentPublicUser(username);
+      sceneManager.setScene("publicProfile");
+    } else {
+      sceneManager.setScene("menu");
+    }
+
+    // temp: for testing
+    sceneManager.setScene("map");
 
     // Initialize mouse event listeners
     mouse.handleEvents();

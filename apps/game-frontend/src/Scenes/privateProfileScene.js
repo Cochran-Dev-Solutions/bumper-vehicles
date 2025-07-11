@@ -3,31 +3,30 @@ import mouse from "../EventObjects/MouseManager.js";
 import sceneManager from "../EventObjects/SceneManager.js";
 
 const buttons = {
-  "map": new Button({
+  map: new Button({
     width: 100,
     height: 50,
     display: function () {
-      const p = sceneManager.getCanvas();
-      if (!p) return; // Guard clause to prevent null canvas access
+      if (!this.p) return; // Guard clause to prevent null canvas access
 
-      p.noStroke();
+      this.p.noStroke();
       if (this.isInside(mouse, this)) {
-        p.fill(175);
+        this.p.fill(175);
         mouse.setCursor("pointer");
       } else {
-        p.fill(200, 200, 200, 200);
+        this.p.fill(200, 200, 200, 200);
       }
-      p.rect(this.x, this.y, this.width, this.height);
+      this.p.rect(this.x, this.y, this.width, this.height);
 
-      p.fill(0);
-      p.textSize(20);
-      p.textAlign(p.CENTER, p.CENTER);
-      p.text("Map", this.x + this.width / 2, this.y + this.height / 2);
+      this.p.fill(0);
+      this.p.textSize(20);
+      this.p.textAlign(this.p.CENTER, this.p.CENTER);
+      this.p.text("Map", this.x + this.width / 2, this.y + this.height / 2);
     },
     onClick: function () {
       sceneManager.createTransition("map");
-    }
-  })
+    },
+  }),
 };
 
 const privateProfileScene = {
@@ -42,24 +41,23 @@ const privateProfileScene = {
     };
   },
   display: function () {
-    const p = sceneManager.getCanvas();
-    if (!p) return; // Guard clause to prevent null canvas access
+    if (!this.p) return; // Guard clause to prevent null canvas access
 
     // Clear background
-    p.background(51);
+    this.p.background(51);
 
     // Display profile information
-    p.fill(255);
-    p.textSize(24);
-    p.textAlign(p.LEFT, p.TOP);
-    p.noStroke();
-    p.text(`Username: ${this.profileData.username}`, 50, 50);
-    p.text(`Level: ${this.profileData.level}`, 50, 90);
-    p.text(`Experience: ${this.profileData.experience}`, 50, 130);
+    this.p.fill(255);
+    this.p.textSize(24);
+    this.p.textAlign(this.p.LEFT, this.p.TOP);
+    this.p.noStroke();
+    this.p.text(`Username: ${this.profileData.username}`, 50, 50);
+    this.p.text(`Level: ${this.profileData.level}`, 50, 90);
+    this.p.text(`Experience: ${this.profileData.experience}`, 50, 130);
 
     buttons["map"].update(window.innerWidth - 125, 25);
   },
-  buttons: Object.values(buttons)
+  buttons: Object.values(buttons),
 };
 
-export default privateProfileScene; 
+export default privateProfileScene;

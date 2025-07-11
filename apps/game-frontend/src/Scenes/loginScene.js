@@ -12,15 +12,13 @@ const buttons = {
     width: 90,
     height: 40,
     display: function () {
-      const p = sceneManager.getCanvas();
-      if (!p) return;
-      p.noStroke();
-      p.fill(200, 200, 200, 200);
-      p.rect(this.x, this.y, this.width, this.height, 8);
-      p.fill(0);
-      p.textSize(18);
-      p.textAlign(p.CENTER, p.CENTER);
-      p.text("Menu", this.x + this.width / 2, this.y + this.height / 2);
+      this.p.noStroke();
+      this.p.fill(200, 200, 200, 200);
+      this.p.rect(this.x, this.y, this.width, this.height, 8);
+      this.p.fill(0);
+      this.p.textSize(18);
+      this.p.textAlign(this.p.CENTER, this.p.CENTER);
+      this.p.text("Menu", this.x + this.width / 2, this.y + this.height / 2);
     },
     onClick: () => {
       sceneManager.createTransition("menu");
@@ -31,8 +29,6 @@ const buttons = {
 const loginScene = {
   name: "Login",
   init: function () {
-    removeForm(FORM_ID);
-
     createForm({
       id: FORM_ID,
       fields: [
@@ -82,9 +78,6 @@ const loginScene = {
     // Draw the menu button
     Button.setAlignment("left", "top");
     if (buttons["menu"]) buttons["menu"].update(30, 30);
-  },
-  cleanup: function () {
-    removeForm(FORM_ID);
   },
   buttons: Object.values(buttons),
 };

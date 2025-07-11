@@ -16,4 +16,13 @@ function updateCurrentPublicUser(username) {
   currentPublicUser = username;
 }
 
-export { gameInfo, updateGameInfo, currentPublicUser, updateCurrentPublicUser };
+// Global GameRenderer instance
+let globalGameRenderer = null;
+
+export {
+  gameInfo,
+  updateGameInfo,
+  currentPublicUser,
+  updateCurrentPublicUser,
+  globalGameRenderer,
+};

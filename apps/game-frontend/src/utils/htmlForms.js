@@ -89,6 +89,14 @@ function injectHtmlFormStyles() {
   document.head.appendChild(style);
 }
 
+// Global array to store all form IDs
+export const FORM_IDS = [];
+
+export function removeForms() {
+  // Loop over a copy since removeForm will mutate FORM_IDS
+  [...FORM_IDS].forEach((id) => removeForm(id));
+}
+
 export function createForm({
   id,
   fields,
@@ -98,6 +106,8 @@ export function createForm({
 }) {
   injectHtmlFormStyles();
   removeForm(id); // Remove any existing form with this id
+  // Add id to FORM_IDS if not already present
+  if (!FORM_IDS.includes(id)) FORM_IDS.push(id);
   const form = document.createElement("form");
   form.id = id;
   form.style.position = "absolute";
@@ -197,7 +207,7 @@ export function createForm({
       submit.style.cursor = "not-allowed";
 
       // Disable extra buttons too
-      const extraButtons = form.querySelectorAll("button[type=\"button\"]");
+      const extraButtons = form.querySelectorAll('button[type="button"]');
       extraButtons.forEach((btn) => {
         btn.disabled = true;
         btn.style.background = "#f3f3f3";
@@ -238,6 +248,9 @@ export function createForm({
 export function removeForm(id) {
   const form = document.getElementById(id);
   if (form) form.remove();
+  // Remove id from FORM_IDS if present
+  const idx = FORM_IDS.indexOf(id);
+  if (idx !== -1) FORM_IDS.splice(idx, 1);
 }
 
 export function setFormMessage(id, message, color = "red") {

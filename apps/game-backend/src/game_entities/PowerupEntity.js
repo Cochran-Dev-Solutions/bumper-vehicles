@@ -33,7 +33,7 @@ export default class PowerupEntity extends PhysicsEntity {
         this.player.updateClient("lives", this.player.lives);
       }
     }],
-    ['magnet', {
+    ["magnet", {
       size: new Vec2(45, 45),
       lifespan: 2000,
       update: function () {
@@ -46,11 +46,11 @@ export default class PowerupEntity extends PhysicsEntity {
         this.player.magnetDuration = this.duration;
         console.log("I am a magnet");
         if (this.player && this.player.socket) {
-          this.player.socket.emit('magnetPowerup', { duration: this.duration });
+          this.player.socket.emit("magnetPowerup", { duration: this.duration });
         }
       }
     }],
-    ['biggy', {
+    ["biggy", {
       size: new Vec2(45, 45),
       lifespan: 2000,
       update: function () {
@@ -66,7 +66,7 @@ export default class PowerupEntity extends PhysicsEntity {
         this.player.get_smaller = true;
         this.player.biggy_timer = 100;
         if (this.player && this.player.socket) {
-          this.player.socket.emit('biggyPowerup', {
+          this.player.socket.emit("biggyPowerup", {
             mass: this.player.mass,
             radius: this.player.radius,
             size: { x: this.player.size.x, y: this.player.size.y }

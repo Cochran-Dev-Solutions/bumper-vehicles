@@ -22,6 +22,7 @@ export default class Button {
     this.disabled = config.disabled || false;
     this.text = config.text || "";
     this.loadingText = config.loadingText || "Loading...";
+    this.active = false;
   }
 
   static types = {};
@@ -62,6 +63,7 @@ export default class Button {
   }
 
   handleClick(obj) {
+    if (!this.active) return;
     if (this.isInside(obj) && !this.disabled) {
       this.onClick();
     }
@@ -70,6 +72,7 @@ export default class Button {
   update(x, y) {
     this.x = x || this.x;
     this.y = y || this.y;
+    this.active = true;
 
     if (sceneManager.getCanvas()) {
       this.p = sceneManager.getCanvas();
