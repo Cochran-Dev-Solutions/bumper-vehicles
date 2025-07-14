@@ -1,6 +1,7 @@
 import mouse from "./MouseManager.js";
 import timeManager from "./TimeManager.js";
 import ajax from "../networking/ajax.js";
+import { removeForms } from "../utils/htmlForms.js";
 
 // Forward declaration of sceneManager
 let sceneManager;
@@ -24,10 +25,19 @@ class SceneManager {
   }
 
   getCanvas() {
-    return this.p;
+    if (this.p) return this.p;
+    // Return a promise that resolves when this.p is set
+    return new Promise((resolve) => {
+      const check = () => {
+        if (this.p) resolve(this.p);
+        else setTimeout(check, 10);
+      };
+      check();
+    });
   }
 
   addScene(name, scene) {
+    scene.p = this.p;
     this.scenes[name] = scene;
   }
 
@@ -43,6 +53,9 @@ class SceneManager {
       this.currentScene.cleanup.call(this.currentScene);
     }
 
+    // Remove all forms before initializing the new scene
+    removeForms();
+
     if (Object.prototype.hasOwnProperty.call(this.scenes, name)) {
       this.currentScene = this.scenes[name];
       if (typeof this.currentScene.init === "function") {
@@ -54,6 +67,10 @@ class SceneManager {
   }
 
   displayScene() {
+    // Deactivate all buttons before updating/drawing
+    if (this.currentScene && Array.isArray(this.currentScene.buttons)) {
+      this.currentScene.buttons.forEach((btn) => (btn.active = false));
+    }
     if (this.currentScene && typeof this.currentScene.display === "function") {
       this.currentScene.display.call(this.currentScene, this.sceneParameters);
     }

@@ -15,7 +15,7 @@ export default [
     },
     rules: {
       "no-unused-vars": "off",
-      quotes: ["error", "double"],
+      quotes: "off",
     },
     linterOptions: {
       reportUnusedDisableDirectives: true,
@@ -44,7 +44,7 @@ export default [
     },
     rules: {
       "no-unused-vars": "off",
-      quotes: ["error", "double"],
+      quotes: "off",
     },
     linterOptions: {
       reportUnusedDisableDirectives: true,

@@ -9,20 +9,18 @@ const buttons = {
     width: 100,
     height: 50,
     display: function () {
-      const p = sceneManager.getCanvas();
-      if (!p) return;
-      p.noStroke();
+      this.p.noStroke();
       if (this.isInside(mouse, this)) {
-        p.fill(175);
+        this.p.fill(175);
         mouse.setCursor("pointer");
       } else {
-        p.fill(200, 200, 200, 200);
+        this.p.fill(200, 200, 200, 200);
       }
-      p.rect(this.x, this.y, this.width, this.height);
-      p.fill(0);
-      p.textSize(20);
-      p.textAlign(p.CENTER, p.CENTER);
-      p.text("Menu", this.x + this.width / 2, this.y + this.height / 2);
+      this.p.rect(this.x, this.y, this.width, this.height);
+      this.p.fill(0);
+      this.p.textSize(20);
+      this.p.textAlign(this.p.CENTER, this.p.CENTER);
+      this.p.text("Menu", this.x + this.width / 2, this.y + this.height / 2);
     },
     onClick: function () {
       sceneManager.createTransition("menu");
@@ -32,20 +30,18 @@ const buttons = {
     width: 200,
     height: 40,
     display: function () {
-      const p = sceneManager.getCanvas();
-      if (!p) return;
-      p.noStroke();
+      this.p.noStroke();
       if (this.isInside(mouse, this)) {
-        p.fill(175);
+        this.p.fill(175);
         mouse.setCursor("pointer");
       } else {
-        p.fill(200, 200, 200, 200);
+        this.p.fill(200, 200, 200, 200);
       }
-      p.rect(this.x, this.y, this.width, this.height);
-      p.fill(0);
-      p.textSize(18);
-      p.textAlign(p.CENTER, p.CENTER);
-      p.text(
+      this.p.rect(this.x, this.y, this.width, this.height);
+      this.p.fill(0);
+      this.p.textSize(18);
+      this.p.textAlign(this.p.CENTER, this.p.CENTER);
+      this.p.text(
         "Get public URL",
         this.x + this.width / 2,
         this.y + this.height / 2
@@ -82,7 +78,6 @@ const publicProfileScene = {
       );
       if (res.ok && res.data) {
         this.profileData = res.data.data;
-        console.log("Testing profile data 1: ", this.profileData);
       } else {
         this.error = res.message || "User not found.";
       }
@@ -92,31 +87,31 @@ const publicProfileScene = {
     this.loading = false;
   },
   display: function () {
-    const p = sceneManager.getCanvas();
-    if (!p) return;
-    p.background(51);
-    p.fill(255);
-    p.textSize(24);
-    p.textAlign(p.LEFT, p.TOP);
-    p.noStroke();
+    this.p.background(51);
+    this.p.fill(255);
+    this.p.textSize(24);
+    this.p.textAlign(this.p.LEFT, this.p.TOP);
+    this.p.noStroke();
     if (this.loading) {
-      p.text("Loading...", 50, 50);
+      this.p.text("Loading...", 50, 50);
     } else if (this.error) {
-      p.text(`Error: ${this.error}`, 50, 50);
+      this.p.text(`Error: ${this.error}`, 50, 50);
     } else if (this.profileData) {
-      console.log("Testing profile data 2: ", this.profileData);
-      p.text(`Username: ${this.profileData.username ?? "-"}`, 50, 50);
-      p.text(`Display Name: ${this.profileData.display_name ?? "-"}`, 50, 90);
+      this.p.text(`Username: ${this.profileData.username ?? "-"}`, 50, 50);
+      this.p.text(
+        `Display Name: ${this.profileData.display_name ?? "-"}`,
+        50,
+        90
+      );
       // Add more fields as needed
     }
     buttons.menu.update(window.innerWidth - 125, 25);
     buttons.getPublicUrl.update(window.innerWidth - 350, 25);
     if (typeof window !== "undefined" && window._publicProfileCopied) {
-      const p = sceneManager.getCanvas();
-      p.fill(0, 220, 0);
-      p.textSize(18);
-      p.textAlign(p.RIGHT, p.TOP);
-      p.text("Copied!", window.innerWidth - 370, 70);
+      this.p.fill(0, 220, 0);
+      this.p.textSize(18);
+      this.p.textAlign(this.p.RIGHT, this.p.TOP);
+      this.p.text("Copied!", window.innerWidth - 370, 70);
     }
   },
   buttons: Object.values(buttons),
