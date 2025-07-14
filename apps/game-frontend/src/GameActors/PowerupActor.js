@@ -51,7 +51,20 @@ class PowerupActor extends DynamicActor {
         this.scaleY += 0.75;
         this.opacity += (0 - this.opacity) / 15;
       }
-    }]
+    }],
+    // ['shockwave', {
+    //   imageURL: 'Powerups/shockwave.png',
+    //   display: function (p) {
+    //     p.noFill();
+    //     p.stroke(0, 255, 0, 100);
+    //     p.strokeWeight(2);
+    //     p.ellipse(this.x, this.y, this.size.x, this.size.y);
+    //     this.radius += 10;
+    //     this.size.x = this.radius * 2;
+    //     this.size.y = this.radius * 2;
+    //   }
+    // }],
+
   ]);
 
   constructor(config) {
