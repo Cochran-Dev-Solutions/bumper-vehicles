@@ -7,7 +7,7 @@ class KeyManager extends InputManager {
      **** InputManager contains:
      * this.events = []; --> sequentially recorded actions
      * this.current = {}; --> current/active events
-    **/
+     **/
     super();
 
     // registered actions
@@ -21,7 +21,7 @@ class KeyManager extends InputManager {
     this.genericKeyReleaseCallbacks = [];
   }
 
-  // registers labeled actions: effectively associates a key code 
+  // registers labeled actions: effectively associates a key code
   // with a string such as "jump"
   register(action, keyCode) {
     this.actions[action] = keyCode;
@@ -29,7 +29,9 @@ class KeyManager extends InputManager {
 
   // Get the action name for a given keyCode
   getActionForKeyCode(keyCode) {
-    return Object.keys(this.actions).find(action => this.actions[action] === keyCode);
+    return Object.keys(this.actions).find(
+      (action) => this.actions[action] === keyCode
+    );
   }
 
   // Register a callback for when a key is pressed
@@ -51,7 +53,7 @@ class KeyManager extends InputManager {
   pressed(selector) {
     // if selector is string, then it is an action label, and we
     // should get the key code associated with the registration
-    selector = (typeof selector === "string") ? this.actions[selector] : selector;
+    selector = typeof selector === "string" ? this.actions[selector] : selector;
 
     // if selector was action label AND it was not registered
     if (!selector) return false;
@@ -70,20 +72,20 @@ class KeyManager extends InputManager {
     }
 
     // Call all generic key press callbacks
-    this.genericKeyPressCallbacks.forEach(callback => callback(keyCode));
+    this.genericKeyPressCallbacks.forEach((callback) => callback(keyCode));
   }
 
-  // deactivates a key
+  // on key release
   keyReleased(keyCode) {
     if (this.current[keyCode]) {
       delete this.current[keyCode];
 
       // Call all generic key release callbacks
-      this.genericKeyReleaseCallbacks.forEach(callback => callback(keyCode));
+      this.genericKeyReleaseCallbacks.forEach((callback) => callback(keyCode));
     }
   }
 }
 
 // Create and export a singleton instance
 const keyManager = new KeyManager();
-export default keyManager; 
+export default keyManager;

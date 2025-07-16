@@ -35,18 +35,14 @@ export default class GameActor {
     this.spriteImages = [];
   }
 
-  async loadImages() {
-    // Create an array of promises for each image
-    const imagePromises = this.imageNames.map(async (imageName) => {
-      const loadedImg = await this.game.loadImage(imageName);
-      this.spriteImages.push(loadedImg);
-    });
-
-    // Wait for all images to load
-    await Promise.all(imagePromises);
+  async loadImages(animationSpeed) {
+    // Load all images in order and assign directly to spriteImages
+    this.spriteImages = await Promise.all(
+      this.imageNames.map((imageName) => this.game.loadImage(imageName))
+    );
 
     if (this.isAnimated) {
-      this.initSprite();
+      this.initSprite(animationSpeed);
     } else {
       this.image = this.spriteImages[0];
     }
@@ -56,15 +52,15 @@ export default class GameActor {
    * Initialize the player's sprite with animation frames
    * @param {Array} images - Array of p5.Image objects for the animation
    */
-  initSprite() {
+  initSprite(speed = 8) {
     this.sprite = new AnimatedSprite({ images: this.spriteImages });
-    this.sprite.setAnimationSpeed(8); // Default walking animation speed
+    this.sprite.setAnimationSpeed(speed); // Default walking animation speed
   }
 
   display() {
     if (this.isAnimated && this.sprite) {
       this.p.push();
-      this.p.translate(this.x + this.width / 2, this.y + this.width / 2);
+      this.p.translate(this.x + this.width / 2, this.y + this.height / 2);
       this.p.rotate(this.rotation);
       this.p.scale(this.scaleX, this.scaleY);
       if (this.opacity < 1) {
@@ -73,10 +69,10 @@ export default class GameActor {
 
       this.sprite.display(
         this.p,
-        -this.width / 2,
-        -this.height / 2,
-        this.width,
-        this.height
+        -this.imageWidth / 2,
+        -this.imageHeight / 2,
+        this.imageWidth,
+        this.imageHeight
       );
       this.p.pop();
     } else {

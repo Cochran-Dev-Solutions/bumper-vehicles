@@ -1,4 +1,5 @@
 import keyManager from "../EventObjects/KeyManager.js";
+import { AnimatedSprite } from "../utils/AnimatedSprite.js";
 
 class MapCharacter {
   constructor(p, islands, scene) {
@@ -8,12 +9,13 @@ class MapCharacter {
     this.currentPosition = { x: 0, y: 0 };
     this.targetPosition = { x: 0, y: 0 };
     this.island = null;
-    this.movementEnabled = true;
+    this.inputEnabled = true;
     this.movementSpeed = 0.1; // Fraction of distance to move per frame
 
-    // Load character image
-    this.characterImage = null;
-    this.loadCharacterImage();
+    // Animated sprite for Ari_Alligator
+    this.sprite = null;
+    this.loaded = false;
+    this.loadCharacterSprite();
 
     // Set initial position to first island
     if (this.islands && this.islands.length > 0) {
@@ -24,13 +26,29 @@ class MapCharacter {
     }
   }
 
-  async loadCharacterImage() {
-    try {
-      // Load the bumper vehicle image
-      this.characterImage = await this.p.loadImage("/Images/BVC_Example.png");
-    } catch (error) {
-      console.error("Failed to load character image:", error);
+  async loadCharacterSprite() {
+    // Load Ari_Alligator frames 1-15
+    const p = this.p;
+    const loadImageAsync = (src) => {
+      return new Promise((resolve, reject) => {
+        const img = new window.Image();
+        img.onload = () => {
+          const p5Image = p.createImage(img.width, img.height);
+          p5Image.drawingContext.drawImage(img, 0, 0);
+          resolve(p5Image);
+        };
+        img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
+        img.src = "/Images/Ari_Alligator/frame_" + src + ".png";
+      });
+    };
+    const promises = [];
+    for (let i = 1; i <= 15; i++) {
+      promises.push(loadImageAsync(i));
     }
+    const images = await Promise.all(promises);
+    this.sprite = new AnimatedSprite({ images });
+    this.sprite.setAnimationSpeed(25);
+    this.loaded = true;
   }
 
   update() {
@@ -39,7 +57,7 @@ class MapCharacter {
   }
 
   handleInput() {
-    if (!this.movementEnabled) return;
+    if (!this.inputEnabled) return;
 
     // Prevent movement if an island is selected and panel is open
     if (this.scene && this.scene.isZoomedIn && this.scene.selectedIsland) {
@@ -68,6 +86,7 @@ class MapCharacter {
       if (this.scene && this.scene.selectIsland) {
         this.scene.selectIsland(this.island);
       }
+      keyManager.keyReleased("enter");
     }
   }
 
@@ -76,7 +95,7 @@ class MapCharacter {
 
     const stopPos = targetIsland.getStopPosition();
     this.targetPosition = { x: stopPos.x, y: stopPos.y };
-    this.movementEnabled = false;
+    this.inputEnabled = false;
   }
 
   updateMovement() {
@@ -86,7 +105,7 @@ class MapCharacter {
     const distance = Math.sqrt(dx * dx + dy * dy);
 
     if (distance < 5) {
-      this.movementEnabled = true;
+      this.inputEnabled = true;
       // Find which island we're now at
       for (const island of this.islands) {
         const stopPos = island.getStopPosition();
@@ -112,22 +131,24 @@ class MapCharacter {
   }
 
   draw() {
-    if (!this.characterImage) {
+    if (!this.loaded || !this.sprite) {
       // Fallback: draw a simple circle
       this.p.fill(255, 0, 0);
       this.p.noStroke();
       this.p.ellipse(this.currentPosition.x, this.currentPosition.y, 20, 20);
     } else {
-      // Draw the character image
+      // Draw the animated Ari_Alligator sprite
+      this.p.push();
       this.p.imageMode(this.p.CENTER);
-      this.p.image(
-        this.characterImage,
+      this.sprite.display(
+        this.p,
         this.currentPosition.x,
         this.currentPosition.y,
         40,
         40
       );
       this.p.imageMode(this.p.CORNER);
+      this.p.pop();
     }
   }
 }

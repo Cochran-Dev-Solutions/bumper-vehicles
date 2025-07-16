@@ -292,6 +292,7 @@ function generateIslands(p) {
   ];
 
   const titles = ["Garage", "Hall of Fame", "Race", "Battle", "Solo Challenge"];
+  const slugs = ["garage", "hall_of_fame", "race", "battle", "solo_challenge"];
   const descriptions = [
     "Customize and upgrade your vehicle with various parts and cosmetics.",
     "View leaderboards, achievements, and player statistics.",
@@ -321,6 +322,7 @@ function generateIslands(p) {
         stopOffset,
         image: p5Images["island"],
         panel_method: panelMethods[i],
+        slug: slugs[i],
         description: descriptions[i],
       })
   );
@@ -535,7 +537,7 @@ function initializeClouds(p) {
       x: p.random(-200, p.width + 200),
       y: p.random(p.height * 0.1, p.height),
       speed: p.random(0.1, 0.3), // Very slow movement
-      scale: p.random(0.5, 1.5),
+      scale: p.random(0.1, 0.5),
       opacity: p.random(150, 200),
       direction: p.random() > 0.5 ? 1 : -1, // Random direction
       offset: p.random(p.TWO_PI), // Random starting position
@@ -618,6 +620,8 @@ let waitingRoom = {
 // Scene state
 let activePanel = null;
 let hasJoined = false;
+let justZoomedIn = false; // Add this flag
+let justActivatedButton = false; // Add debounce for join/leave
 
 async function initializeGame(gameType) {
   try {
@@ -722,6 +726,36 @@ const mapScene = {
       }
       // Clear the left arrow key so it is not processed again
       keyManager.keyReleased("ArrowLeft");
+    } else if (this.isZoomedIn) {
+      // Debounce enter after zooming in or after join/leave
+      if (justZoomedIn) {
+        if (!keyManager.pressed("enter")) {
+          justZoomedIn = false;
+        }
+      } else if (justActivatedButton) {
+        if (!keyManager.pressed("enter")) {
+          justActivatedButton = false;
+        }
+      } else if (keyManager.pressed("enter")) {
+        switch (this.selectedIsland.slug) {
+          case "race":
+            if (hasJoined) {
+              buttons["leaveRace"].onClick();
+            } else {
+              buttons["joinRace"].onClick();
+            }
+            break;
+          case "battle":
+            if (hasJoined) {
+              buttons["leaveBattle"].onClick();
+            } else {
+              buttons["joinBattle"].onClick();
+            }
+            break;
+        }
+        keyManager.keyReleased("enter");
+        justActivatedButton = true; // Debounce after join/leave
+      }
     }
 
     // Update camera
@@ -778,10 +812,11 @@ const mapScene = {
   selectIsland: function (island) {
     this.selectedIsland = island;
     this.isZoomedIn = true;
+    justZoomedIn = true; // Set debounce flag
 
     // Disable character movement
     if (this.mapCharacter) {
-      this.mapCharacter.movementEnabled = false;
+      this.mapCharacter.inputEnabled = false;
     }
 
     // Zoom camera to island
@@ -808,7 +843,7 @@ const mapScene = {
 
     // Re-enable character movement
     if (this.mapCharacter) {
-      this.mapCharacter.movementEnabled = true;
+      this.mapCharacter.inputEnabled = true;
     }
 
     // Reset camera

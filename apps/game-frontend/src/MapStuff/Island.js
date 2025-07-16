@@ -21,6 +21,7 @@ class Island {
     stopOffset = { x: 0, y: 80 },
     image = null,
     panel_method = null,
+    slug = "",
     description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
   }) {
     this.x = x;
@@ -28,6 +29,7 @@ class Island {
     this.width = 200;
     this.height = 200;
     this.title = title;
+    this.slug = slug;
     this.titleOffset = titleOffset;
     this.stopOffset = stopOffset;
     this.image = image;

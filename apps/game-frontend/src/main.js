@@ -15,6 +15,7 @@ import menuScene from "./Scenes/menuScene.js";
 import loginScene from "./Scenes/loginScene.js";
 import signupScene from "./Scenes/signupScene.js";
 import publicProfileScene from "./Scenes/publicProfileScene.js";
+import animationTestingScene from "./Scenes/animationTestingScene.js";
 
 /////////////////////////////////////////////////////
 // Register action labels for key codes
@@ -64,6 +65,7 @@ const sketch = (p) => {
     sceneManager.addScene("login", loginScene);
     sceneManager.addScene("signup", signupScene);
     sceneManager.addScene("publicProfile", publicProfileScene);
+    sceneManager.addScene("animationTesting", animationTestingScene);
 
     // Parse the path for /user/:username
     const path = window.location.pathname;
@@ -78,6 +80,7 @@ const sketch = (p) => {
 
     // temp: for testing
     sceneManager.setScene("map");
+    //sceneManager.setScene("animationTesting");
 
     // Initialize mouse event listeners
     mouse.handleEvents();
