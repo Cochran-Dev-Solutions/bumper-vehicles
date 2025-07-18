@@ -1,14 +1,5 @@
-import Button from "../EventObjects/Button.js";
-import mouse from "../EventObjects/MouseManager.js";
-import keyManager from "../EventObjects/KeyManager.js";
-import sceneManager from "../EventObjects/SceneManager.js";
-import socket from "../networking/socket.js";
-import { gameInfo, updateGameInfo, globalGameRenderer } from "../globals.js";
-import GameRenderer from "../GameActors/GameRenderer.js";
-import { loadImageAsync } from "../utils/images.js";
-import Island from "../MapStuff/Island.js";
-import MapCharacter from "../MapStuff/MapCharacter.js";
-import Camera from "../MapStuff/Camera.js";
+import { Button, mouse, keyManager, sceneManager, socket, GameRenderer, Island, MapCharacter, Camera, gameInfo, updateGameInfo, globalGameRenderer } from "@bv-frontend-logic";
+import { loadImageAsync } from "../render-tools/images.js";
 
 ///////////////////////////////////////////////////
 // Create Buttons
@@ -706,6 +697,7 @@ const mapScene = {
 
     // create map character
     this.mapCharacter = new MapCharacter(this.p, this.islands, this);
+    await this.mapCharacter.load();
 
     // initialize panels
     activePanel = null;

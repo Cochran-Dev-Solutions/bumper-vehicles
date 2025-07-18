@@ -1,12 +1,14 @@
 import "./index.css";
 import p5 from "p5";
-import keyManager from "./EventObjects/KeyManager.js";
-import mouse from "./EventObjects/MouseManager.js";
-import timeManager from "./EventObjects/TimeManager.js";
-import sceneManager from "./EventObjects/SceneManager.js";
-import Button from "./EventObjects/Button.js";
-import { rectToRect, rectToCircle } from "./utils/collisions.js";
-import { updateCurrentPublicUser } from "./globals.js";
+import { sceneManager, mouse, keyManager, timeManager, Button, updateCurrentPublicUser, rectToRect, rectToCircle, setLoadImageAsync } from "@bv-frontend-logic";
+import { loadImageAsync } from "./render-tools/images.js";
+import { removeForms } from "./render-tools/htmlForms.js";
+
+// Inject the p5.js image loader into the shared logic
+setLoadImageAsync(loadImageAsync);
+
+// Override sceneCleanup to remove forms in the web frontend
+sceneManager.sceneCleanup = removeForms;
 
 import privateProfileScene from "./Scenes/privateProfileScene.js";
 import mapScene from "./Scenes/mapScene.js";
@@ -68,15 +70,15 @@ const sketch = (p) => {
     sceneManager.addScene("animationTesting", animationTestingScene);
 
     // Parse the path for /user/:username
-    const path = window.location.pathname;
-    const userMatch = path.match(/^\/user\/([^/]+)$/);
-    if (userMatch) {
-      const username = decodeURIComponent(userMatch[1]);
-      updateCurrentPublicUser(username);
-      sceneManager.setScene("publicProfile");
-    } else {
-      sceneManager.setScene("menu");
-    }
+    // const path = window.location.pathname;
+    // const userMatch = path.match(/^\/user\/([^/]+)$/);
+    // if (userMatch) {
+    //   const username = decodeURIComponent(userMatch[1]);
+    //   updateCurrentPublicUser(username);
+    //   sceneManager.setScene("publicProfile");
+    // } else {
+    //   sceneManager.setScene("menu");
+    // }
 
     // temp: for testing
     sceneManager.setScene("map");
@@ -112,6 +114,11 @@ const sketch = (p) => {
     mouse.move(p.mouseX + canvasRect.left, p.mouseY + canvasRect.top);
 
     sceneManager.displayScene();
+
+    // Render loading overlay if active
+    if (sceneManager.loading) {
+      sceneManager.constructor.drawLoadingOverlay(p);
+    }
 
     // Run time intervals
     timeManager.runIntervals();

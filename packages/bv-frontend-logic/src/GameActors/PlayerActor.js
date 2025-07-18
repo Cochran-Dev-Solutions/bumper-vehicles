@@ -2,9 +2,9 @@ import keyManager from "../EventObjects/KeyManager.js";
 import socket from "../networking/socket.js";
 import DynamicActor from "./DynamicActor.js";
 import PowerupActor from "./PowerupActor.js";
-import { loadImageAsync } from "../render-tools/images.js";
+import { loadImageAsync } from "../globals.js";
 
-export class PlayerActor extends DynamicActor {
+class PlayerActor extends DynamicActor {
   // stores ratio values for width/height
   static characters = {
     alligator_ari: {
@@ -224,3 +224,5 @@ export class PlayerActor extends DynamicActor {
     this.scaleY = 1;
   }
 }
+
+export default PlayerActor;

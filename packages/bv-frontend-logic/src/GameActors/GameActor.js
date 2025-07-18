@@ -1,4 +1,4 @@
-import { AnimatedSprite } from "../render-tools/AnimatedSprite";
+import { AnimatedSprite } from "../utils/AnimatedSprite";
 
 export default class GameActor {
   constructor(config) {

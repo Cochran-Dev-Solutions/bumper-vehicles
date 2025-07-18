@@ -1,8 +1,4 @@
-import Button from "../EventObjects/Button.js";
-import mouse from "../EventObjects/MouseManager.js";
-import sceneManager from "../EventObjects/SceneManager.js";
-import ajax from "../networking/ajax.js";
-import { updateCurrentPublicUser } from "../globals.js";
+import { Button, mouse, sceneManager, ajax, updateCurrentPublicUser } from "@bv-frontend-logic";
 
 const buttons = {
   play: new Button({

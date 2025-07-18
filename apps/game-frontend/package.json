@@ -5,9 +5,9 @@
   "license": "UNLICENSED",
   "type": "module",
   "dependencies": {
+    "@bv-frontend-logic": "workspace:*",
     "dotenv": "^16.6.0",
-    "p5": "^2.0.3",
-    "socket.io-client": "^4.8.1"
+    "p5": "^2.0.3"
   },
   "scripts": {
     "dev": "cross-env VITE_NODE_ENV=development vite",

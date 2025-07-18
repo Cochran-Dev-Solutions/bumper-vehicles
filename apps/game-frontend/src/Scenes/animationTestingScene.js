@@ -1,4 +1,4 @@
-import { AnimatedSprite } from "../utils/AnimatedSprite.js";
+import { AnimatedSprite } from "../render-tools/AnimatedSprite.js";
 
 const animationTestingScene = {
   name: "Animation Testing Scene",

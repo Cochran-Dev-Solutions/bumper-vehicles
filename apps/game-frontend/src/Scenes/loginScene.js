@@ -1,7 +1,5 @@
-import sceneManager from "../EventObjects/SceneManager.js";
-import { createForm, removeForm, setFormMessage } from "../utils/htmlForms.js";
-import ajax from "../networking/ajax.js";
-import Button from "../EventObjects/Button.js";
+import { sceneManager, ajax, Button } from "@bv-frontend-logic";
+import { createForm, removeForm, setFormMessage } from "../render-tools/htmlForms.js";
 
 const FORM_ID = "login-form";
 

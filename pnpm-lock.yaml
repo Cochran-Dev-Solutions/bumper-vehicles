@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      socket.io-client:
+        specifier: ^4.8.1
+        version: 4.8.1
     devDependencies:
       cross-env:
         specifier: ^7.0.3
@@ -60,15 +64,15 @@ importers:
 
   apps/game-frontend:
     dependencies:
+      '@bv-frontend-logic':
+        specifier: workspace:*
+        version: link:../../packages/bv-frontend-logic
       dotenv:
         specifier: ^16.6.0
         version: 16.6.0
       p5:
         specifier: ^2.0.3
         version: 2.0.3
-      socket.io-client:
-        specifier: ^4.8.1
-        version: 4.8.1
     devDependencies:
       vite:
         specifier: ^4.5.14
@@ -144,6 +148,8 @@ importers:
       vite:
         specifier: ^5.0.8
         version: 5.4.19(@types/node@24.0.4)(lightningcss@1.27.0)(terser@5.43.1)
+
+  packages/bv-frontend-logic: {}
 
   packages/database:
     dependencies:

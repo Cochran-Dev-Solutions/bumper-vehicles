@@ -1,7 +1,7 @@
 import mouse from "./MouseManager.js";
 import timeManager from "./TimeManager.js";
 import ajax from "../networking/ajax.js";
-import { removeForms } from "../render-tools/htmlForms.js";
+// import { removeForms } from "../utils/htmlForms.js";
 
 // Forward declaration of sceneManager
 let sceneManager;
@@ -17,6 +17,7 @@ class SceneManager {
     this.user = null; // Will hold user data if authenticated
     this.sceneParameters = config.sceneParameters || {};
     this.loading = false; // Loading overlay flag
+    this.sceneCleanup = () => {}; // No-op by default, can be overridden
   }
 
   attachCanvas(p5Instance) {
@@ -50,7 +51,7 @@ class SceneManager {
       this.currentScene.cleanup.call(this.currentScene);
     }
 
-    removeForms();
+    this.sceneCleanup();
 
     // Show loading overlay
     this.showLoading();

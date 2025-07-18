@@ -1,5 +1,5 @@
 import keyManager from "../EventObjects/KeyManager.js";
-import { AnimatedSprite } from "../render-tools/AnimatedSprite.js";
+import { AnimatedSprite } from "../utils/AnimatedSprite.js";
 
 class MapCharacter {
   constructor(p, islands, scene) {
