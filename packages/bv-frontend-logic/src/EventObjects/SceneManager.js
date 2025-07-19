@@ -16,8 +16,35 @@ class SceneManager {
     this.p = null;
     this.user = null; // Will hold user data if authenticated
     this.sceneParameters = config.sceneParameters || {};
-    this.loading = false; // Loading overlay flag
+    
     this.sceneCleanup = () => {}; // No-op by default, can be overridden
+
+    this.loading = false;
+    this.load_operations = [];
+    this.total_estimated_time = 0;
+    this.progress = 0;
+    this.currentOperationName = "";
+  }
+
+  add_load_operation({ operation, name, estimated_time }) {
+    this.load_operations.push({ operation, name, estimated_time });
+    this.total_estimated_time += estimated_time;
+  }
+
+  async run_load_operations() {
+    let completed_time = 0;
+    for (let i = 0; i < this.load_operations.length; i++) {
+      const op = this.load_operations[i];
+      this.currentOperationName = op.name;
+      // Progress up to the start of this operation
+      this.progress = completed_time / this.total_estimated_time;
+      await op.operation();
+      // After operation, progress is frozen until next op
+      completed_time += op.estimated_time || 1;
+      this.progress = completed_time / this.total_estimated_time;
+    }
+    this.progress = 1;
+    this.currentOperationName = "";
   }
 
   attachCanvas(p5Instance) {
@@ -121,6 +148,11 @@ class SceneManager {
   }
 
   showLoading() {
+    // Reset before loading
+    this.load_operations = [];
+    this.total_estimated_time = 0;
+    this.progress = 0;
+    this.currentOperationName = "";
     this.loading = true;
   }
 
@@ -129,15 +161,37 @@ class SceneManager {
   }
 
   static drawLoadingOverlay(p) {
+    
     if (!p) return;
+    const mgr = sceneManager;
     p.push();
     p.noStroke();
     p.fill(30, 30, 40, 220);
     p.rect(0, 0, p.width, p.height);
+
+    // Draw loading text
     p.fill(255);
     p.textAlign(p.CENTER, p.CENTER);
-    p.textSize(32);
-    p.text("Loading...", p.width / 2, p.height / 2);
+    p.textSize(24);
+    p.text(
+      mgr.currentOperationName || "Loading...",
+      p.width / 2,
+      p.height / 2 - 40
+    );
+
+    // Draw loading bar background
+    const barWidth = p.width * 0.5;
+    const barHeight = 28;
+    const barX = (p.width - barWidth) / 2;
+    const barY = p.height / 2;
+    p.fill(60, 60, 60, 255);
+    p.rect(barX, barY, barWidth, barHeight, 8);
+
+    // Draw loading bar progress (green)
+    const progress = Math.max(0, Math.min(1, mgr.progress || 0));
+    p.fill(0, 200, 80, 255);
+    p.rect(barX, barY, barWidth * progress, barHeight, 8);
+
     p.pop();
   }
 
