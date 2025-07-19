@@ -1,6 +1,4 @@
-import Button from "../EventObjects/Button.js";
-import mouse from "../EventObjects/MouseManager.js";
-import sceneManager from "../EventObjects/SceneManager.js";
+import { Button, mouse, sceneManager } from "@bv-frontend-logic";
 
 const buttons = {
   map: new Button({

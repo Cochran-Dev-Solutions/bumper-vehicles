@@ -1,8 +1,4 @@
-import Button from "../EventObjects/Button.js";
-import mouse from "../EventObjects/MouseManager.js";
-import sceneManager from "../EventObjects/SceneManager.js";
-import { currentPublicUser } from "../globals.js";
-import ajax from "../networking/ajax.js";
+import { Button, mouse, sceneManager, currentPublicUser, ajax } from "@bv-frontend-logic";
 
 const buttons = {
   menu: new Button({

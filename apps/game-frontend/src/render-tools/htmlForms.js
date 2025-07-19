@@ -1,5 +1,5 @@
 // Utility for creating/removing HTML forms over p5.js canvas
-import ajax from "../networking/ajax";
+import { ajax } from "@bv-frontend-logic";
 
 let htmlFormStylesInjected = false;
 function injectHtmlFormStyles() {
