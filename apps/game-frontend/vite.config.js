@@ -1,5 +1,6 @@
 import { defineConfig, loadEnv } from "vite";
 import dotenv from "dotenv";
+import path from "path";
 
 dotenv.config();
 
@@ -10,6 +11,11 @@ const apiUrl = isProduction
   : process.env.VITE_LOCAL_API_URL;
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@bv-frontend-logic': path.resolve(__dirname, '../../packages/bv-frontend-logic/src'),
+    },
+  },
   server: {
     port: process.env.VITE_PORT,
     strictPort: true,

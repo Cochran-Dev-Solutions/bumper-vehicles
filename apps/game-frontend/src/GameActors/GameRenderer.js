@@ -5,7 +5,7 @@ import { BouncyBallActor } from "./BouncyBallActor.js";
 import sceneManager from "../EventObjects/SceneManager.js";
 import keyManager from "../EventObjects/KeyManager.js";
 import PowerupActor from "./PowerupActor.js";
-import { loadImageAsync } from "../utils/images.js";
+import { loadImageAsync } from "../render-tools/images.js";
 
 function showReconnectingOverlay() {
   const container = document.createElement("div");

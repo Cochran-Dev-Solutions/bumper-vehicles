@@ -2,21 +2,41 @@ import keyManager from "../EventObjects/KeyManager.js";
 import socket from "../networking/socket.js";
 import DynamicActor from "./DynamicActor.js";
 import PowerupActor from "./PowerupActor.js";
-import { loadImageAsync } from "../utils/images.js";
+import { loadImageAsync } from "../render-tools/images.js";
 
 export class PlayerActor extends DynamicActor {
+  // stores ratio values for width/height
+  static characters = {
+    alligator_ari: {
+      imageWidth: 1.2,
+      imageHeight: 1,
+      animation_speed: 25,
+    },
+  };
+
+  static test_character = "alligator_ari";
+
   constructor(config) {
-    super({ ...config, isAnimated: true, width: config.radius * 2, height: config.radius * 2 });
+    super({
+      ...config,
+      isAnimated: true,
+      width: config.radius * 2,
+      height: config.radius * 2,
+    });
 
-    // names of images we want to load for our player
-    // this.imageNames.push(
-    //   'Penguin/penguin_walk01.png',
-    //   'Penguin/penguin_walk02.png',
-    //   'Penguin/penguin_walk03.png',
-    //   'Penguin/penguin_walk04.png'
-    // );
+    if (PlayerActor.test_character === "alligator_ari") {
+      // names of images we want to load for our player
+      for (let i = 1; i <= 15; i++) {
+        this.imageNames.push(`Ari_Alligator/frame_${i}.png`);
+      }
 
-    this.imageNames.push("BVC_Example.png");
+      this.imageWidth =
+        PlayerActor.characters[PlayerActor.test_character].imageWidth *
+        this.width;
+      this.imageHeight =
+        PlayerActor.characters[PlayerActor.test_character].imageHeight *
+        this.height;
+    }
 
     this.isLocalPlayer = config.isLocalPlayer;
     this.socket_id = config.socket_id || null;
@@ -39,7 +59,7 @@ export class PlayerActor extends DynamicActor {
       three: false,
       four: false,
       five: false,
-      space: false
+      space: false,
     };
 
     // Boost oscillation variables
@@ -49,7 +69,13 @@ export class PlayerActor extends DynamicActor {
 
     keyManager.onGenericKeyPress((keyCode) => {
       const action = keyManager.getActionForKeyCode(keyCode);
-      if (action && action === "one" || action === "two" || action === "three" || action === "four" || action === "five") {
+      if (
+        (action && action === "one") ||
+        action === "two" ||
+        action === "three" ||
+        action === "four" ||
+        action === "five"
+      ) {
         this.inputs[action] = true;
       }
     });
@@ -59,14 +85,16 @@ export class PlayerActor extends DynamicActor {
     this.radius = config.radius;
 
     this.boostReloadPercentage = 360; // 360 means boost is ready
-    
+
     // Magnet powerup variables
     this.magnetDuration = null;
     this.hasMagnet = false;
   }
 
   async loadImages() {
-    await super.loadImages();
+    await super.loadImages(
+      PlayerActor.characters[PlayerActor.test_character].animation_speed
+    );
 
     if (!this.isLocalPlayer) return;
 
@@ -100,10 +128,13 @@ export class PlayerActor extends DynamicActor {
    */
   sendInputs() {
     const currentTime = Date.now();
-    if (socket.id && currentTime - this.lastInputUpdate >= this.inputUpdateInterval) {
+    if (
+      socket.id &&
+      currentTime - this.lastInputUpdate >= this.inputUpdateInterval
+    ) {
       socket.emit("playerInput", {
         playerId: this.id,
-        input: this.inputs
+        input: this.inputs,
       });
       this.lastInputUpdate = currentTime;
 
@@ -121,13 +152,17 @@ export class PlayerActor extends DynamicActor {
       this.magnetDuration--;
       this.p.fill(255, 0, 0, 100);
       this.p.noStroke();
-      this.p.ellipse(this.x + this.width / 2, this.y + this.height / 2, this.width*4, this.height*4);
+      this.p.ellipse(
+        this.x + this.width / 2,
+        this.y + this.height / 2,
+        this.width * 4,
+        this.height * 4
+      );
       console.log("Ok should be displaying magnet");
     } else {
       this.hasMagnet = false;
     }
   }
-
 
   update() {
     if (this.isLocalPlayer) {
@@ -139,12 +174,18 @@ export class PlayerActor extends DynamicActor {
 
     this.p.fill(255, 0, 0, 100);
     this.p.noStroke();
-    this.p.ellipse(this.x + this.width / 2, this.y + this.height / 2, this.width, this.height);
+    this.p.ellipse(
+      this.x + this.width / 2,
+      this.y + this.height / 2,
+      this.width,
+      this.height
+    );
 
     // Update oscillation for boost effects
     if (this.flags?.about_to_boost || this.flags?.boosting) {
       this.oscillationTime += this.oscillationSpeed;
-      this.rotation = Math.sin(this.oscillationTime) * this.oscillationAmplitude;
+      this.rotation =
+        Math.sin(this.oscillationTime) * this.oscillationAmplitude;
     } else {
       this.oscillationTime = 0;
 
@@ -164,7 +205,7 @@ export class PlayerActor extends DynamicActor {
       }
     }
 
-    this.scaleX = (this.flags.facing === "left") ? -1 : 1;
+    this.scaleX = this.flags.facing === "left" ? -1 : 1;
 
     // Add blinking effect if disconnected
     if (this.disconnected) {
@@ -182,4 +223,4 @@ export class PlayerActor extends DynamicActor {
     this.scaleX = 1;
     this.scaleY = 1;
   }
-} 
+}
