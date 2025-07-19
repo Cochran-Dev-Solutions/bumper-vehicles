@@ -581,20 +581,31 @@ function drawClouds(p) {
 // create p5 background images
 async function createImages(p) {
   // Import External Images
-  p5Images["island"] = null;
-  p5Images["cloud"] = null;
-  try {
-    p5Images["island"] = await loadImageAsync(
-      p,
-      "MapScene/Islands/example_island.png"
-    );
-    p5Images["cloud"] = await loadImageAsync(p, "MapScene/Islands/cloud.png");
-  } catch (e) {
-    console.error("Failed to load images:", e);
-  }
-
-  // Create perlin noise sky background
-  createPerlinSkyBackground(p);
+  sceneManager.add_load_operation({
+    name: "Loading island image",
+    estimated_time: 0.5,
+    operation: async () => {
+      p5Images["island"] = await loadImageAsync(
+        p,
+        "MapScene/Islands/example_island.png"
+      );
+    }
+  });
+  sceneManager.add_load_operation({
+    name: "Loading cloud image",
+    estimated_time: 0.5,
+    operation: async () => {
+      p5Images["cloud"] = await loadImageAsync(p, "MapScene/Islands/cloud.png");
+    }
+  });
+  sceneManager.add_load_operation({
+    name: "Creating perlin noise sky",
+    estimated_time: 1,
+    operation: async () => {
+      createPerlinSkyBackground(p);
+    }
+  });
+  await sceneManager.run_load_operations();
 }
 
 ///////////////////////////////////////////////////
