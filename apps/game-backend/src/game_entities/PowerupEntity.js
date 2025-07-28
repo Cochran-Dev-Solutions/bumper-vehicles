@@ -73,7 +73,25 @@ export default class PowerupEntity extends PhysicsEntity {
           });
         }
       }
-    }]
+    }],
+    // ["shockwave", {
+    //   radius: 35,
+    //   update: function () {
+    //     this.game.players.forEach((player) => {
+    //       if (player.id === this.player.id) return;
+    //       const collided = this.handleCircularCollision(player);
+    //       if (collided) {
+    //         player.lives--;
+    //         this.game.markActorChanged(this.player);
+    //         this.remove();
+    //       }
+    //     });
+    //     this.radius += 10;
+    //     this.size.x = this.radius * 2;
+    //     this.size.y = this.radius * 2;
+    //     this.boundingBox.update();
+    //   }
+    // }],
   ]);
 
   constructor(config) {
