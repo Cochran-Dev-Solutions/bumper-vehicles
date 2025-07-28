@@ -17,8 +17,8 @@ export default defineConfig({
     },
   },
   server: {
-    port: process.env.VITE_PORT,
-    strictPort: true,
+    port: 5173, // Hardcoded port for consistency
+    strictPort: true, // Fail if port is occupied instead of trying another port
     proxy: {
       "/api": {
         target: apiUrl,
@@ -40,7 +40,7 @@ export default defineConfig({
     },
     cors: {
       origin: [
-        `http://localhost:${process.env.VITE_PORT}`,
+        "http://localhost:5173", // Hardcoded for consistency
         apiUrl || "http://localhost:3000",
       ],
       methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],

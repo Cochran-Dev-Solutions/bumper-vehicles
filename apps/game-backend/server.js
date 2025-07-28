@@ -6,6 +6,10 @@ import swaggerUi from "@fastify/swagger-ui";
 import secureSession from "@fastify/secure-session";
 import { registerUserRoutes } from "./routes/user_routes.js";
 import { registerAuthRoutes } from "./routes/auth_routes.js";
+import { registerNewsletterRoutes } from "./routes/newsletter_routes.js";
+import { registerPaymentRoutes } from "./routes/payment_routes.js";
+import { registerDefaultRoutes } from "./routes/default_routes.js";
+import { registerMarketingRoutes } from "./routes/marketing_routes.js";
 import { initializeUserDal } from "./controllers/user_controllers.js";
 import { initializeAuthDal } from "./controllers/auth_controllers.js";
 import database from "@bumper-vehicles/database";
@@ -13,14 +17,41 @@ import webSocketManager from "./src/game/websocket-manager.js";
 
 const fastify = Fastify({ logger: true });
 
-const allowedOrigin =
-  process.env.NODE_ENV === "production"
-    ? process.env.PROD_FRONTEND_HOST_URL
-    : process.env.LOCAL_FRONTEND_HOST_URL;
+// Define allowed origins for different environments
+const getGameHostUrl = () => {
+  return process.env.NODE_ENV === "production"
+    ? process.env.PROD_GAME_HOST_URL || "https://app.bumpervehicles.com"
+    : process.env.WEB_APP_GAME_HOST_URL || "http://localhost:5173";
+};
+
+const getLandingPageHostUrl = () => {
+  return process.env.NODE_ENV === "production"
+    ? process.env.PROD_LANDING_PAGE_HOST_URL || "https://bumpervehicles.com"
+    : process.env.LANDING_PAGE_HOST_URL || "http://localhost:5174";
+};
 
 // Add CORS headers
 fastify.addHook("onRequest", async (request, reply) => {
-  reply.header("Access-Control-Allow-Origin", allowedOrigin);
+  const origin = request.headers.origin;
+  const gameHostUrl = getGameHostUrl();
+  const landingPageHostUrl = getLandingPageHostUrl();
+  
+  // // Debug logging for CORS
+  // if (origin) {
+  //   console.log('CORS check:', {
+  //     origin,
+  //     gameHostUrl,
+  //     landingPageHostUrl,
+  //     isGameOrigin: origin === gameHostUrl,
+  //     isLandingPageOrigin: origin === landingPageHostUrl
+  //   });
+  // }
+  
+  // Allow requests from either the game frontend or landing page
+  if (origin === gameHostUrl || origin === landingPageHostUrl) {
+    reply.header("Access-Control-Allow-Origin", origin);
+  }
+  
   reply.header(
     "Access-Control-Allow-Methods",
     "GET, POST, PUT, PATCH, DELETE, OPTIONS"
@@ -84,6 +115,22 @@ const start = async () => {
             name: "Authentication",
             description: "Authentication and authorization endpoints",
           },
+          {
+            name: "Newsletter",
+            description: "Newsletter subscription and management endpoints",
+          },
+          {
+            name: "Payment",
+            description: "Payment processing and PayPal integration endpoints",
+          },
+          {
+            name: "Default",
+            description: "General API endpoints including health checks and contact forms",
+          },
+          {
+            name: "Marketing",
+            description: "Marketing API endpoints for beta signup and landing pages",
+          },
         ],
       },
     });
@@ -109,11 +156,12 @@ const start = async () => {
     // Register routes after Swagger plugins
     registerUserRoutes(fastify);
     registerAuthRoutes(fastify);
+    registerNewsletterRoutes(fastify);
+    registerPaymentRoutes(fastify);
+    registerDefaultRoutes(fastify);
 
-    // Register health check route
-    fastify.get("/health", async (request, reply) => {
-      return { status: "ok" };
-    });
+    // Register marketing routes with API prefix
+    fastify.register(registerMarketingRoutes, { prefix: '/api/marketing' });
 
     // Start the server
     await fastify.listen({ port: process.env.PORT || 3000, host: "0.0.0.0" });

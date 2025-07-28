@@ -21,6 +21,9 @@ export { default as MapCharacter } from './MapStuff/MapCharacter.js';
 export { default as Camera } from './MapStuff/Camera.js';
 export { default as Island } from './MapStuff/Island.js';
 
+// GarageStuff (Classes)
+export {default as GarageCharacter } from './GarageStuff/GarageCharacter.js';
+
 // Networking (Singletons)
 export { default as ajax } from './networking/ajax.js';
 export { default as socket } from './networking/socket.js';

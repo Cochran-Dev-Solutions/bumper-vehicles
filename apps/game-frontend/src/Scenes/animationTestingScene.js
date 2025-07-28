@@ -1,31 +1,14 @@
 import { AnimatedSprite } from "@bv-frontend-logic"
+import { p5Images } from "../render-tools/images.js";
 
 const animationTestingScene = {
   name: "Animation Testing Scene",
   sprite: null,
-  images: [],
   loaded: false,
 
   init: async function () {
-    // Load images 1-15
-    const p = this.p;
-    const loadImageAsync = (src) => {
-      return new Promise((resolve, reject) => {
-        const img = new window.Image();
-        img.onload = () => {
-          const p5Image = p.createImage(img.width, img.height);
-          p5Image.drawingContext.drawImage(img, 0, 0);
-          resolve(p5Image);
-        };
-        img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
-        img.src = "/Images/Ari_Alligator/frame_" + src + ".png";
-      });
-    };
-    const promises = [];
-    for (let i = 1; i <= 15; i++) {
-      promises.push(loadImageAsync(i));
-    }
-    this.images = await Promise.all(promises);
+    // Use centralized animation frames
+    this.images = p5Images["ari_alligator_frames"];
     this.sprite = new AnimatedSprite({ images: this.images });
     this.sprite.setAnimationSpeed(20); // 8 FPS
     this.loaded = true;

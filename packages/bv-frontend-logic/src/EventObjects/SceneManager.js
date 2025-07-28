@@ -19,11 +19,38 @@ class SceneManager {
     
     this.sceneCleanup = () => {}; // No-op by default, can be overridden
 
-    this.loading = false;
+    this.loadingImages = false;
     this.load_operations = [];
     this.total_estimated_time = 0;
     this.progress = 0;
     this.currentOperationName = "";
+    this.hasRunInitialSetup = false;
+  }
+
+  handleRouting () {
+    // Parse the path for /user/:username
+    // const path = window.location.pathname;
+    // const userMatch = path.match(/^\/user\/([^/]+)$/);
+    // if (userMatch) {
+    //   const username = decodeURIComponent(userMatch[1]);
+    //   updateCurrentPublicUser(username);
+    //   sceneManager.setScene("publicProfile");
+    // } else {
+    //   sceneManager.setScene("menu");
+    // }
+
+    // temp: for testing
+    this.setScene("garage");
+    //sceneManager.setScene("animationTesting");
+  }
+  
+
+  async runInitialSetup() {
+    this.hasRunInitialSetup = true;
+    this.loadingImages = true;
+    await this.run_load_operations();
+    this.loadingImages = false;
+    this.handleRouting();
   }
 
   add_load_operation({ operation, name, estimated_time }) {
@@ -80,9 +107,6 @@ class SceneManager {
 
     this.sceneCleanup();
 
-    // Show loading overlay
-    this.showLoading();
-
     if (Object.prototype.hasOwnProperty.call(this.scenes, name)) {
       if (typeof this.scenes[name].init === "function") {
         await this.scenes[name].init.call(this.scenes[name], this.sceneParameters);
@@ -91,9 +115,6 @@ class SceneManager {
     } else {
       console.log(`Scene '${name}' does not exist.`);
     }
-
-    // Hide loading overlay
-    this.hideLoading();
   }
 
   displayScene() {
@@ -129,8 +150,6 @@ class SceneManager {
   createTransition(targetScene, cb = () => {}) {
     sceneManager.transitioning = true;
     SceneManager.closeScene(async function () {
-      // Show loading overlay
-      sceneManager.showLoading();
       if (
         Object.prototype.hasOwnProperty.call(sceneManager.scenes, targetScene) &&
         typeof sceneManager.scenes[targetScene].init === "function"
@@ -138,26 +157,11 @@ class SceneManager {
         await sceneManager.scenes[targetScene].init.call(sceneManager.scenes[targetScene], sceneManager.sceneParameters);
       }
       sceneManager.currentScene = sceneManager.scenes[targetScene];
-      // Hide loading overlay
-      sceneManager.hideLoading();
       cb();
       SceneManager.openScene(function () {
         sceneManager.transitioning = false;
       });
     });
-  }
-
-  showLoading() {
-    // Reset before loading
-    this.load_operations = [];
-    this.total_estimated_time = 0;
-    this.progress = 0;
-    this.currentOperationName = "";
-    this.loading = true;
-  }
-
-  hideLoading() {
-    this.loading = false;
   }
 
   static drawLoadingOverlay(p) {

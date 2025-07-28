@@ -5,9 +5,10 @@
   "license": "UNLICENSED",
   "type": "module",
   "dependencies": {
-    "mysql2": "^3.9.0",
+    "@bumper-vehicles/redis": "workspace:*",
+    "bcryptjs": "^2.4.3",
     "dotenv": "^16.6.0",
-    "@bumper-vehicles/redis": "workspace:*"
+    "mysql2": "^3.9.0"
   },
   "devDependencies": {
     "eslint": "^9.29.0"

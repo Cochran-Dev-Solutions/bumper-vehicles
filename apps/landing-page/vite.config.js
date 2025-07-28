@@ -6,5 +6,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5174, // Different port to avoid conflicts
+    strictPort: true, // Fail if port is occupied instead of trying another port
+    historyApiFallback: true,
   },
 });

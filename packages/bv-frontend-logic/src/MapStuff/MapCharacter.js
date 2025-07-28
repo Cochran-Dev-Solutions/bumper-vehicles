@@ -27,29 +27,13 @@ class MapCharacter {
     }
   }
 
-  async load() {
-    // Load Ari_Alligator frames 1-15
-    const p = this.p;
-    const loadImageAsync = (src) => {
-      return new Promise((resolve, reject) => {
-        const img = new window.Image();
-        img.onload = () => {
-          const p5Image = p.createImage(img.width, img.height);
-          p5Image.drawingContext.drawImage(img, 0, 0);
-          resolve(p5Image);
-        };
-        img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
-        img.src = "/Images/Ari_Alligator/frame_" + src + ".png";
-      });
-    };
-    const promises = [];
-    for (let i = 1; i <= 15; i++) {
-      promises.push(loadImageAsync(i));
+  async load(images = null) {
+    // Use provided images or load them if not provided
+    if (images) {
+      this.sprite = new AnimatedSprite({ images });
+      this.sprite.setAnimationSpeed(25);
+      this.loaded = true;
     }
-    const images = await Promise.all(promises);
-    this.sprite = new AnimatedSprite({ images });
-    this.sprite.setAnimationSpeed(25);
-    this.loaded = true;
   }
 
   update() {
@@ -150,8 +134,8 @@ class MapCharacter {
         this.p,
         0,
         0,
-        40,
-        40
+        80,
+        80
       );
       this.p.imageMode(this.p.CORNER);
       this.p.pop();

@@ -82,7 +82,7 @@ class DatabaseConnection {
   async testConnection() {
     try {
       const connection = await this.pool.getConnection();
-      await connection.execute("SELECT 1");
+      await connection.query("SELECT 1");
       connection.release();
       console.log("Database connection test successful");
       return true;
@@ -104,3 +104,4 @@ export { UserDal } from "./dal/user.dal.js";
 export { UserModel } from "./models/user.model.js";
 export { UnverifiedUserDal } from "./dal/unverified-user.dal.js";
 export { UnverifiedUserModel } from "./models/unverified-user.model.js";
+export { default as NewsletterConfirmationDal } from "./dal/newsletter-confirmation.dal.js";

@@ -1,7 +1,7 @@
 import "./index.css";
 import p5 from "p5";
 import { sceneManager, mouse, keyManager, timeManager, Button, updateCurrentPublicUser, rectToRect, rectToCircle, setLoadImageAsync } from "@bv-frontend-logic";
-import { loadImageAsync } from "./render-tools/images.js";
+import { loadImageAsync, images_to_load } from "./render-tools/images.js";
 import { removeForms } from "./render-tools/htmlForms.js";
 
 // Inject the p5.js image loader into the shared logic
@@ -17,6 +17,7 @@ import menuScene from "./Scenes/menuScene.js";
 import loginScene from "./Scenes/loginScene.js";
 import signupScene from "./Scenes/signupScene.js";
 import publicProfileScene from "./Scenes/publicProfileScene.js";
+import garageScene from "./Scenes/garageScene.js";
 import animationTestingScene from "./Scenes/animationTestingScene.js";
 
 /////////////////////////////////////////////////////
@@ -59,30 +60,25 @@ const sketch = (p) => {
     // Attach canvas to scene manager
     sceneManager.attachCanvas(p);
 
+    // Add images to load to scene manager load operations queue
+    for (const imageOp of images_to_load) {
+      const boundOperation = {
+        ...imageOp,
+        operation: imageOp.operation.bind(sceneManager)
+      };
+      sceneManager.add_load_operation(boundOperation);
+    }
+
     // Register scenes
     sceneManager.addScene("profile", privateProfileScene);
     sceneManager.addScene("map", mapScene);
     sceneManager.addScene("game", gameScene);
+    sceneManager.addScene("garage", garageScene);
     sceneManager.addScene("menu", menuScene);
     sceneManager.addScene("login", loginScene);
     sceneManager.addScene("signup", signupScene);
     sceneManager.addScene("publicProfile", publicProfileScene);
     sceneManager.addScene("animationTesting", animationTestingScene);
-
-    // Parse the path for /user/:username
-    // const path = window.location.pathname;
-    // const userMatch = path.match(/^\/user\/([^/]+)$/);
-    // if (userMatch) {
-    //   const username = decodeURIComponent(userMatch[1]);
-    //   updateCurrentPublicUser(username);
-    //   sceneManager.setScene("publicProfile");
-    // } else {
-    //   sceneManager.setScene("menu");
-    // }
-
-    // temp: for testing
-    sceneManager.setScene("map");
-    //sceneManager.setScene("animationTesting");
 
     // Initialize mouse event listeners
     mouse.handleEvents();
@@ -113,11 +109,12 @@ const sketch = (p) => {
     const canvasRect = p.canvas.getBoundingClientRect();
     mouse.move(p.mouseX + canvasRect.left, p.mouseY + canvasRect.top);
 
-    sceneManager.displayScene();
-
-    // Render loading overlay if active
-    if (sceneManager.loading) {
+    if (!sceneManager.hasRunInitialSetup) {
+      sceneManager.runInitialSetup();
+    } else if (sceneManager.loadingImages) {
       sceneManager.constructor.drawLoadingOverlay(p);
+    } else {
+      sceneManager.displayScene();
     }
 
     // Run time intervals

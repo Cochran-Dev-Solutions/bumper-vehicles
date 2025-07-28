@@ -1,0 +1,17 @@
+{
+  "name": "@bumper-vehicles/payment",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "UNLICENSED",
+  "type": "module",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "dotenv": "^16.6.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.29.0"
+  },
+  "scripts": {
+    "lint": "eslint ."
+  }
+} 

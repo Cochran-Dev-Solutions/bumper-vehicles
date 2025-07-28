@@ -10,6 +10,7 @@
     "@fastify/swagger-ui": "^5.2.3",
     "@bumper-vehicles/database": "workspace:*",
     "@bumper-vehicles/mailer": "workspace:*",
+    "@bumper-vehicles/payment": "workspace:*",
     "bcryptjs": "^2.4.3",
     "dotenv": "^16.6.0",
     "fastify": "^5.4.0",

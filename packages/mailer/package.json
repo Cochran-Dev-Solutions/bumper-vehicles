@@ -6,7 +6,8 @@
   "type": "module",
   "dependencies": {
     "nodemailer": "^6.9.8",
-    "dotenv": "^16.6.0"
+    "dotenv": "^16.6.0",
+    "axios": "^1.6.0"
   },
   "devDependencies": {
     "eslint": "^9.29.0"

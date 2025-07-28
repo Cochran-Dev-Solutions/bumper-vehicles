@@ -1,3 +1,15 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Smooth scrolling for anchor links */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scroll offset to account for fixed header if needed */
+@media (min-width: 768px) {
+  html {
+    scroll-padding-top: 80px; /* Adjust based on your header height */
+  }
+}

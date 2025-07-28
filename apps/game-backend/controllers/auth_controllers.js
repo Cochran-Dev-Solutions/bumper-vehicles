@@ -2,6 +2,8 @@ import bcrypt from "bcryptjs";
 import { UserDal, UnverifiedUserDal } from "@bumper-vehicles/database";
 import {
   sendVerificationEmail,
+} from "../src/email_templates/index.js";
+import {
   generateVerificationCode,
   generateExpirationTime,
 } from "@bumper-vehicles/mailer";
