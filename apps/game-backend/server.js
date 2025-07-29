@@ -39,20 +39,11 @@ fastify.addHook("onRequest", async (request, reply) => {
   console.log("gameHostUrl", gameHostUrl);
   console.log("landingPageHostUrl", landingPageHostUrl);
   
-  // // Debug logging for CORS
-  // if (origin) {
-  //   console.log('CORS check:', {
-  //     origin,
-  //     gameHostUrl,
-  //     landingPageHostUrl,
-  //     isGameOrigin: origin === gameHostUrl,
-  //     isLandingPageOrigin: origin === landingPageHostUrl
-  //   });
-  // }
-  
   // Allow requests from either the game frontend or landing page
-  if (origin === gameHostUrl || origin === landingPageHostUrl) {
-    reply.header("Access-Control-Allow-Origin", origin);
+  // Also handle cases where origin might be undefined (some browsers/clients)
+  if (origin === gameHostUrl || origin === landingPageHostUrl || !origin) {
+    // If origin is undefined, set it to the game host URL as default
+    reply.header("Access-Control-Allow-Origin", origin || gameHostUrl);
   }
   
   reply.header(

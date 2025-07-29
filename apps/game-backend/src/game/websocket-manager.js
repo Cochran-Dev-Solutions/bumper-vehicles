@@ -13,12 +13,25 @@ class WebSocketManager {
   }
 
   initialize(server) {
+    // Define allowed origins for different environments (matching server.js logic)
+    const getGameHostUrl = () => {
+      return process.env.NODE_ENV === "production"
+        ? process.env.PROD_GAME_HOST_URL || "https://app.bumpervehicles.com"
+        : process.env.WEB_APP_GAME_HOST_URL || "http://localhost:5173";
+    };
+
+    const getLandingPageHostUrl = () => {
+      return process.env.NODE_ENV === "production"
+        ? process.env.PROD_LANDING_PAGE_HOST_URL || "https://bumpervehicles.com"
+        : process.env.LANDING_PAGE_HOST_URL || "http://localhost:5174";
+    };
+
+    const gameHostUrl = getGameHostUrl();
+    const landingPageHostUrl = getLandingPageHostUrl();
+
     this.io = new Server(server, {
       cors: {
-        origin:
-          process.env.NODE_ENV === "production"
-            ? [process.env.PROD_FRONTEND_HOST_URL]
-            : [process.env.LOCAL_FRONTEND_HOST_URL],
+        origin: [gameHostUrl, landingPageHostUrl],
         methods: ["GET", "POST"],
         credentials: true,
       },
