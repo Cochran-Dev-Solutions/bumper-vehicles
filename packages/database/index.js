@@ -1,7 +1,6 @@
 import dotenv from "dotenv";
 dotenv.config();
 import mysql from "mysql2/promise";
-import redis from "@bumper-vehicles/redis";
 
 const dbUrl =
   process.env.NODE_ENV === "production"
@@ -36,17 +35,6 @@ class DatabaseConnection {
 
       console.log("Database pool connected successfully");
 
-      // Also connect to Redis
-      try {
-        await redis.connect();
-        console.log("Redis connection initialized");
-      } catch (redisError) {
-        console.warn(
-          "Redis connection failed, continuing without cache:",
-          redisError.message
-        );
-      }
-
       return this.pool;
     } catch (error) {
       console.error("Database connection failed:", error.message);
@@ -62,13 +50,6 @@ class DatabaseConnection {
       } catch (error) {
         console.error("Error disconnecting from database:", error.message);
       }
-    }
-
-    // Also disconnect from Redis
-    try {
-      await redis.disconnect();
-    } catch (redisError) {
-      console.warn("Error disconnecting from Redis:", redisError.message);
     }
   }
 

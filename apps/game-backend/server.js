@@ -9,7 +9,6 @@ import { registerAuthRoutes } from "./routes/auth_routes.js";
 import { registerNewsletterRoutes } from "./routes/newsletter_routes.js";
 import { registerPaymentRoutes } from "./routes/payment_routes.js";
 import { registerDefaultRoutes } from "./routes/default_routes.js";
-import { registerMarketingRoutes } from "./routes/marketing_routes.js";
 import { initializeUserDal } from "./controllers/user_controllers.js";
 import { initializeAuthDal } from "./controllers/auth_controllers.js";
 import database from "@bumper-vehicles/database";
@@ -160,9 +159,6 @@ const start = async () => {
     registerPaymentRoutes(fastify);
     registerDefaultRoutes(fastify);
 
-    // Register marketing routes with API prefix
-    fastify.register(registerMarketingRoutes, { prefix: '/api/marketing' });
-
     // Start the server
     await fastify.listen({ port: process.env.PORT || 3000, host: "0.0.0.0" });
     console.log(`Server listening on port ${process.env.PORT || 3000}`);
@@ -178,7 +174,7 @@ const start = async () => {
     process.on("SIGINT", async () => {
       console.log("Shutting down gracefully...");
       webSocketManager.shutdown();
-      await database.disconnect(); // This will also disconnect Redis
+      await database.disconnect();
       await fastify.close();
       process.exit(0);
     });

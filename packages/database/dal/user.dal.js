@@ -1,119 +1,20 @@
 import { UserModel } from "../models/user.model.js";
 import database from "../index.js";
-import { getRedisClient } from "@bumper-vehicles/redis";
 
 class UserDal {
   constructor() {
     this.userModel = new UserModel(database.getConnection());
-    this.redisClient = null;
-    this.redisInitialized = false;
-    this.redisInitPromise = null;
   }
 
-  async ensureRedisInitialized() {
-    if (this.redisInitialized) {
-      return this.redisClient;
-    }
-
-    if (this.redisInitPromise) {
-      // Another request is already initializing Redis
-      return this.redisInitPromise;
-    }
-
-    this.redisInitPromise = this.initRedis();
-    try {
-      await this.redisInitPromise;
-      this.redisInitialized = true;
-      return this.redisClient;
-    } finally {
-      this.redisInitPromise = null;
-    }
-  }
-
-  async initRedis() {
-    try {
-      this.redisClient = getRedisClient();
-      console.log("Redis client initialized for UserDal");
-    } catch (error) {
-      console.warn("Redis not available for caching:", error.message);
-      this.redisClient = null;
-    }
-  }
-
-  // Example method that uses Redis (lazy loaded)
-  async getUserWithCache(userId) {
-    const redis = await this.ensureRedisInitialized();
-
-    if (redis) {
-      // Try cache first
-      const cached = await redis.get(`user:${userId}`);
-      if (cached) {
-        return JSON.parse(cached);
-      }
-    }
-
-    // Fallback to database
-    const user = await this.userModel.findById(userId);
-
-    // Cache the result if Redis is available
-    if (redis && user) {
-      await redis.setex(`user:${userId}`, 300, JSON.stringify(user)); // 5 min cache
-    }
-
-    return user;
-  }
-
-  // Invalidate cache when data changes
-  async invalidateCache() {
-    if (this.redisClient) {
-      try {
-        await this.redisClient.del("all_users");
-        console.log("Cache invalidated");
-      } catch (redisError) {
-        console.warn("Failed to invalidate cache:", redisError.message);
-      }
-    }
-  }
-
-  // Get all users with Redis caching
+  // Get all users
   async getAllUsers() {
     try {
-      // Try to get from cache first
-      if (this.redisClient) {
-        try {
-          const cachedUsers = await this.redisClient.get("all_users");
-          if (cachedUsers) {
-            console.log("Returning cached users");
-            return {
-              success: true,
-              data: JSON.parse(cachedUsers),
-              count: JSON.parse(cachedUsers).length,
-              cached: true,
-            };
-          }
-        } catch (redisError) {
-          console.warn("Redis cache error:", redisError.message);
-        }
-      }
-
-      // If not in cache, get from database
       const users = await this.userModel.findAll();
-
-      // Cache the result for 5 minutes (300 seconds)
-      if (this.redisClient) {
-        try {
-          await this.redisClient.setEx("all_users", 300, JSON.stringify(users));
-          console.log("Cached users in Redis");
-        } catch (redisError) {
-          console.warn("Failed to cache users:", redisError.message);
-        }
-      }
 
       return {
         success: true,
         data: users,
         count: users.length,
-        cached: false,
       };
     } catch (error) {
       throw new Error(`Failed to get all users: ${error.message}`);
@@ -168,9 +69,6 @@ class UserDal {
       // Create the user
       const newUser = await this.userModel.create(userData);
 
-      // Invalidate cache since we added a new user
-      await this.invalidateCache();
-
       return {
         success: true,
         data: newUser,
@@ -218,9 +116,6 @@ class UserDal {
       // Update the user
       const updatedUser = await this.userModel.updateById(id, updateData);
 
-      // Invalidate cache since we updated a user
-      await this.invalidateCache();
-
       return {
         success: true,
         data: updatedUser,
@@ -249,9 +144,6 @@ class UserDal {
       if (!deleted) {
         throw new Error("Failed to delete user");
       }
-
-      // Invalidate cache since we deleted a user
-      await this.invalidateCache();
 
       return {
         success: true,
