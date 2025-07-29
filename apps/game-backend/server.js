@@ -34,6 +34,10 @@ fastify.addHook("onRequest", async (request, reply) => {
   const origin = request.headers.origin;
   const gameHostUrl = getGameHostUrl();
   const landingPageHostUrl = getLandingPageHostUrl();
+
+  console.log("origin", origin);
+  console.log("gameHostUrl", gameHostUrl);
+  console.log("landingPageHostUrl", landingPageHostUrl);
   
   // // Debug logging for CORS
   // if (origin) {
