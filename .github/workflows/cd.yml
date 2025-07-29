@@ -31,6 +31,28 @@ jobs:
         run: pnpm docker:build:backend
       - name: Push Docker image
         run: pnpm docker:push:backend
+      - name: Clean up old ECR images
+        run: |
+          # Get the repository name from the ECR repository URI
+          REPO_NAME=$(echo ${{ secrets.ECR_REPOSITORY }} | cut -d'/' -f2)
+
+          # List all images except the latest one
+          IMAGES_TO_DELETE=$(aws ecr describe-images \
+            --repository-name $REPO_NAME \
+            --region ${{ secrets.AWS_REGION }} \
+            --query 'imageDetails[?imageTags[?contains(@, `latest`) == `false`]].imageDigest' \
+            --output text)
+
+          # Delete old images if any exist
+          if [ ! -z "$IMAGES_TO_DELETE" ]; then
+            echo "Deleting old images: $IMAGES_TO_DELETE"
+            aws ecr batch-delete-image \
+              --repository-name $REPO_NAME \
+              --region ${{ secrets.AWS_REGION }} \
+              --image-ids $(echo $IMAGES_TO_DELETE | tr ' ' '\n' | sed 's/^/imageDigest=/')
+          else
+            echo "No old images to delete"
+          fi
       - name: Force ECS service redeploy
         run: |
           aws ecs update-service \

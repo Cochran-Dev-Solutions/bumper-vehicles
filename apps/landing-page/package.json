@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "cross-env VITE_NODE_ENV=development vite",
     "build": "cross-env VITE_NODE_ENV=production vite build",
-    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
+    "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
