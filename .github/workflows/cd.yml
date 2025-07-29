@@ -37,20 +37,23 @@ jobs:
           # ECR URI format: account.dkr.ecr.region.amazonaws.com/namespace/repository-name
           REPO_NAME=$(echo ${{ secrets.ECR_REPOSITORY }} | awk -F'/' '{print $2 "/" $3}')
 
-          # List all images except the latest one
-          IMAGES_TO_DELETE=$(aws ecr describe-images \
+          echo "Repository name: $REPO_NAME"
+
+          # List all images and keep only the most recent one
+          # Get all image digests sorted by push time (newest first)
+          ALL_IMAGES=$(aws ecr describe-images \
             --repository-name $REPO_NAME \
             --region ${{ secrets.AWS_REGION }} \
-            --query 'imageDetails[?imageTags[?contains(@, `latest`) == `false`]].imageDigest' \
+            --query 'sort_by(imageDetails, &imagePushedAt)[1:].imageDigest' \
             --output text)
 
           # Delete old images if any exist
-          if [ ! -z "$IMAGES_TO_DELETE" ]; then
-            echo "Deleting old images: $IMAGES_TO_DELETE"
+          if [ ! -z "$ALL_IMAGES" ]; then
+            echo "Deleting old images: $ALL_IMAGES"
             aws ecr batch-delete-image \
               --repository-name $REPO_NAME \
               --region ${{ secrets.AWS_REGION }} \
-              --image-ids $(echo $IMAGES_TO_DELETE | tr ' ' '\n' | sed 's/^/imageDigest=/')
+              --image-ids $(echo $ALL_IMAGES | tr ' ' '\n' | sed 's/^/imageDigest=/')
           else
             echo "No old images to delete"
           fi
