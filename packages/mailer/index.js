@@ -1,21 +1,18 @@
-import ConvertKitService from './convertkit.js';
 import NodeMailerService from './nodemailer.js';
 
-// Create singleton instances
-const convertKit = new ConvertKitService();
+// Create singleton instance
 const nodeMailer = new NodeMailerService();
 
-// Export singleton instances
+// Export singleton instance
 export default {
-  convertKit,
   nodeMailer
 };
 
-// Export individual services
-export { convertKit, nodeMailer };
+// Export individual service
+export { nodeMailer };
 
 // Export the classes for direct instantiation if needed
-export { ConvertKitService, NodeMailerService };
+export { NodeMailerService };
 
 // Export utility functions
 export {

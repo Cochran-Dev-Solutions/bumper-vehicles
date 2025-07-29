@@ -15,23 +15,23 @@ class NodeMailerService {
 
     try {
       // Check if required environment variables are set
-      if (!process.env.MAIL_USER || !process.env.MAIL_PASS) {
+      if (!process.env.SMTP_USERNAME || !process.env.SMTP_PASSWORD) {
         throw new Error(
-          "MAIL_USER and MAIL_PASS environment variables are required"
+          "SMTP_USERNAME and SMTP_PASSWORD environment variables are required for AWS SES"
         );
       }
 
       this.transporter = nodemailer.createTransport({
-        host: process.env.MAIL_HOST || "smtp.gmail.com",
-        port: process.env.MAIL_PORT || 587,
-        secure: true, // true for 465, false for other ports
+        host: process.env.SMTP_HOST || "email-smtp.us-east-2.amazonaws.com",
+        port: process.env.SMTP_PORT || 587,
+        secure: false, // false for 587, true for 465
         auth: {
-          user: process.env.MAIL_USER,
-          pass: process.env.MAIL_PASS,
+          user: process.env.SMTP_USERNAME,
+          pass: process.env.SMTP_PASSWORD,
         },
       });
 
-      console.log("NodeMailer service initialized");
+      console.log("NodeMailer service initialized with AWS SES");
       return this.transporter;
     } catch (error) {
       console.error("Failed to initialize NodeMailer service:", error.message);
@@ -45,6 +45,13 @@ class NodeMailerService {
       // Initialize transporter if not already initialized
       if (!this.transporter) {
         await this.initTransporter();
+      }
+
+      // Set default from address if not provided
+      if (!mailOptions.from) {
+        const fromName = process.env.MAIL_FROM_NAME || "Bumper Vehicles";
+        const fromEmail = process.env.MAIL_FROM_EMAIL || "info@bumpervehicles.com";
+        mailOptions.from = `"${fromName}" <${fromEmail}>`;
       }
 
       const info = await this.transporter.sendMail(mailOptions);

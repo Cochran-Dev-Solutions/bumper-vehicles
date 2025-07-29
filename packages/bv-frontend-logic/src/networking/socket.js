@@ -10,9 +10,16 @@ class Socket {
   connect() {
     return new Promise((resolve) => {
       // Connect to the server
-      const apiUrl =
-        import.meta.env.VITE_PROD_API_URL || import.meta.env.VITE_LOCAL_API_URL;
-      console.log(apiUrl);
+      const nodeEnv = import.meta.env.VITE_NODE_ENV;
+      let apiUrl;
+      
+      if (nodeEnv === 'production') {
+        apiUrl = import.meta.env.VITE_PROD_API_URL || 'https://api.bumpervehicles.com';
+      } else {
+        apiUrl = import.meta.env.VITE_LOCAL_API_URL || 'http://localhost:3000';
+      }
+      
+      console.log('Socket connecting to:', apiUrl, 'Environment:', nodeEnv);
       this.socket = io(apiUrl);
 
       this.socket.on("connect", () => {

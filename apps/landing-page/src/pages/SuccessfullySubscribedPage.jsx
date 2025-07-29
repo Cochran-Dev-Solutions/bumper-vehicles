@@ -1,6 +1,42 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import convertKit from "../services/convertkit";
 
 function SuccessfullySubscribedPage() {
+  const [subscriptionStatus, setSubscriptionStatus] = useState('loading');
+  const [email, setEmail] = useState('');
+
+  useEffect(() => {
+    // Get email from URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const emailParam = urlParams.get('email');
+    setEmail(emailParam || '');
+
+    if (emailParam) {
+      // Add subscriber to ConvertKit directly
+      const addToConvertKit = async () => {
+        try {
+          console.log('Adding subscriber to ConvertKit:', emailParam);
+          const result = await convertKit.addSubscriber(emailParam);
+          
+          if (result.success) {
+            console.log('Successfully added to ConvertKit:', result);
+            setSubscriptionStatus('success');
+          } else {
+            console.error('Failed to add to ConvertKit:', result.error);
+            setSubscriptionStatus('error');
+          }
+        } catch (error) {
+          console.error('Error adding to ConvertKit:', error);
+          setSubscriptionStatus('error');
+        }
+      };
+
+      addToConvertKit();
+    } else {
+      setSubscriptionStatus('no-email');
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 flex items-center justify-center">
       <div className="max-w-2xl mx-auto px-6 py-12 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 text-center">
@@ -11,10 +47,37 @@ function SuccessfullySubscribedPage() {
             </svg>
           </div>
           <h1 className="text-3xl font-bold text-white mb-4">Successfully Subscribed!</h1>
-          <p className="text-gray-300 text-lg mb-6">
-            Thank you for subscribing to our newsletter! You'll now receive updates about new features, 
-            events, and exclusive content.
-          </p>
+          
+          {subscriptionStatus === 'loading' && (
+            <p className="text-gray-300 text-lg mb-6">
+              Completing your subscription...
+            </p>
+          )}
+          
+          {subscriptionStatus === 'success' && (
+            <p className="text-gray-300 text-lg mb-6">
+              Thank you for subscribing to our newsletter! You'll now receive updates about new features, 
+              events, and exclusive content.
+            </p>
+          )}
+          
+          {subscriptionStatus === 'error' && (
+            <div className="mb-6">
+              <p className="text-gray-300 text-lg mb-2">
+                Thank you for subscribing to our newsletter!
+              </p>
+              <p className="text-yellow-300 text-sm">
+                Note: There was an issue adding you to our mailing list, but we've recorded your subscription.
+              </p>
+            </div>
+          )}
+          
+          {subscriptionStatus === 'no-email' && (
+            <p className="text-gray-300 text-lg mb-6">
+              Thank you for subscribing to our newsletter! You'll now receive updates about new features, 
+              events, and exclusive content.
+            </p>
+          )}
         </div>
         
         <div className="space-y-4">
