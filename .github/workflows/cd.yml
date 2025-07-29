@@ -34,8 +34,8 @@ jobs:
       - name: Clean up old ECR images
         run: |
           # Get the repository name from the ECR repository URI
-          # ECR URI format: account.dkr.ecr.region.amazonaws.com/repository-name
-          REPO_NAME=$(echo ${{ secrets.ECR_REPOSITORY }} | sed 's/.*\///')
+          # ECR URI format: account.dkr.ecr.region.amazonaws.com/namespace/repository-name
+          REPO_NAME=$(echo ${{ secrets.ECR_REPOSITORY }} | awk -F'/' '{print $2 "/" $3}')
 
           # List all images except the latest one
           IMAGES_TO_DELETE=$(aws ecr describe-images \
