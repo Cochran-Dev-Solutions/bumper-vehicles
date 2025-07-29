@@ -39,21 +39,21 @@ jobs:
 
           echo "Repository name: $REPO_NAME"
 
-          # List all images and keep only the most recent one
-          # Get all image digests sorted by push time (newest first)
-          ALL_IMAGES=$(aws ecr describe-images \
+          # Delete images that don't have the 'latest' tag
+          # This preserves the latest image while cleaning up old ones
+          IMAGES_TO_DELETE=$(aws ecr describe-images \
             --repository-name $REPO_NAME \
             --region ${{ secrets.AWS_REGION }} \
-            --query 'sort_by(imageDetails, &imagePushedAt)[1:].imageDigest' \
+            --query 'imageDetails[?!(contains(imageTags, `latest`))].imageDigest' \
             --output text)
 
           # Delete old images if any exist
-          if [ ! -z "$ALL_IMAGES" ]; then
-            echo "Deleting old images: $ALL_IMAGES"
+          if [ ! -z "$IMAGES_TO_DELETE" ]; then
+            echo "Deleting old images: $IMAGES_TO_DELETE"
             aws ecr batch-delete-image \
               --repository-name $REPO_NAME \
               --region ${{ secrets.AWS_REGION }} \
-              --image-ids $(echo $ALL_IMAGES | tr ' ' '\n' | sed 's/^/imageDigest=/')
+              --image-ids $(echo $IMAGES_TO_DELETE | tr ' ' '\n' | sed 's/^/imageDigest=/')
           else
             echo "No old images to delete"
           fi
