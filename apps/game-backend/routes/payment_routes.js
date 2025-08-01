@@ -136,7 +136,11 @@ export function registerPaymentRoutes(fastify) {
                     }
 
                     // Redirect to beta credentials page
-                    const credentialsUrl = `${process.env.LANDING_PAGE_HOST_URL || 'http://localhost:5174'}/beta-credentials?username=${encodeURIComponent(existingUser.user.username)}&password=Your existing password&email=${encodeURIComponent(email)}`;
+                    const isProduction = process.env.NODE_ENV === 'production';
+                    const baseUrl = isProduction 
+                        ? (process.env.PROD_LANDING_PAGE_HOST_URL || 'https://bumpervehicles.com')
+                        : (process.env.LANDING_PAGE_HOST_URL || 'http://localhost:5174');
+                    const credentialsUrl = `${baseUrl}/beta-credentials?username=${encodeURIComponent(existingUser.user.username)}&password=Your existing password&email=${encodeURIComponent(email)}`;
                     console.log('Redirecting to beta credentials page:', credentialsUrl);
                     return reply.redirect(credentialsUrl);
                 }
@@ -161,7 +165,11 @@ export function registerPaymentRoutes(fastify) {
             }
 
             // Redirect to beta credentials page
-            const credentialsUrl = `${process.env.LANDING_PAGE_HOST_URL || 'http://localhost:5174'}/beta-credentials?username=${encodeURIComponent(betaUserResult.username)}&password=${encodeURIComponent(betaUserResult.password)}&email=${encodeURIComponent(email)}`;
+            const isProduction = process.env.NODE_ENV === 'production';
+            const baseUrl = isProduction 
+                ? (process.env.PROD_LANDING_PAGE_HOST_URL || 'https://bumpervehicles.com')
+                : (process.env.LANDING_PAGE_HOST_URL || 'http://localhost:5174');
+            const credentialsUrl = `${baseUrl}/beta-credentials?username=${encodeURIComponent(betaUserResult.username)}&password=${encodeURIComponent(betaUserResult.password)}&email=${encodeURIComponent(email)}`;
             
             console.log('Redirecting to beta credentials page:', credentialsUrl);
             return reply.redirect(credentialsUrl);
@@ -180,7 +188,11 @@ export function registerPaymentRoutes(fastify) {
         }
     }, async (request, reply) => {
         console.log('Payment cancelled by user');
-        const cancelUrl = `${process.env.LANDING_PAGE_HOST_URL || 'http://localhost:5174'}/?payment=cancelled`;
+        const isProduction = process.env.NODE_ENV === 'production';
+        const baseUrl = isProduction 
+            ? (process.env.PROD_LANDING_PAGE_HOST_URL || 'https://bumpervehicles.com')
+            : (process.env.LANDING_PAGE_HOST_URL || 'http://localhost:5174');
+        const cancelUrl = `${baseUrl}/?payment=cancelled`;
         return reply.redirect(cancelUrl);
     });
 } 

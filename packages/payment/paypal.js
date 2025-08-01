@@ -48,8 +48,12 @@ class PayPalService {
             const token = await this.getAccessToken();
             console.log('Got access token:', !!token);
             
-            const returnUrl = `${process.env.API_URL || 'http://localhost:3000'}/payment/success`;
-            const cancelUrl = `${process.env.LANDING_PAGE_HOST_URL || 'http://localhost:5174'}/?payment=cancelled`;
+            const returnUrl = this.isProduction 
+                ? `${process.env.PROD_API_URL || 'https://api.bumpervehicles.com'}/payment/success`
+                : `${process.env.API_URL || 'http://localhost:3000'}/payment/success`;
+            const cancelUrl = this.isProduction 
+                ? `${process.env.PROD_LANDING_PAGE_HOST_URL || 'https://bumpervehicles.com'}/?payment=cancelled`
+                : `${process.env.LANDING_PAGE_HOST_URL || 'http://localhost:5174'}/?payment=cancelled`;
             
             console.log('Return URL:', returnUrl);
             console.log('Cancel URL:', cancelUrl);
