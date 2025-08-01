@@ -18,8 +18,6 @@ export { NodeMailerService };
 export {
   generateVerificationCode,
   generateExpirationTime,
-  generateNewsletterConfirmationToken,
-  generateNewsletterExpirationTime,
   isCodeExpired,
   formatEmailTemplate,
 } from "./utils.js";

@@ -1,12 +1,4 @@
 import { sendNewsletterConfirmationEmail } from '../src/email_templates/newsletter_confirmation_email.js';
-import NewsletterConfirmationDal from '../../../packages/database/dal/newsletter-confirmation.dal.js';
-import { generateNewsletterConfirmationToken, generateNewsletterExpirationTime } from '@bumper-vehicles/mailer';
-
-let newsletterConfirmationDal = null;
-
-const initializeNewsletterDal = () => {
-    newsletterConfirmationDal = new NewsletterConfirmationDal();
-};
 
 export function registerNewsletterRoutes(fastify) {
     // Newsletter confirmation email endpoint (only backend API needed)
@@ -41,11 +33,6 @@ export function registerNewsletterRoutes(fastify) {
         }
     }, async (request, reply) => {
         try {
-            // Initialize DAL if not already done
-            if (!newsletterConfirmationDal) {
-                initializeNewsletterDal();
-            }
-
             const { email } = request.body;
 
             console.log('Newsletter confirmation email request received:', { email });
@@ -54,28 +41,9 @@ export function registerNewsletterRoutes(fastify) {
                 return reply.status(400).send({ error: 'Email is required' });
             }
 
-            // Step 1: Check if we have a pending confirmation for this email
-            const existingConfirmation = await newsletterConfirmationDal.getConfirmationByEmail(email);
-            if (existingConfirmation.success) {
-                console.log('Existing confirmation found for email, sending new confirmation email');
-            }
-
-            // Step 2: Generate confirmation token and expiration
-            const confirmationToken = generateNewsletterConfirmationToken();
-            const expiresAt = generateNewsletterExpirationTime();
-
-            // Step 3: Store confirmation token in database
-            const tokenResult = await newsletterConfirmationDal.createConfirmationToken(email, confirmationToken, expiresAt);
-            if (!tokenResult.success) {
-                console.error('Failed to create confirmation token:', tokenResult.error);
-                return reply.status(500).send({ 
-                    error: 'Failed to process newsletter subscription. Please try again.' 
-                });
-            }
-
-            // Step 4: Send confirmation email via nodemailer
+            // Send confirmation email via nodemailer
             try {
-                await sendNewsletterConfirmationEmail(email, confirmationToken);
+                await sendNewsletterConfirmationEmail(email);
                 console.log('Newsletter confirmation email sent successfully to:', email);
             } catch (emailError) {
                 console.error('Failed to send newsletter confirmation email:', emailError.message);

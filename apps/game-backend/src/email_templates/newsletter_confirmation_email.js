@@ -1,6 +1,6 @@
 import { nodeMailer } from '@bumper-vehicles/mailer';
 
-export const sendNewsletterConfirmationEmail = async (email, confirmationToken) => {
+export const sendNewsletterConfirmationEmail = async (email) => {
   try {
     const mailOptions = {
       from: "\"Bumper Vehicles\" <no-reply@bumpervehicles.com>",
@@ -9,6 +9,13 @@ export const sendNewsletterConfirmationEmail = async (email, confirmationToken) 
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; text-align: center;">
+            <!-- Logo Section -->
+            <div style="margin-bottom: 15px;">
+              <img src="https://bumpervehicles.com/logo.png" 
+                   alt="Bumper Vehicles Logo" 
+                   style="height: 60px; width: auto; max-width: 200px;"
+                   onerror="this.style.display='none'">
+            </div>
             <h1 style="color: white; margin: 0;">Bumper Vehicles</h1>
           </div>
           
@@ -21,7 +28,7 @@ export const sendNewsletterConfirmationEmail = async (email, confirmationToken) 
             </p>
             
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${process.env.LANDING_PAGE_HOST_URL || 'http://localhost:5174'}/successfully-subscribed?token=${confirmationToken}&email=${encodeURIComponent(email)}" 
+              <a href="${process.env.LANDING_PAGE_HOST_URL || 'http://localhost:5174'}/successfully-subscribed?email=${encodeURIComponent(email)}" 
                  style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; display: inline-block; font-weight: bold; font-size: 16px;">
                 Confirm Subscription
               </a>
@@ -33,16 +40,11 @@ export const sendNewsletterConfirmationEmail = async (email, confirmationToken) 
             
             <div style="background: white; border: 1px solid #ddd; border-radius: 5px; padding: 15px; margin: 20px 0; word-break: break-all;">
               <p style="margin: 0; color: #667eea; font-size: 14px;">
-                ${process.env.LANDING_PAGE_HOST_URL || 'http://localhost:5174'}/successfully-subscribed?token=${confirmationToken}&email=${encodeURIComponent(email)}
+                ${process.env.LANDING_PAGE_HOST_URL || 'http://localhost:5174'}/successfully-subscribed?email=${encodeURIComponent(email)}
               </p>
             </div>
             
             <p style="color: #666; line-height: 1.6; margin-bottom: 25px;">
-              This confirmation link will expire in 24 hours. If you didn't sign up for our newsletter, 
-              you can safely ignore this email.
-            </p>
-            
-            <p style="color: #666; line-height: 1.6;">
               Once confirmed, you'll receive updates about:
             </p>
             <ul style="color: #666; line-height: 1.6; margin-bottom: 25px;">

@@ -8,7 +8,7 @@ class BetaUserDal {
     }
 
     // Create a new beta user
-    async createBetaUser(email) {
+    async createBetaUser(email, firstName = null, lastName = null, signupSource = 'landing_page') {
         try {
             // Generate username from email
             const username = this.generateUsername(email);
@@ -21,12 +21,12 @@ class BetaUserDal {
             
             // Create user record
             const query = `
-                INSERT INTO beta_testers (email, username, password_hash, beta_access_granted, access_granted_at, created_at, updated_at)
-                VALUES (?, ?, ?, TRUE, NOW(), NOW(), NOW())
+                INSERT INTO beta_testers (email, first_name, last_name, username, password_hash, signup_source, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())
             `;
             
             const connection = database.getConnection();
-            const [result] = await connection.query(query, [email, username, hashedPassword]);
+            const [result] = await connection.query(query, [email, firstName, lastName, username, hashedPassword, signupSource]);
             
             return {
                 success: true,
@@ -48,9 +48,9 @@ class BetaUserDal {
     async verifyBetaUser(username, password) {
         try {
             const query = `
-                SELECT id, email, username, password_hash, is_active, beta_access_granted
+                SELECT id, email, first_name, last_name, username, password_hash
                 FROM beta_testers 
-                WHERE username = ? AND is_active = 1 AND beta_access_granted = 1
+                WHERE username = ?
             `;
             
             const connection = database.getConnection();
@@ -75,14 +75,13 @@ class BetaUserDal {
                 };
             }
             
-            // Update last login time
-            await this.updateLastLogin(user.id);
-            
             return {
                 success: true,
                 user: {
                     id: user.id,
                     email: user.email,
+                    firstName: user.first_name,
+                    lastName: user.last_name,
                     username: user.username
                 }
             };
@@ -99,9 +98,9 @@ class BetaUserDal {
     async getBetaUserByEmail(email) {
         try {
             const query = `
-                SELECT id, email, username, is_active, beta_access_granted, created_at
+                SELECT id, email, first_name, last_name, username, signup_source, created_at
                 FROM beta_testers 
-                WHERE email = ? AND is_active = 1
+                WHERE email = ?
             `;
             
             const connection = database.getConnection();
@@ -131,7 +130,7 @@ class BetaUserDal {
     async checkUserExists(email) {
         try {
             const query = `
-                SELECT id, email, beta_access_granted, payment_status
+                SELECT id, email, username
                 FROM beta_testers 
                 WHERE email = ?
             `;
@@ -139,47 +138,45 @@ class BetaUserDal {
             const connection = database.getConnection();
             const [rows] = await connection.query(query, [email]);
             
-            if (rows.length > 0) {
-                const user = rows[0];
-                return {
-                    exists: true,
-                    hasBetaAccess: user.beta_access_granted === 1,
-                    paymentStatus: user.payment_status,
-                    userId: user.id
-                };
-            }
-            
             return {
-                exists: false
+                success: true,
+                exists: rows.length > 0,
+                user: rows.length > 0 ? rows[0] : null
             };
         } catch (error) {
             console.error('Error checking if user exists:', error);
             return {
-                exists: false,
+                success: false,
                 error: error.message
             };
         }
     }
 
-
-
-    // Deactivate beta user
-    async deactivateBetaUser(userId) {
+    // Get beta user by username
+    async getBetaUserByUsername(username) {
         try {
             const query = `
-                UPDATE beta_testers 
-                SET is_active = 0, updated_at = NOW()
-                WHERE id = ?
+                SELECT id, email, first_name, last_name, username, signup_source, created_at
+                FROM beta_testers 
+                WHERE username = ?
             `;
             
             const connection = database.getConnection();
-            await connection.query(query, [userId]);
+            const [rows] = await connection.query(query, [username]);
+            
+            if (rows.length === 0) {
+                return {
+                    success: false,
+                    error: 'User not found'
+                };
+            }
             
             return {
-                success: true
+                success: true,
+                user: rows[0]
             };
         } catch (error) {
-            console.error('Error deactivating beta user:', error);
+            console.error('Error getting beta user by username:', error);
             return {
                 success: false,
                 error: error.message
@@ -187,23 +184,52 @@ class BetaUserDal {
         }
     }
 
-    // Update last login time
-    async updateLastLogin(userId) {
+    // Update user information
+    async updateBetaUser(userId, updateData) {
         try {
+            const allowedFields = ['first_name', 'last_name', 'username', 'password_hash'];
+            const updates = [];
+            const values = [];
+            
+            for (const [key, value] of Object.entries(updateData)) {
+                if (allowedFields.includes(key) && value !== undefined) {
+                    updates.push(`${key} = ?`);
+                    values.push(value);
+                }
+            }
+            
+            if (updates.length === 0) {
+                return {
+                    success: false,
+                    error: 'No valid fields to update'
+                };
+            }
+            
+            updates.push('updated_at = NOW()');
+            values.push(userId);
+            
             const query = `
                 UPDATE beta_testers 
-                SET last_login_at = NOW(), updated_at = NOW()
+                SET ${updates.join(', ')}
                 WHERE id = ?
             `;
             
             const connection = database.getConnection();
-            await connection.query(query, [userId]);
+            const [result] = await connection.query(query, values);
+            
+            if (result.affectedRows === 0) {
+                return {
+                    success: false,
+                    error: 'User not found'
+                };
+            }
             
             return {
-                success: true
+                success: true,
+                message: 'User updated successfully'
             };
         } catch (error) {
-            console.error('Error updating last login:', error);
+            console.error('Error updating beta user:', error);
             return {
                 success: false,
                 error: error.message
@@ -211,24 +237,16 @@ class BetaUserDal {
         }
     }
 
-    // Generate username from email
+    // Generate unique username from email
     generateUsername(email) {
-        const baseUsername = email.split('@')[0];
-        const randomSuffix = Math.random().toString(36).substring(2, 6);
+        const baseUsername = email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '');
+        const randomSuffix = crypto.randomBytes(4).toString('hex');
         return `${baseUsername}_${randomSuffix}`;
     }
 
     // Generate secure password
     generatePassword() {
-        const length = 12;
-        const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
-        let password = '';
-        
-        for (let i = 0; i < length; i++) {
-            password += charset.charAt(Math.floor(Math.random() * charset.length));
-        }
-        
-        return password;
+        return crypto.randomBytes(8).toString('hex');
     }
 }
 
