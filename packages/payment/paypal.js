@@ -43,7 +43,16 @@ class PayPalService {
     // Create payment
     async createPayment(amount, currency = 'USD', description = 'Beta Access Fee', customData = {}) {
         try {
+            console.log('Creating PayPal payment with:', { amount, currency, description, customData });
+            
             const token = await this.getAccessToken();
+            console.log('Got access token:', !!token);
+            
+            const returnUrl = `${process.env.API_URL || 'http://localhost:3000'}/payment/success`;
+            const cancelUrl = `${process.env.LANDING_PAGE_HOST_URL || 'http://localhost:5174'}/?payment=cancelled`;
+            
+            console.log('Return URL:', returnUrl);
+            console.log('Cancel URL:', cancelUrl);
             
             const payload = {
                 intent: 'CAPTURE',
@@ -56,10 +65,12 @@ class PayPalService {
                     custom_id: JSON.stringify(customData) // Store custom data in custom_id
                 }],
                 application_context: {
-                    return_url: `${process.env.API_URL || 'http://localhost:3000'}/payment/success`,
-                    cancel_url: `${process.env.LANDING_PAGE_HOST_URL || 'http://localhost:5174'}/?payment=cancelled`
+                    return_url: returnUrl,
+                    cancel_url: cancelUrl
                 }
             };
+
+            console.log('PayPal payload:', JSON.stringify(payload, null, 2));
 
             const response = await axios.post(`${this.baseUrl}/v2/checkout/orders`, payload, {
                 headers: {
@@ -67,6 +78,8 @@ class PayPalService {
                     'Content-Type': 'application/json'
                 }
             });
+
+            console.log('PayPal response:', JSON.stringify(response.data, null, 2));
 
             return {
                 success: true,
