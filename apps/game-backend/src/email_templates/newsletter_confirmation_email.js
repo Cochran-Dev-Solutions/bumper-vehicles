@@ -28,7 +28,7 @@ export const sendNewsletterConfirmationEmail = async (email) => {
             </p>
             
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${process.env.LANDING_PAGE_HOST_URL || 'http://localhost:5174'}/successfully-subscribed?email=${encodeURIComponent(email)}" 
+              <a href="${process.env.NODE_ENV === 'production' ? (process.env.PROD_LANDING_PAGE_HOST_URL || 'https://bumpervehicles.com') : (process.env.LANDING_PAGE_HOST_URL || 'http://localhost:5174')}/successfully-subscribed?email=${encodeURIComponent(email)}" 
                  style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; display: inline-block; font-weight: bold; font-size: 16px;">
                 Confirm Subscription
               </a>
@@ -40,7 +40,7 @@ export const sendNewsletterConfirmationEmail = async (email) => {
             
             <div style="background: white; border: 1px solid #ddd; border-radius: 5px; padding: 15px; margin: 20px 0; word-break: break-all;">
               <p style="margin: 0; color: #667eea; font-size: 14px;">
-                ${process.env.LANDING_PAGE_HOST_URL || 'http://localhost:5174'}/successfully-subscribed?email=${encodeURIComponent(email)}
+                ${process.env.NODE_ENV === 'production' ? (process.env.PROD_LANDING_PAGE_HOST_URL || 'https://bumpervehicles.com') : (process.env.LANDING_PAGE_HOST_URL || 'http://localhost:5174')}/successfully-subscribed?email=${encodeURIComponent(email)}
               </p>
             </div>
             

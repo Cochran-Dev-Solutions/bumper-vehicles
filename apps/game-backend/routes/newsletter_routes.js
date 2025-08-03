@@ -41,10 +41,19 @@ export function registerNewsletterRoutes(fastify) {
                 return reply.status(400).send({ error: 'Email is required' });
             }
 
-            // Send confirmation email via nodemailer
+            // Send confirmation email via nodemailer with timeout
             try {
-                await sendNewsletterConfirmationEmail(email);
+                console.log('Attempting to send newsletter confirmation email to:', email);
+                
+                // Add timeout to email sending
+                const emailPromise = sendNewsletterConfirmationEmail(email);
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Email sending timeout')), 10000)
+                );
+                
+                await Promise.race([emailPromise, timeoutPromise]);
                 console.log('Newsletter confirmation email sent successfully to:', email);
+                
             } catch (emailError) {
                 console.error('Failed to send newsletter confirmation email:', emailError.message);
                 return reply.status(500).send({ 

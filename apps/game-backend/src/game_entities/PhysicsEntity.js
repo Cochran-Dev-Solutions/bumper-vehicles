@@ -78,6 +78,53 @@ export class PhysicsEntity extends Entity {
   }
 
   /**
+   * Handle collisions with map boundaries
+   * @returns {boolean} true if collision occurred
+   */
+  handleBoundaryCollisions() {
+    if (!this.game || !this.game.mapWidth || !this.game.mapHeight) {
+      return false;
+    }
+
+    let collision = false;
+
+    // Check left boundary
+    if (this.boundingBox.left < 0) {
+      this.position.x = 0;
+      this.velocity.x = -this.velocity.x * this.elasticity;
+      collision = true;
+    }
+
+    // Check right boundary
+    if (this.boundingBox.right > this.game.mapWidth) {
+      this.position.x = this.game.mapWidth - this.boundingBox.size.x;
+      this.velocity.x = -this.velocity.x * this.elasticity;
+      collision = true;
+    }
+
+    // Check top boundary
+    if (this.boundingBox.top < 0) {
+      this.position.y = 0;
+      this.velocity.y = -this.velocity.y * this.elasticity;
+      collision = true;
+    }
+
+    // Check bottom boundary
+    if (this.boundingBox.bottom > this.game.mapHeight) {
+      this.position.y = this.game.mapHeight - this.boundingBox.size.y;
+      this.velocity.y = -this.velocity.y * this.elasticity;
+      collision = true;
+    }
+
+    if (collision) {
+      this.boundingBox.updateX();
+      this.boundingBox.updateY();
+    }
+
+    return collision;
+  }
+
+  /**
    * Handle collisions with tiles/blocks
    * @returns {boolean} true if collision occurred
    */

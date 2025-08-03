@@ -72,6 +72,10 @@ class Vec2 extends Vector {
     const mag = this.magnitude();
     return new Vec2(this.x / mag, this.y / mag);
   }
+
+  distance(other) {
+    return this.subtract(other).magnitude();
+  }
 }
 
 class Vec3 extends Vector {

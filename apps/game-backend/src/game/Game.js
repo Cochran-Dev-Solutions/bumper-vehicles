@@ -26,6 +26,10 @@ export default class Game {
     this.spawn_points = []; // Will store available spawn points
     this.taken_spawn_points = new Map(); // Maps player ID to spawn point index
 
+    // Map dimensions for boundary collision
+    this.mapWidth = 0;
+    this.mapHeight = 0;
+
     // Set up the game immediately
     this.setup();
   }
@@ -43,14 +47,20 @@ export default class Game {
    */
   setup() {
     // Load the map script
-    const script = mapManager.getMapScript("race", this.mapName);
-    if (!script) {
+    const mapData = mapManager.getMapScript("race", this.mapName);
+    if (!mapData) {
       console.error(`Failed to load map script for ${this.mapName}`);
       return;
     }
 
+    // Set map dimensions from script if available, otherwise calculate them
+    if (mapData.dimensions) {
+      this.mapWidth = mapData.dimensions.width;
+      this.mapHeight = mapData.dimensions.height;
+    }
+
     // Second pass: create other entities
-    script.forEach((instruction) => {
+    mapData.entities.forEach((instruction) => {
       if (instruction.type === "spawn_point") {
         this.spawn_points.push(instruction.parameters.position);
         return;
@@ -73,6 +83,11 @@ export default class Game {
 
     // Set required players based on number of spawn points
     this.requiredPlayers = this.spawn_points.length;
+
+    // Calculate map dimensions if not provided in script (for backward compatibility)
+    if (!mapData.dimensions) {
+      this.calculateMapDimensions();
+    }
   }
 
   /**
@@ -98,6 +113,27 @@ export default class Game {
     const originalIndex = this.spawn_points.indexOf(spawnPoint);
 
     return { position: spawnPoint, index: originalIndex };
+  }
+
+  /**
+   * Calculate map dimensions based on entity positions
+   */
+  calculateMapDimensions() {
+    let maxX = 0;
+    let maxY = 0;
+
+    // Check all passive actors
+    this.passive_actors.forEach((actor) => {
+      const rightEdge = actor.position.x + (actor.size ? actor.size.x : actor.radius * 2);
+      const bottomEdge = actor.position.y + (actor.size ? actor.size.y : actor.radius * 2);
+      
+      if (rightEdge > maxX) maxX = rightEdge;
+      if (bottomEdge > maxY) maxY = bottomEdge;
+    });
+
+    // Add some padding
+    this.mapWidth = maxX + 100;
+    this.mapHeight = maxY + 100;
   }
 
   /**
@@ -307,6 +343,8 @@ export default class Game {
       passive_actors: this.passive_actors.map((actor) =>
         actor.getInitialState()
       ),
+      mapWidth: this.mapWidth,
+      mapHeight: this.mapHeight,
     };
   }
 

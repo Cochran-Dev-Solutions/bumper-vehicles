@@ -144,14 +144,13 @@ function WelcomePage() {
           <div className="mt-10 flex justify-center">
             <div className="relative w-full max-w-4xl">
               <div className="aspect-w-16 aspect-h-9">
-                <iframe
-                  className="w-full h-96 rounded-lg shadow-2xl"
-                  src="https://www.youtube.com/embed/polizGfJ17Q?si=llmJYv0UsVvwCUCu"
-                  title="Bumper Vehicles Gameplay"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                ></iframe>
+                <div className="w-full h-96 rounded-lg shadow-2xl bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="text-6xl mb-4 text-gray-400">🎮</div>
+                    <h3 className="text-3xl font-bold text-white mb-2">Coming Soon</h3>
+                    <p className="text-gray-400 text-lg">Gameplay video will be available here</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

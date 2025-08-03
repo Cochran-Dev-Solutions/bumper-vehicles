@@ -35,15 +35,24 @@ fastify.addHook("onRequest", async (request, reply) => {
   const gameHostUrl = getGameHostUrl();
   const landingPageHostUrl = getLandingPageHostUrl();
 
+  console.log("=== CORS DEBUG ===");
   console.log("origin", origin);
   console.log("gameHostUrl", gameHostUrl);
   console.log("landingPageHostUrl", landingPageHostUrl);
+  console.log("NODE_ENV:", process.env.NODE_ENV);
+  console.log("Request method:", request.method);
+  console.log("Request URL:", request.url);
   
   // Allow requests from either the game frontend or landing page
   // Also handle cases where origin might be undefined (some browsers/clients)
   if (origin === gameHostUrl || origin === landingPageHostUrl || !origin) {
     // If origin is undefined, set it to the game host URL as default
-    reply.header("Access-Control-Allow-Origin", origin || gameHostUrl);
+    const allowedOrigin = origin || gameHostUrl;
+    console.log("CORS: Setting Access-Control-Allow-Origin to:", allowedOrigin);
+    reply.header("Access-Control-Allow-Origin", allowedOrigin);
+  } else {
+    console.log("CORS: Origin not allowed:", origin);
+    console.log("CORS: Expected origins:", [gameHostUrl, landingPageHostUrl]);
   }
   
   reply.header(
@@ -52,6 +61,7 @@ fastify.addHook("onRequest", async (request, reply) => {
   );
   reply.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
   reply.header("Access-Control-Allow-Credentials", "true");
+  console.log("=== END CORS DEBUG ===");
 });
 
 // Handle OPTIONS preflight requests
@@ -62,6 +72,42 @@ fastify.options("/*", async (request, reply) => {
 // Start the server
 const start = async () => {
   try {
+    // Log environment configuration for debugging
+    console.log('=== ENVIRONMENT CONFIGURATION DEBUG ===');
+    console.log('NODE_ENV:', process.env.NODE_ENV);
+    console.log('PORT:', process.env.PORT || 3000);
+    
+    // Server URLs
+    console.log('WEB_APP_GAME_HOST_URL:', process.env.WEB_APP_GAME_HOST_URL);
+    console.log('LANDING_PAGE_HOST_URL:', process.env.LANDING_PAGE_HOST_URL);
+    console.log('API_URL:', process.env.API_URL);
+    console.log('PROD_GAME_HOST_URL:', process.env.PROD_GAME_HOST_URL);
+    console.log('PROD_LANDING_PAGE_HOST_URL:', process.env.PROD_LANDING_PAGE_HOST_URL);
+    console.log('PROD_API_URL:', process.env.PROD_API_URL);
+    
+    // Database
+    console.log('LOCAL_DB_URL:', process.env.LOCAL_DB_URL ? 'Set' : 'Not set');
+    console.log('PROD_DB_URL:', process.env.PROD_DB_URL ? 'Set' : 'Not set');
+    
+    // Mailer Configuration
+    console.log('IAM_USERNAME:', process.env.IAM_USERNAME ? 'Set' : 'Not set');
+    console.log('SMTP_USERNAME:', process.env.SMTP_USERNAME ? 'Set' : 'Not set');
+    console.log('SMTP_PASSWORD:', process.env.SMTP_PASSWORD ? 'Set' : 'Not set');
+    console.log('SMTP_HOST:', process.env.SMTP_HOST || 'email-smtp.us-east-2.amazonaws.com');
+    console.log('SMTP_PORT:', process.env.SMTP_PORT || 587);
+    
+    // PayPal
+    console.log('PAYPAL_CLIENT_ID:', process.env.PAYPAL_CLIENT_ID ? 'Set' : 'Not set');
+    console.log('PAYPAL_CLIENT_SECRET:', process.env.PAYPAL_CLIENT_SECRET ? 'Set' : 'Not set');
+    
+    // Session
+    console.log('SESSION_SECRET:', process.env.SESSION_SECRET ? 'Set' : 'Not set');
+    
+    // Computed values
+    console.log('Computed gameHostUrl:', getGameHostUrl());
+    console.log('Computed landingPageHostUrl:', getLandingPageHostUrl());
+    console.log('=== END ENVIRONMENT CONFIGURATION DEBUG ===');
+    
     // Connect to database first
     console.log("Connecting to database...");
     await database.connect();

@@ -15,6 +15,8 @@ export { default as PlayerActor } from './GameActors/PlayerActor.js';
 export { default as PowerupActor } from './GameActors/PowerupActor.js';
 export { default as StaticActor } from './GameActors/StaticActor.js';
 export { default as BlockActor } from './GameActors/BlockActor.js';
+export { default as CheckpointActor } from './GameActors/CheckpointActor.js';
+export { default as FinishPortalActor } from './GameActors/FinishPortalActor.js';
 
 // MapStuff (Classes)
 export { default as MapCharacter } from './MapStuff/MapCharacter.js';

@@ -12,6 +12,14 @@ export class Entity {
     this.id = config.id;
     this.hasUpdate = config.hasUpdate !== undefined ? config.hasUpdate : true;
     this.type_of_actor = config.type_of_actor || "passive_static"; // Default to passive_static
+
+    // register empty lsit
+    if (this.type in this.game.actor_lists) {
+      this.game.actor_lists[this.type].push(this);
+    } else {
+      this.game.actor_lists[this.type] = [];
+      this.game.actor_lists[this.type].push(this);
+    }
   }
 
   /**

@@ -2,9 +2,12 @@ import socket from "../networking/socket.js";
 import PlayerActor from "../GameActors/PlayerActor.js";
 import BlockActor from "./BlockActor.js";
 import BouncyBallActor from "./BouncyBallActor.js";
+import CheckpointActor from "./CheckpointActor.js";
+import FinishPortalActor from "./FinishPortalActor.js";
 import sceneManager from "../EventObjects/SceneManager.js";
 import keyManager from "../EventObjects/KeyManager.js";
 import PowerupActor from "./PowerupActor.js";
+import GameCamera from "../Camera/GameCamera.js";
 import { loadImageAsync } from '../globals.js';
 
 function showReconnectingOverlay() {
@@ -63,7 +66,9 @@ class GameRenderer {
     this.type_actor_map = new Map([
       ["block", BlockActor],
       ["bouncy_ball", BouncyBallActor],
-      ["powerup", PowerupActor]
+      ["powerup", PowerupActor],
+      ["checkpoint", CheckpointActor],
+      ["finish_portal", FinishPortalActor]
     ]);
 
     // initalized on setup
@@ -85,6 +90,14 @@ class GameRenderer {
 
     // Image cache to prevent loading the same image multiple times
     this.imageCache = new Map();
+
+    // Camera instance
+    this.camera = null;
+
+    // Game state
+    this.gameFinished = false;
+    this.finishedPlayers = [];
+    this.raceResults = [];
   }
 
   /**
@@ -92,6 +105,22 @@ class GameRenderer {
    * @param {string} imagePath - The path to the image
    * @returns {Promise<p5.Image>} The loaded image
    */
+    /**
+   * Update camera to follow the local player
+   */
+  updateCamera() {
+    if (!this.camera || !this.localPlayer || this.localPlayer.finished) return;
+     
+    // Update camera dimensions if canvas size changed
+    this.camera.updateDimensions(this.p.width, this.p.height);
+    
+    // Set target player and track
+    this.camera.setTargetPlayer(this.localPlayer);
+    this.camera.track();
+  }
+
+
+
   async loadImage(imagePath) {
     if (this.imageCache.has(imagePath)) {
       return this.imageCache.get(imagePath);
@@ -123,11 +152,23 @@ class GameRenderer {
     this.socket_id = gameInfo.socket_id;
     this.player_id = gameInfo.player_id;
 
+    // Initialize camera with map dimensions
+    if (gameInfo.initial_game_state.mapWidth && gameInfo.initial_game_state.mapHeight) {
+      const cameraInfo = {
+        xPos: 0,
+        yPos: 0,
+        width: gameInfo.initial_game_state.mapWidth,
+        height: gameInfo.initial_game_state.mapHeight
+      };
+      this.camera = new GameCamera(0, 0, this.p.width, this.p.height, cameraInfo);
+    }
+
 
     // Create players
     gameInfo.initial_game_state.players.forEach(player => {
       const newPlayer = new PlayerActor({
         p: this.p,
+        type: "player",
         isLocalPlayer: (player.id === this.player_id),
         x: player.x,
         y: player.y,
@@ -140,6 +181,10 @@ class GameRenderer {
       });
       if (player.id === this.player_id) {
         this.localPlayer = newPlayer;
+        // Reset camera smoothing when local player is created
+        if (this.camera) {
+          this.camera.resetSmoothing();
+        }
       }
       this.actors.push(newPlayer);
       this.id_actor_map.set(player.id, newPlayer);
@@ -273,7 +318,14 @@ class GameRenderer {
   }
 
   update() {
+    // Update camera to follow local player
+    this.updateCamera();
+
+    this.p.push();
+    // Apply camera transformation
+    this.camera.view(this.p);
     this.actors.forEach(actor => actor.update());
+    this.p.pop();
 
     this.displayFooter();
 
@@ -419,6 +471,24 @@ class GameRenderer {
 
       console.log(`Player ${playerId} removed from game`);
     }
+  }
+
+  /**
+   * Properly exit the game without triggering reconnection
+   */
+  exitGame() {
+    // Disable reconnection attempts
+    this.ableToReconnect = false;
+    
+    // Send kill signal to server to remove player
+    if (this.player_id) {
+      socket.emit("player:delete", this.player_id);
+    }
+    
+    // Disconnect from socket
+    socket.disconnect();
+    
+    console.log("Exited game properly");
   }
 }
 

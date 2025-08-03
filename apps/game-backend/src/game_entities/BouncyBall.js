@@ -17,14 +17,6 @@ export class BouncyBall extends PhysicsEntity {
     this.flags = {
       facing: "right" // Can be 'left' or 'right'
     };
-
-    // register empty lsit
-    if (this.type in this.game.actor_lists) {
-      this.game.actor_lists[this.type].push(this);
-    } else {
-      this.game.actor_lists[this.type] = [];
-      this.game.actor_lists[this.type].push(this);
-    }
   }
 
   handlePlayerCollision(player) {

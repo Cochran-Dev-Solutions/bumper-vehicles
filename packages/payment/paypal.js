@@ -26,7 +26,8 @@ class PayPalService {
                     headers: {
                         'Authorization': `Basic ${auth}`,
                         'Content-Type': 'application/x-www-form-urlencoded'
-                    }
+                    },
+                    timeout: 10000 // 10 second timeout
                 }
             );
 
@@ -80,7 +81,8 @@ class PayPalService {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
-                }
+                },
+                timeout: 15000 // 15 second timeout for payment creation
             });
 
             console.log('PayPal response:', JSON.stringify(response.data, null, 2));
@@ -108,7 +110,8 @@ class PayPalService {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
-                }
+                },
+                timeout: 10000 // 10 second timeout
             });
 
             return {

@@ -40,8 +40,7 @@ class SceneManager {
     // }
 
     // temp: for testing
-    this.setScene("garage");
-    //sceneManager.setScene("animationTesting");
+    this.setScene("map");
   }
   
 

@@ -42,6 +42,11 @@ class PlayerActor extends DynamicActor {
     this.socket_id = config.socket_id || null;
     this.lives = config.lives;
 
+    // Racing game properties - now accessed from flags
+    this.flags = config.flags || {};
+    this.finished = this.flags.finished || false;
+    this.placement = this.flags.placement || null;
+
     // Store powerup names from userData
     this.powerups = config.powerups || [];
 
@@ -165,21 +170,21 @@ class PlayerActor extends DynamicActor {
   }
 
   update() {
-    if (this.isLocalPlayer) {
+    if (this.isLocalPlayer && !this.finished) {
       this.updateInputs();
       this.sendInputs();
     }
 
     this.updateMagnet();
 
-    this.p.fill(255, 0, 0, 100);
-    this.p.noStroke();
-    this.p.ellipse(
-      this.x + this.width / 2,
-      this.y + this.height / 2,
-      this.width,
-      this.height
-    );
+    // this.p.fill(255, 0, 0, 100);
+    // this.p.noStroke();
+    // this.p.ellipse(
+    //   this.x + this.width / 2,
+    //   this.y + this.height / 2,
+    //   this.width,
+    //   this.height
+    // );
 
     // Update oscillation for boost effects
     if (this.flags?.about_to_boost || this.flags?.boosting) {
@@ -214,14 +219,38 @@ class PlayerActor extends DynamicActor {
       this.opacity = 1;
     }
 
-    // temporarily scale the player
-    this.scaleX *= 1.2;
-    this.scaleY *= 1.2;
+    if (this.finished) {
+      this.scaleX = this.flags.portalScale;
+      this.scaleY = this.flags.portalScale;
+    }
 
     this.display();
 
-    this.scaleX = 1;
-    this.scaleY = 1;
+    // this.scaleX = 1;
+    // this.scaleY = 1;
+  }
+
+  updateState(newState) {
+    super.updateState(newState);
+    
+    if (newState.lives !== undefined) {
+      this.lives = newState.lives;
+    }
+    if (newState.powerups !== undefined) {
+      this.powerups = newState.powerups;
+    }
+    if (newState.flags !== undefined) {
+      this.flags = newState.flags;
+      // Update finished and placement from flags
+      this.finished = this.flags.finished || false;
+      this.placement = this.flags.placement || null;
+      
+      // Reset scaling if no longer being sucked in
+      if (!this.flags.beingSuckedIn) {
+        this.scaleX = 1;
+        this.scaleY = 1;
+      }
+    }
   }
 }
 

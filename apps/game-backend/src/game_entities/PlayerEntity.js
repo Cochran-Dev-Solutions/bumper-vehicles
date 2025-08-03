@@ -16,7 +16,13 @@ export class PlayerEntity extends PhysicsEntity {
       elasticity: 0.5
     });
 
-    this.lives = 3;
+    this.lives = 1; // Changed to 1 life for racing game
+
+    // Racing game properties
+    this.lastCheckpoint = null;
+    this.finished = false;
+    this.placement = null;
+    this.startPosition = config.position.copy();
 
     // Movement forces
     this.normalMoveForce = 6;
@@ -171,12 +177,108 @@ export class PlayerEntity extends PhysicsEntity {
   }
 
   handlePlayerCollisions() {
+    // Skip collision checks if this player has finished
+    if (this.finished) return;
+    
     // Check collisions with other players
     this.game.players.forEach((otherPlayer) => {
-      // Skip self
-      if (otherPlayer.id === this.id) return;
+      // Skip self or finished players
+      if (otherPlayer.id === this.id || otherPlayer.finished) return;
       this.handleCircularCollision(otherPlayer);
     });
+  }
+
+    /**
+   * Handle checkpoint and finish portal collisions
+   */
+  handleRacingCollisions() {
+     
+     // Check checkpoint collisions using actor lists for efficiency
+     const checkpoints = this.game.actor_lists["checkpoint"];
+     if (checkpoints) {
+       checkpoints.forEach((checkpoint) => {
+         if (checkpoint.checkCollision(this)) {
+           checkpoint.activateForPlayer(this.id);
+           this.lastCheckpoint = checkpoint.position.copy();
+           this.updateClient("lastCheckpoint", this.lastCheckpoint);
+         }
+       });
+     }
+
+     // Check finish portal collision using actor lists for efficiency
+     const finishPortals = this.game.actor_lists["finish_portal"];
+     if (finishPortals) {
+       finishPortals.forEach((finishPortal) => {
+         if (finishPortal.checkCollision(this)) {
+           const placement = finishPortal.finishPlayer(this.id);
+           if (placement) {
+             this.finished = true;
+             this.placement = placement;
+             this.updateClient("finished", true);
+             this.updateClient("placement", placement);
+           }
+         }
+       });
+     }
+   }
+
+    /**
+   * Handle being sucked into the finish portal
+   * @param {Vec2} portalPosition - Position of the finish portal
+   */
+  handlePortalSuction(portalPosition) {
+    if (!this.finished) {
+      // Reset suction flags if player is no longer finished
+      this.flags.beingSuckedIn = false;
+      this.flags.suctionScale = undefined;
+      return;
+    }
+
+     
+    // Calculate direction to portal
+    const direction = portalPosition.subtract(this.position);
+    const distance = direction.magnitude();
+    
+    // Apply strong suction force towards portal
+    const suctionForce = 5;
+    const normalizedDirection = direction.normalize();
+    
+    // Apply suction force using the proper physics method
+    this.applyForce(normalizedDirection.scale(suctionForce));
+    
+    // Mark player as being sucked in for frontend scaling
+    this.flags.beingSuckedIn = true;
+    this.flags.portalScale = Math.min(distance / 50, 1);
+  }
+
+  /**
+   * Respawn player at last checkpoint or start position
+   */
+  respawn() {
+    if (this.lastCheckpoint) {
+      this.position = this.lastCheckpoint.copy();
+    } else {
+      this.position = this.startPosition.copy();
+    }
+    this.velocity = new Vec2(0, 0);
+    
+    // Reset suction flags
+    this.flags.beingSuckedIn = false;
+    this.flags.suctionScale = undefined;
+    
+    this.game.markActorChanged(this);
+  }
+
+  /**
+   * Lose a life and respawn
+   */
+  loseLife() {
+    this.lives--;
+    if (this.lives <= 0) {
+      this.respawn();
+      this.lives = 1; // Reset to 1 life after respawn
+    }
+    this.updateClient("lives", this.lives);
   }
 
   // updates the client in control of this specific player entity
@@ -192,6 +294,26 @@ export class PlayerEntity extends PhysicsEntity {
    * Update player state
    */
   update() {
+    // If player has finished, handle portal suction instead of normal updates
+    if (this.finished) {
+      // Find the finish portal using actor lists for efficiency
+      const finishPortals = this.game.actor_lists["finish_portal"];
+      if (finishPortals && finishPortals.length > 0) {
+        const finishPortal = finishPortals[0]; // Assuming there's only one finish portal
+        this.handlePortalSuction(finishPortal.position);
+
+        // process forces on player
+        this.processForces();
+
+        this.applyDrag();
+
+        // Still update position for suction effect
+        this.updateX();
+        this.updateY();
+      }
+      return;
+    }
+
     // handle inputs
     this.handleInputs();
 
@@ -212,6 +334,12 @@ export class PlayerEntity extends PhysicsEntity {
 
     // Handle collisions with tiles
     this.handleTileCollisions();
+
+    // Handle collisions with map boundaries
+    this.handleBoundaryCollisions();
+
+    // Handle racing-specific collisions (checkpoints and finish portal)
+    this.handleRacingCollisions();
   }
 
   getInitialState() {
@@ -227,7 +355,11 @@ export class PlayerEntity extends PhysicsEntity {
       disconnected: this.disconnected,
       powerups: this.powerup_names,
       lives: this.lives,
-      flags: this.flags
+      flags: {
+        ...this.flags,
+        finished: this.finished,
+        placement: this.placement
+      }
     };
   }
 
@@ -238,7 +370,11 @@ export class PlayerEntity extends PhysicsEntity {
       y: this.boundingBox.top,
       disconnected: this.disconnected,
       powerups: this.powerup_names,
-      flags: this.flags,
+      flags: {
+        ...this.flags,
+        finished: this.finished,
+        placement: this.placement
+      },
       lives: this.lives
     };
   }

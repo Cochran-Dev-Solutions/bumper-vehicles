@@ -519,7 +519,7 @@ const mapScene = {
     setupIslandMovementGraph(this.islands);
 
     // create camera
-    this.camera = new Camera(this.p);
+    this.camera = Camera.createForMapScene(this.p);
 
     // create map character
     this.mapCharacter = new MapCharacter(this.p, this.islands, this);
