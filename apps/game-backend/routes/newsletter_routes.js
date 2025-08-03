@@ -44,6 +44,10 @@ export function registerNewsletterRoutes(fastify) {
             // Send confirmation email via nodemailer with timeout
             try {
                 console.log('Attempting to send newsletter confirmation email to:', email);
+                console.log('AWS SES Configuration check:');
+                console.log('- AWS_REGION:', process.env.AWS_REGION || 'us-east-2');
+                console.log('- MAIL_FROM_EMAIL:', process.env.MAIL_FROM_EMAIL || 'no-reply@bumpervehicles.com');
+                console.log('- MAIL_FROM_NAME:', process.env.MAIL_FROM_NAME || 'Bumper Vehicles');
                 
                 // Add timeout to email sending
                 const emailPromise = sendNewsletterConfirmationEmail(email);
@@ -51,11 +55,13 @@ export function registerNewsletterRoutes(fastify) {
                     setTimeout(() => reject(new Error('Email sending timeout')), 10000)
                 );
                 
+                console.log('Starting email send with 10-second timeout...');
                 await Promise.race([emailPromise, timeoutPromise]);
                 console.log('Newsletter confirmation email sent successfully to:', email);
                 
             } catch (emailError) {
                 console.error('Failed to send newsletter confirmation email:', emailError.message);
+                console.error('Full error:', emailError);
                 return reply.status(500).send({ 
                     error: 'Failed to send confirmation email. Please try again.' 
                 });

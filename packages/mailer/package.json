@@ -5,8 +5,7 @@
   "license": "UNLICENSED",
   "type": "module",
   "dependencies": {
-    "nodemailer": "^6.9.8",
-    "dotenv": "^16.6.0",
+    "@aws-sdk/client-ses": "^3.859.0",
     "axios": "^1.6.0"
   },
   "devDependencies": {

@@ -1,64 +1,72 @@
-import nodemailer from "nodemailer";
-import dotenv from "dotenv";
-
-dotenv.config();
+import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
 
 class NodeMailerService {
   constructor() {
-    this.transporter = null;
+    this.sesClient = null;
   }
 
-  async initTransporter() {
-    if (this.transporter) {
-      return this.transporter;
+  async initSESClient() {
+    if (this.sesClient) {
+      return this.sesClient;
     }
 
     try {
-      // Check if required environment variables are set
-      if (!process.env.SMTP_USERNAME || !process.env.SMTP_PASSWORD) {
-        throw new Error(
-          "SMTP_USERNAME and SMTP_PASSWORD environment variables are required for AWS SES"
-        );
-      }
-
-      this.transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || "email-smtp.us-east-2.amazonaws.com",
-        port: process.env.SMTP_PORT || 587,
-        secure: false, // false for 587, true for 465
-        auth: {
-          user: process.env.SMTP_USERNAME,
-          pass: process.env.SMTP_PASSWORD,
-        },
+      this.sesClient = new SESClient({
+        region: process.env.AWS_REGION || 'us-east-2',
+        // AWS SDK will automatically use IAM role credentials in ECS
+        // No need for explicit credentials
       });
 
-      console.log("NodeMailer service initialized with AWS SES");
-      return this.transporter;
+      console.log("NodeMailer service initialized with AWS SES SDK");
+      return this.sesClient;
     } catch (error) {
       console.error("Failed to initialize NodeMailer service:", error.message);
-      this.transporter = null;
+      this.sesClient = null;
       throw error;
     }
   }
 
   async sendEmail(mailOptions) {
     try {
-      // Initialize transporter if not already initialized
-      if (!this.transporter) {
-        await this.initTransporter();
+      // Initialize SES client if not already initialized
+      if (!this.sesClient) {
+        await this.initSESClient();
       }
 
       // Set default from address if not provided
       if (!mailOptions.from) {
         const fromName = process.env.MAIL_FROM_NAME || "Bumper Vehicles";
-        const fromEmail = process.env.MAIL_FROM_EMAIL || "info@bumpervehicles.com";
+        const fromEmail = process.env.MAIL_FROM_EMAIL || "no-reply@bumpervehicles.com";
         mailOptions.from = `"${fromName}" <${fromEmail}>`;
       }
 
-      const info = await this.transporter.sendMail(mailOptions);
-      console.log("Email sent successfully:", info.messageId);
+      // Prepare SES parameters
+      const params = {
+        Source: mailOptions.from,
+        Destination: {
+          ToAddresses: [mailOptions.to]
+        },
+        Message: {
+          Subject: {
+            Data: mailOptions.subject,
+            Charset: 'UTF-8'
+          },
+          Body: {
+            Html: {
+              Data: mailOptions.html,
+              Charset: 'UTF-8'
+            }
+          }
+        }
+      };
+
+      const command = new SendEmailCommand(params);
+      const result = await this.sesClient.send(command);
+      
+      console.log("Email sent successfully:", result.MessageId);
       return {
         success: true,
-        messageId: info.messageId,
+        messageId: result.MessageId,
         message: "Email sent successfully",
       };
     } catch (error) {
@@ -69,10 +77,15 @@ class NodeMailerService {
 
   async testConnection() {
     try {
-      if (!this.transporter) {
-        await this.initTransporter();
+      if (!this.sesClient) {
+        await this.initSESClient();
       }
-      await this.transporter.verify();
+      
+      // Test by getting SES account attributes
+      const { GetAccountAttributesCommand } = await import("@aws-sdk/client-ses");
+      const command = new GetAccountAttributesCommand({});
+      await this.sesClient.send(command);
+      
       console.log("NodeMailer connection test successful");
       return true;
     } catch (error) {

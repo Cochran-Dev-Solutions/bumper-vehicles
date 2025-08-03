@@ -56,7 +56,7 @@ function NewsletterForm() {
 
       if (response.ok) {
         // Step 3: Redirect to waiting page
-        //window.location.href = `/waiting?type=newsletter&email=${encodeURIComponent(formData.email)}`;
+        window.location.href = `/waiting?type=newsletter&email=${encodeURIComponent(formData.email)}`;
         setFormData({ email: "", subscribe: false });
       } else {
         const errorData = await response.json();
