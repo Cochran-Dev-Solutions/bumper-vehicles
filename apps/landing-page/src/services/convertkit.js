@@ -4,6 +4,13 @@ class ConvertKitService {
     this.apiSecret = import.meta.env.VITE_CONVERTKIT_API_SECRET;
     this.baseUrl = 'https://api.convertkit.com/v3';
     this.formId = import.meta.env.VITE_CONVERTKIT_FORM_ID || null;
+    
+    // Debug environment variables in production
+    console.log('ConvertKit Debug - Environment check:');
+    console.log('VITE_CONVERTKIT_API_KEY:', this.apiKey ? 'Set' : 'Missing');
+    console.log('VITE_CONVERTKIT_API_SECRET:', this.apiSecret ? 'Set' : 'Missing');
+    console.log('VITE_CONVERTKIT_FORM_ID:', this.formId ? 'Set' : 'Missing');
+    console.log('Form ID value:', this.formId);
   }
 
   // Check if subscriber already exists
@@ -65,9 +72,13 @@ class ConvertKitService {
   async addSubscriber(email, firstName = '', lastName = '', tags = []) {
     try {
       console.log('Adding subscriber to ConvertKit:', { email, firstName, lastName, tags });
+      console.log('Form ID check:', this.formId);
+      console.log('Form ID type:', typeof this.formId);
+      console.log('Form ID truthy check:', !!this.formId);
       
       // If we have a form ID, use the form subscription endpoint
       if (this.formId) {
+        console.log('Using form ID:', this.formId);
         const payload = {
           api_key: this.apiKey,
           email: email,
@@ -95,6 +106,7 @@ class ConvertKitService {
           subscriberId: data.subscription.subscriber.id
         };
       } else {
+        console.log('Form ID is falsy, throwing error');
         throw new Error('No form ID provided. Please set VITE_CONVERTKIT_FORM_ID in your environment variables.');
       }
     } catch (error) {

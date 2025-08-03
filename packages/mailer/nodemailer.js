@@ -28,9 +28,13 @@ class NodeMailerService {
 
   async sendEmail(mailOptions) {
     try {
+      console.log('NodeMailer: Starting email send...');
+      
       // Initialize SES client if not already initialized
       if (!this.sesClient) {
+        console.log('NodeMailer: Initializing SES client...');
         await this.initSESClient();
+        console.log('NodeMailer: SES client initialized successfully');
       }
 
       // Set default from address if not provided
@@ -39,6 +43,11 @@ class NodeMailerService {
         const fromEmail = process.env.MAIL_FROM_EMAIL || "no-reply@bumpervehicles.com";
         mailOptions.from = `"${fromName}" <${fromEmail}>`;
       }
+
+      console.log('NodeMailer: Preparing SES parameters...');
+      console.log('NodeMailer: From:', mailOptions.from);
+      console.log('NodeMailer: To:', mailOptions.to);
+      console.log('NodeMailer: Subject:', mailOptions.subject);
 
       // Prepare SES parameters
       const params = {
@@ -60,7 +69,10 @@ class NodeMailerService {
         }
       };
 
+      console.log('NodeMailer: Creating SendEmailCommand...');
       const command = new SendEmailCommand(params);
+      
+      console.log('NodeMailer: Sending email via SES...');
       const result = await this.sesClient.send(command);
       
       console.log("Email sent successfully:", result.MessageId);
@@ -71,6 +83,7 @@ class NodeMailerService {
       };
     } catch (error) {
       console.error("Failed to send email:", error.message);
+      console.error("Full error details:", error);
       throw new Error(`Failed to send email: ${error.message}`);
     }
   }
