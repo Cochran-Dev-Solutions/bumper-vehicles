@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import convertKit from "../services/convertkit";
+import { getApiUrl } from "../utils/config";
 
 function SuccessfullySubscribedPage() {
   const [subscriptionStatus, setSubscriptionStatus] = useState('loading');
@@ -12,17 +12,29 @@ function SuccessfullySubscribedPage() {
     setEmail(emailParam || '');
 
     if (emailParam) {
-      // Add subscriber to ConvertKit directly
+      // Add subscriber to ConvertKit via backend API
       const addToConvertKit = async () => {
         try {
           console.log('Adding subscriber to ConvertKit:', emailParam);
-          const result = await convertKit.addSubscriber(emailParam);
+          const apiUrl = getApiUrl();
           
-          if (result.success) {
-            console.log('Successfully added to ConvertKit:', result);
+          const result = await fetch(`${apiUrl}/newsletter/subscribe`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: emailParam
+            }),
+          });
+
+          if (result.ok) {
+            const data = await result.json();
+            console.log('Successfully added to ConvertKit:', data);
             setSubscriptionStatus('success');
           } else {
-            console.error('Failed to add to ConvertKit:', result.error);
+            const errorData = await result.json();
+            console.error('Failed to add to ConvertKit:', errorData.error);
             setSubscriptionStatus('error');
           }
         } catch (error) {

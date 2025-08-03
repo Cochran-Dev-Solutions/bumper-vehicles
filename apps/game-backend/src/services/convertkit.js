@@ -1,16 +1,18 @@
 class ConvertKitService {
   constructor() {
-    this.apiKey = import.meta.env.VITE_CONVERTKIT_API_KEY;
-    this.apiSecret = import.meta.env.VITE_CONVERTKIT_API_SECRET;
+    console.log("Testing env : ", process.env);
+    this.apiKey = process.env.CONVERTKIT_API_KEY;
+    this.apiSecret = process.env.CONVERTKIT_API_SECRET;
     this.baseUrl = 'https://api.convertkit.com/v3';
-    this.formId = import.meta.env.VITE_CONVERTKIT_FORM_ID || null;
+    this.formId = process.env.CONVERTKIT_FORM_ID || null;
+    this.betaTagId = process.env.CONVERTKIT_BETA_TAG_ID || null;
     
-    // Debug environment variables in production
-    console.log('ConvertKit Debug - Environment check:');
-    console.log('VITE_CONVERTKIT_API_KEY:', this.apiKey ? 'Set' : 'Missing');
-    console.log('VITE_CONVERTKIT_API_SECRET:', this.apiSecret ? 'Set' : 'Missing');
-    console.log('VITE_CONVERTKIT_FORM_ID:', this.formId ? 'Set' : 'Missing');
-    console.log('Form ID value:', this.formId);
+    // Debug environment variables
+    console.log('ConvertKit Backend Debug - Environment check:');
+    console.log('CONVERTKIT_API_KEY:', this.apiKey ? 'Set' : 'Missing');
+    console.log('CONVERTKIT_API_SECRET:', this.apiSecret ? 'Set' : 'Missing');
+    console.log('CONVERTKIT_FORM_ID:', this.formId ? 'Set' : 'Missing');
+    console.log('CONVERTKIT_BETA_TAG_ID:', this.betaTagId ? 'Set' : 'Missing');
   }
 
   // Check if subscriber already exists
@@ -73,8 +75,6 @@ class ConvertKitService {
     try {
       console.log('Adding subscriber to ConvertKit:', { email, firstName, lastName, tags });
       console.log('Form ID check:', this.formId);
-      console.log('Form ID type:', typeof this.formId);
-      console.log('Form ID truthy check:', !!this.formId);
       
       // If we have a form ID, use the form subscription endpoint
       if (this.formId) {
@@ -107,10 +107,24 @@ class ConvertKitService {
         };
       } else {
         console.log('Form ID is falsy, throwing error');
-        throw new Error('No form ID provided. Please set VITE_CONVERTKIT_FORM_ID in your environment variables.');
+        throw new Error('No form ID provided. Please set CONVERTKIT_FORM_ID in your environment variables.');
       }
     } catch (error) {
       console.error('ConvertKit addSubscriber error:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  // Add subscriber with beta tag
+  async addBetaSubscriber(email, firstName = '', lastName = '') {
+    try {
+      const tags = this.betaTagId ? [this.betaTagId] : [];
+      return await this.addSubscriber(email, firstName, lastName, tags);
+    } catch (error) {
+      console.error('ConvertKit addBetaSubscriber error:', error);
       return {
         success: false,
         error: error.message
@@ -158,4 +172,4 @@ class ConvertKitService {
 
 // Create and export a singleton instance
 const convertKit = new ConvertKitService();
-export default convertKit;
+export default convertKit; 

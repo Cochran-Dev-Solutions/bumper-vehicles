@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { getApiUrl } from "../utils/config";
-import convertKit from "../services/convertkit";
 
 function NewsletterForm() {
   const [formData, setFormData] = useState({
@@ -30,15 +29,27 @@ function NewsletterForm() {
     try {
       const apiUrl = getApiUrl();
       
-      // Step 1: Check if user is already subscribed using frontend ConvertKit service
+      // Step 1: Check if user is already subscribed using backend API
       console.log('Checking subscriber status for:', formData.email);
-      const subscriberCheck = await convertKit.checkSubscriberStatus(formData.email);
-      console.log('Subscriber check result:', subscriberCheck);
-      
-      if (subscriberCheck.exists && subscriberCheck.isConfirmed) {
-        console.log('User is already subscribed, showing error');
-        setErrorMessage('You are already subscribed to our newsletter with this email address.');
-        return;
+      const checkResponse = await fetch(`${apiUrl}/newsletter/check-subscriber`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email
+        }),
+      });
+
+      if (checkResponse.ok) {
+        const subscriberCheck = await checkResponse.json();
+        console.log('Subscriber check result:', subscriberCheck);
+        
+        if (subscriberCheck.exists && subscriberCheck.isConfirmed) {
+          console.log('User is already subscribed, showing error');
+          setErrorMessage('You are already subscribed to our newsletter with this email address.');
+          return;
+        }
       }
       
       console.log('User is not subscribed, proceeding with confirmation email');
