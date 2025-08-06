@@ -1,3 +1,5 @@
+import serviceConfig from "../config/service-config.js";
+
 class ConvertKitService {
   constructor() {
     this.apiKey = process.env.CONVERTKIT_API_KEY;
@@ -7,8 +9,26 @@ class ConvertKitService {
     this.betaTagId = process.env.CONVERTKIT_BETA_TAG_ID || null;
   }
 
+  // Check if service is enabled
+  isEnabled() {
+    return serviceConfig.isConvertKitEnabled();
+  }
+
+  // Get disabled reason
+  getDisabledReason() {
+    return serviceConfig.getConvertKitConfig().reason;
+  }
+
   // Check if subscriber already exists
   async checkSubscriberExists(email) {
+    if (!this.isEnabled()) {
+      return {
+        exists: false,
+        error: `ConvertKit service is disabled: ${this.getDisabledReason()}`,
+        disabled: true,
+      };
+    }
+
     try {
       const response = await fetch(
         `${this.baseUrl}/subscribers?api_secret=${
@@ -39,6 +59,15 @@ class ConvertKitService {
 
   // Check if subscriber is confirmed
   async checkSubscriberStatus(email) {
+    if (!this.isEnabled()) {
+      return {
+        exists: false,
+        isConfirmed: false,
+        error: `ConvertKit service is disabled: ${this.getDisabledReason()}`,
+        disabled: true,
+      };
+    }
+
     try {
       const result = await this.checkSubscriberExists(email);
       if (result.exists && result.subscriber) {
@@ -64,6 +93,14 @@ class ConvertKitService {
 
   // Add subscriber to ConvertKit
   async addSubscriber(email, firstName = "", lastName = "", tags = []) {
+    if (!this.isEnabled()) {
+      return {
+        success: false,
+        error: `ConvertKit service is disabled: ${this.getDisabledReason()}`,
+        disabled: true,
+      };
+    }
+
     try {
       // If we have a form ID, use the form subscription endpoint
       if (this.formId) {
@@ -112,6 +149,14 @@ class ConvertKitService {
 
   // Add subscriber with beta tag
   async addBetaSubscriber(email, firstName = "", lastName = "") {
+    if (!this.isEnabled()) {
+      return {
+        success: false,
+        error: `ConvertKit service is disabled: ${this.getDisabledReason()}`,
+        disabled: true,
+      };
+    }
+
     try {
       const tags = this.betaTagId ? [this.betaTagId] : [];
       return await this.addSubscriber(email, firstName, lastName, tags);
@@ -126,6 +171,14 @@ class ConvertKitService {
 
   // Remove subscriber
   async removeSubscriber(email) {
+    if (!this.isEnabled()) {
+      return {
+        success: false,
+        error: `ConvertKit service is disabled: ${this.getDisabledReason()}`,
+        disabled: true,
+      };
+    }
+
     try {
       const payload = {
         api_secret: this.apiSecret,

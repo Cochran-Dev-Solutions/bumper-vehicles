@@ -13,6 +13,7 @@ import { initializeUserDal } from "./controllers/user_controllers.js";
 import { initializeAuthDal } from "./controllers/auth_controllers.js";
 import database from "@bumper-vehicles/database";
 import webSocketManager from "./src/game/websocket-manager.js";
+import serviceConfig from "./src/config/service-config.js";
 
 const fastify = Fastify({ logger: true });
 
