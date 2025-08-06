@@ -6,71 +6,71 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy-backend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 10.12.3
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - run: pnpm install
-      - uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-      - name: Login to Amazon ECR
-        id: login-ecr
-        run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
-          docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY }}
-      - name: Build Docker image
-        run: pnpm docker:build:backend
-      - name: Push Docker image
-        run: pnpm docker:push:backend
-      - name: Clean up old ECR images
-        run: |
-          # Get the repository name from the ECR repository URI
-          # ECR URI format: account.dkr.ecr.region.amazonaws.com/namespace/repository-name
-          REPO_NAME=$(echo ${{ secrets.ECR_REPOSITORY }} | awk -F'/' '{print $2 "/" $3}')
+  # deploy-backend:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: pnpm/action-setup@v2
+  #       with:
+  #         version: 10.12.3
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version: 20
+  #     - run: pnpm install
+  #     - uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: ${{ secrets.AWS_REGION }}
+  #     - name: Login to Amazon ECR
+  #       id: login-ecr
+  #       run: |
+  #         aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
+  #         docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY }}
+  #     - name: Build Docker image
+  #       run: pnpm docker:build:backend
+  #     - name: Push Docker image
+  #       run: pnpm docker:push:backend
+  #     - name: Clean up old ECR images
+  #       run: |
+  #         # Get the repository name from the ECR repository URI
+  #         # ECR URI format: account.dkr.ecr.region.amazonaws.com/namespace/repository-name
+  #         REPO_NAME=$(echo ${{ secrets.ECR_REPOSITORY }} | awk -F'/' '{print $2 "/" $3}')
 
-          echo "Repository name: $REPO_NAME"
+  #         echo "Repository name: $REPO_NAME"
 
-          # Delete images that don't have the 'latest' tag
-          # This preserves the latest image while cleaning up old ones
-          IMAGES_TO_DELETE=$(aws ecr describe-images \
-            --repository-name $REPO_NAME \
-            --region ${{ secrets.AWS_REGION }} \
-            --query 'imageDetails[?(!imageTags || !contains(imageTags, `latest`))].imageDigest' \
-            --output text)
+  #         # Delete images that don't have the 'latest' tag
+  #         # This preserves the latest image while cleaning up old ones
+  #         IMAGES_TO_DELETE=$(aws ecr describe-images \
+  #           --repository-name $REPO_NAME \
+  #           --region ${{ secrets.AWS_REGION }} \
+  #           --query 'imageDetails[?(!imageTags || !contains(imageTags, `latest`))].imageDigest' \
+  #           --output text)
 
-          # Delete old images if any exist
-          if [ ! -z "$IMAGES_TO_DELETE" ]; then
-            echo "Deleting old images: $IMAGES_TO_DELETE"
-            aws ecr batch-delete-image \
-              --repository-name $REPO_NAME \
-              --region ${{ secrets.AWS_REGION }} \
-              --image-ids $(echo $IMAGES_TO_DELETE | tr ' ' '\n' | sed 's/^/imageDigest=/')
-          else
-            echo "No old images to delete"
-          fi
-      - name: Force ECS service redeploy
-        run: |
-          aws ecs update-service \
-            --cluster ${{ secrets.ECS_CLUSTER_NAME }} \
-            --service ${{ secrets.ECS_SERVICE_NAME }} \
-            --force-new-deployment
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
+  #         # Delete old images if any exist
+  #         if [ ! -z "$IMAGES_TO_DELETE" ]; then
+  #           echo "Deleting old images: $IMAGES_TO_DELETE"
+  #           aws ecr batch-delete-image \
+  #             --repository-name $REPO_NAME \
+  #             --region ${{ secrets.AWS_REGION }} \
+  #             --image-ids $(echo $IMAGES_TO_DELETE | tr ' ' '\n' | sed 's/^/imageDigest=/')
+  #         else
+  #           echo "No old images to delete"
+  #         fi
+  #     - name: Force ECS service redeploy
+  #       run: |
+  #         aws ecs update-service \
+  #           --cluster ${{ secrets.ECS_CLUSTER_NAME }} \
+  #           --service ${{ secrets.ECS_SERVICE_NAME }} \
+  #           --force-new-deployment
+  #       env:
+  #         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         AWS_REGION: ${{ secrets.AWS_REGION }}
 
   deploy-frontend:
     runs-on: ubuntu-latest
-    needs: deploy-backend
+    # needs: deploy-backend  # Commented out temporarily
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v2
@@ -80,17 +80,54 @@ jobs:
         with:
           node-version: 20
       - run: pnpm install
+      - name: Debug - List directories
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "Listing apps directory:"
+          ls -la apps/
+          echo "Listing web-client directory:"
+          ls -la apps/web-client/
       - name: Build web-client
         env:
           VITE_PROD_API_URL: ${{ secrets.VITE_PROD_API_URL }}
-        run: pnpm -F apps/web-client build
+        run: |
+          echo "Building web-client..."
+          echo "VITE_PROD_API_URL: $VITE_PROD_API_URL"
+          pnpm -F apps/web-client build
+          echo "Build completed. Checking for dist directory:"
+          ls -la apps/web-client/
+      - name: Debug - Check build output
+        run: |
+          echo "Checking if dist directory exists:"
+          if [ -d "apps/web-client/dist" ]; then
+            echo "✅ dist directory exists"
+            ls -la apps/web-client/dist/
+          else
+            echo "❌ dist directory does not exist"
+            echo "Listing web-client directory contents:"
+            ls -la apps/web-client/
+          fi
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
+      - name: Debug - Check S3 bucket
+        run: |
+          echo "S3_BUCKET_WEB_CLIENT: ${{ secrets.S3_BUCKET_WEB_CLIENT }}"
+          if [ -z "${{ secrets.S3_BUCKET_WEB_CLIENT }}" ]; then
+            echo "❌ S3_BUCKET_WEB_CLIENT is empty or not set"
+            exit 1
+          else
+            echo "✅ S3_BUCKET_WEB_CLIENT is set"
+          fi
       - name: Sync to S3
-        run: aws s3 sync apps/web-client/dist/ s3://${{ secrets.S3_BUCKET_WEB_CLIENT }}/ --delete
+        run: |
+          if [ ! -d "apps/web-client/dist" ]; then
+            echo "❌ dist directory does not exist. Build may have failed."
+            exit 1
+          fi
+          aws s3 sync apps/web-client/dist/ s3://${{ secrets.S3_BUCKET_WEB_CLIENT }}/ --delete
       - name: Invalidate CloudFront cache (web-client)
         run: aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID_WEB_CLIENT }} --paths "/*"
         env:
@@ -100,7 +137,7 @@ jobs:
 
   deploy-landing:
     runs-on: ubuntu-latest
-    needs: deploy-backend
+    # needs: deploy-backend  # Commented out temporarily
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v2
