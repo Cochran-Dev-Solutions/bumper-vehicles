@@ -22,93 +22,6 @@ importers:
         specifier: ^7.0.0
         version: 7.0.6(@types/node@24.2.0)(jiti@1.21.7)(lightningcss@1.27.0)(terser@5.43.1)(yaml@2.8.1)
 
-  apps/game-backend:
-    dependencies:
-      '@bumper-vehicles/database':
-        specifier: workspace:*
-        version: link:../../packages/database
-      '@bumper-vehicles/mailer':
-        specifier: workspace:*
-        version: link:../../packages/mailer
-      '@bumper-vehicles/payment':
-        specifier: workspace:*
-        version: link:../../packages/payment
-      '@fastify/cors':
-        specifier: ^11.0.1
-        version: 11.1.0
-      '@fastify/secure-session':
-        specifier: ^8.2.0
-        version: 8.2.0
-      '@fastify/swagger':
-        specifier: ^9.5.1
-        version: 9.5.1
-      '@fastify/swagger-ui':
-        specifier: ^5.2.3
-        version: 5.2.3
-      bcryptjs:
-        specifier: ^2.4.3
-        version: 2.4.3
-      dotenv:
-        specifier: ^16.6.0
-        version: 16.6.1
-      fastify:
-        specifier: ^5.4.0
-        version: 5.4.0
-      mysql2:
-        specifier: ^3.9.0
-        version: 3.14.3
-      socket.io:
-        specifier: ^4.8.1
-        version: 4.8.1
-    devDependencies:
-      nodemon:
-        specifier: ^3.1.10
-        version: 3.1.10
-
-  apps/game-frontend:
-    dependencies:
-      '@bv-frontend-logic':
-        specifier: workspace:*
-        version: link:../../packages/bv-frontend-logic
-      dotenv:
-        specifier: ^16.6.0
-        version: 16.6.1
-      p5:
-        specifier: 2.0.3
-        version: 2.0.3
-    devDependencies:
-      vite:
-        specifier: ^4.5.14
-        version: 4.5.14(@types/node@24.2.0)(lightningcss@1.27.0)(terser@5.43.1)
-
-  apps/game-mobile-frontend:
-    dependencies:
-      '@shopify/react-native-skia':
-        specifier: ^2.1.1
-        version: 2.2.2(react-native-reanimated@3.19.0(@babel/core@7.28.0)(react-native@0.79.5(@babel/core@7.28.0)(react@19.0.0))(react@19.0.0))(react-native@0.79.5(@babel/core@7.28.0)(react@19.0.0))(react@19.0.0)
-      expo:
-        specifier: ~53.0.17
-        version: 53.0.20(@babel/core@7.28.0)(react-native@0.79.5(@babel/core@7.28.0)(react@19.0.0))(react@19.0.0)
-      expo-dev-client:
-        specifier: ^5.2.4
-        version: 5.2.4(expo@53.0.20(@babel/core@7.28.0)(react-native@0.79.5(@babel/core@7.28.0)(react@19.0.0))(react@19.0.0))
-      expo-status-bar:
-        specifier: ~2.2.3
-        version: 2.2.3(react-native@0.79.5(@babel/core@7.28.0)(react@19.0.0))(react@19.0.0)
-      react:
-        specifier: 19.0.0
-        version: 19.0.0
-      react-native:
-        specifier: 0.79.5
-        version: 0.79.5(@babel/core@7.28.0)(react@19.0.0)
-      react-native-reanimated:
-        specifier: ^3.18.0
-        version: 3.19.0(@babel/core@7.28.0)(react-native@0.79.5(@babel/core@7.28.0)(react@19.0.0))(react@19.0.0)
-    devDependencies:
-      '@babel/core':
-        specifier: ^7.20.0
-        version: 7.28.0
-
   apps/landing-page:
     dependencies:
       react:
@@ -155,7 +68,94 @@ importers:
         specifier: ^4.5.0
         version: 4.5.14(@types/node@24.2.0)(lightningcss@1.27.0)(terser@5.43.1)
 
-  packages/bv-frontend-logic: {}
+  apps/mobile-client:
+    dependencies:
+      '@shopify/react-native-skia':
+        specifier: ^2.1.1
+        version: 2.2.2(react-native-reanimated@3.19.0(@babel/core@7.28.0)(react-native@0.79.5(@babel/core@7.28.0)(react@19.0.0))(react@19.0.0))(react-native@0.79.5(@babel/core@7.28.0)(react@19.0.0))(react@19.0.0)
+      expo:
+        specifier: ~53.0.17
+        version: 53.0.20(@babel/core@7.28.0)(react-native@0.79.5(@babel/core@7.28.0)(react@19.0.0))(react@19.0.0)
+      expo-dev-client:
+        specifier: ^5.2.4
+        version: 5.2.4(expo@53.0.20(@babel/core@7.28.0)(react-native@0.79.5(@babel/core@7.28.0)(react@19.0.0))(react@19.0.0))
+      expo-status-bar:
+        specifier: ~2.2.3
+        version: 2.2.3(react-native@0.79.5(@babel/core@7.28.0)(react@19.0.0))(react@19.0.0)
+      react:
+        specifier: 19.0.0
+        version: 19.0.0
+      react-native:
+        specifier: 0.79.5
+        version: 0.79.5(@babel/core@7.28.0)(react@19.0.0)
+      react-native-reanimated:
+        specifier: ^3.18.0
+        version: 3.19.0(@babel/core@7.28.0)(react-native@0.79.5(@babel/core@7.28.0)(react@19.0.0))(react@19.0.0)
+    devDependencies:
+      '@babel/core':
+        specifier: ^7.20.0
+        version: 7.28.0
+
+  apps/server:
+    dependencies:
+      '@bumper-vehicles/database':
+        specifier: workspace:*
+        version: link:../../packages/database
+      '@bumper-vehicles/mailer':
+        specifier: workspace:*
+        version: link:../../packages/mailer
+      '@bumper-vehicles/payment':
+        specifier: workspace:*
+        version: link:../../packages/payment
+      '@fastify/cors':
+        specifier: ^11.0.1
+        version: 11.1.0
+      '@fastify/secure-session':
+        specifier: ^8.2.0
+        version: 8.2.0
+      '@fastify/swagger':
+        specifier: ^9.5.1
+        version: 9.5.1
+      '@fastify/swagger-ui':
+        specifier: ^5.2.3
+        version: 5.2.3
+      bcryptjs:
+        specifier: ^2.4.3
+        version: 2.4.3
+      dotenv:
+        specifier: ^16.6.0
+        version: 16.6.1
+      fastify:
+        specifier: ^5.4.0
+        version: 5.4.0
+      mysql2:
+        specifier: ^3.9.0
+        version: 3.14.3
+      socket.io:
+        specifier: ^4.8.1
+        version: 4.8.1
+    devDependencies:
+      nodemon:
+        specifier: ^3.1.10
+        version: 3.1.10
+
+  apps/web-client:
+    dependencies:
+      client-logic:
+        specifier: workspace:*
+        version: link:../../packages/client-logic
+      dotenv:
+        specifier: ^16.6.0
+        version: 16.6.1
+      p5:
+        specifier: 2.0.3
+        version: 2.0.3
+    devDependencies:
+      vite:
+        specifier: ^4.5.14
+        version: 4.5.14(@types/node@24.2.0)(lightningcss@1.27.0)(terser@5.43.1)
+
+  packages/client-logic: {}
 
   packages/database:
     dependencies:

@@ -1,0 +1,21 @@
+{
+  "name": "game-frontend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "UNLICENSED",
+  "type": "module",
+  "dependencies": {
+    "client-logic": "workspace:*",
+    "dotenv": "^16.6.0",
+    "p5": "2.0.3"
+  },
+  "scripts": {
+    "dev": "cross-env VITE_NODE_ENV=development vite",
+    "build": "cross-env VITE_NODE_ENV=production vite build",
+    "preview": "vite preview",
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+    "vite": "^4.5.14"
+  }
+}
