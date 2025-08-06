@@ -27,7 +27,12 @@ class SceneManager {
     this.hasRunInitialSetup = false;
   }
 
-  handleRouting() {
+  handleRouting(isAuth) {
+    if (!isAuth) {
+      this.setScene("betaAuth");
+      return;
+    }
+
     // Parse the path for /user/:username
     // const path = window.location.pathname;
     // const userMatch = path.match(/^\/user\/([^/]+)$/);
@@ -43,12 +48,12 @@ class SceneManager {
     this.setScene("map");
   }
 
-  async runInitialSetup() {
+  async runInitialSetup(isAuth) {
     this.hasRunInitialSetup = true;
     this.loadingImages = true;
     await this.run_load_operations();
     this.loadingImages = false;
-    this.handleRouting();
+    this.handleRouting(isAuth);
   }
 
   add_load_operation({ operation, name, estimated_time }) {

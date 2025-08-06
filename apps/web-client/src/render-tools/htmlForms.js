@@ -127,6 +127,7 @@ export function createForm({
       maxLength,
       pattern,
       placeholder,
+      autocomplete,
     }) => {
       const labelEl = document.createElement("label");
       labelEl.textContent = label;
@@ -141,6 +142,7 @@ export function createForm({
       if (maxLength) input.maxLength = maxLength;
       if (pattern) input.pattern = pattern;
       if (placeholder) input.placeholder = placeholder;
+      if (autocomplete) input.autocomplete = autocomplete;
       input.style.display = "block";
       input.style.marginBottom = "1em";
       input.style.width = "100%";
