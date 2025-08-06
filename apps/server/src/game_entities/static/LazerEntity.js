@@ -1,6 +1,6 @@
-import { StaticEntity } from "./StaticEntity.js";
-import { Vec2 } from "../utils/vector.js";
-import { BoundingBox } from "../physics/BoundingBox.js";
+import { StaticEntity } from "../StaticEntity.js";
+import { Vec2 } from "../../utils/vector.js";
+import { BoundingBox } from "../../physics/BoundingBox.js";
 
 export class LazerEntity extends StaticEntity {
   constructor(config) {

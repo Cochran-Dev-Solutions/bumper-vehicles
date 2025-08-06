@@ -1,21 +1,21 @@
-import { PhysicsEntity } from "./PhysicsEntity.js";
-import { Vec2 } from "../utils/vector.js";
+import { PhysicsEntity } from "../PhysicsEntity.js";
+import { Vec2 } from "../../utils/vector.js";
 
 export class BouncyBall extends PhysicsEntity {
   constructor(config) {
     // note: player is technically an active_dynamic actor,
-    // but since players are categorized separately from all other 
+    // but since players are categorized separately from all other
     // entities this distinction is moot
     super({
       ...config,
       size: new Vec2(config.radius * 2, config.radius * 2),
       type: "bouncy_ball",
       mass: 5,
-      elasticity: 1
+      elasticity: 1,
     });
 
     this.flags = {
-      facing: "right" // Can be 'left' or 'right'
+      facing: "right", // Can be 'left' or 'right'
     };
   }
 
@@ -28,7 +28,7 @@ export class BouncyBall extends PhysicsEntity {
     const bouncyBalls = this.game.actor_lists["bouncy_ball"] || [];
 
     // Check collisions with other bouncy balls
-    bouncyBalls.forEach((otherBall) => {
+    bouncyBalls.forEach(otherBall => {
       // Skip self
       if (otherBall.id === this.id) return;
       this.handleCircularCollision(otherBall);
@@ -58,7 +58,7 @@ export class BouncyBall extends PhysicsEntity {
     this.handleBouncyBallCollisions();
 
     // Handle collisions with players
-    this.game.players.forEach((player) => {
+    this.game.players.forEach(player => {
       this.handlePlayerCollision(player);
     });
 
@@ -74,7 +74,7 @@ export class BouncyBall extends PhysicsEntity {
       y: this.position.y,
       width: this.size.x,
       height: this.size.y,
-      flags: this.flags
+      flags: this.flags,
     };
   }
 
@@ -83,7 +83,7 @@ export class BouncyBall extends PhysicsEntity {
       id: this.id,
       x: this.position.x,
       y: this.position.y,
-      flags: this.flags
+      flags: this.flags,
     };
   }
-} 
+}

@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: 10.12.3
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -75,22 +75,22 @@ jobs:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: 10.12.3
       - uses: actions/setup-node@v4
         with:
           node-version: 20
       - run: pnpm install
-      - name: Build game-frontend
+      - name: Build web-client
         env:
           VITE_PROD_API_URL: ${{ secrets.VITE_PROD_API_URL }}
-        run: pnpm -F game-frontend build
+        run: pnpm -F apps/web-client build
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
       - name: Sync to S3
-        run: aws s3 sync apps/game-frontend/dist/ s3://${{ secrets.S3_BUCKET_GAME_FRONTEND }}/ --delete
+        run: aws s3 sync apps/web-client/dist/ s3://${{ secrets.S3_BUCKET_GAME_FRONTEND }}/ --delete
       - name: Invalidate CloudFront cache (game-frontend)
         run: aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID_GAME }} --paths "/*"
         env:
@@ -105,12 +105,12 @@ jobs:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: 10.12.3
       - uses: actions/setup-node@v4
         with:
           node-version: 20
       - run: pnpm install
-      - run: pnpm -F landing-page build
+      - run: pnpm -F apps/landing-page build
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}

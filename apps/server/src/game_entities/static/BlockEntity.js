@@ -1,15 +1,15 @@
-import { StaticEntity } from "./StaticEntity.js";
+import { StaticEntity } from "../StaticEntity.js";
 
 export class BlockEntity extends StaticEntity {
   static block_types = {
-    "default": {
-      on_collision: () => { }
+    default: {
+      on_collision: () => {},
     },
-    "trampoline": {
+    trampoline: {
       // on_collision: (block, entity) => {
       //   // TODO: bounce entity off of block
       // }
-    }
+    },
   };
 
   constructor(config) {
@@ -17,7 +17,9 @@ export class BlockEntity extends StaticEntity {
 
     // check to make sure the block's position aligns with the tilemap grid
     if (!this.tileMap.isAlignedWithGrid(config.position.x, config.position.y)) {
-      console.error(`Block position (${config.position.x}, ${config.position.y}) does not align with grid size ${this.tileMap.gridSize}`);
+      console.error(
+        `Block position (${config.position.x}, ${config.position.y}) does not align with grid size ${this.tileMap.gridSize}`
+      );
       throw new Error("Block position must align with grid");
     }
 
@@ -33,7 +35,7 @@ export class BlockEntity extends StaticEntity {
       x: this.position.x,
       y: this.position.y,
       width: this.size.x,
-      height: this.size.y
+      height: this.size.y,
     };
   }
 
@@ -41,4 +43,4 @@ export class BlockEntity extends StaticEntity {
     // Blocks are static and don't change state
     return null;
   }
-} 
+}

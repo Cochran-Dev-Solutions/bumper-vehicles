@@ -12,12 +12,12 @@ jobs:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: 10.12.3
       - uses: actions/setup-node@v4
         with:
           node-version: 20
       - run: pnpm install
       - run: pnpm lint
       - run: pnpm docker:build:backend
-      - run: pnpm -F apps/game-frontend build
+      - run: pnpm -F apps/web-client build
       - run: pnpm -F apps/landing-page build

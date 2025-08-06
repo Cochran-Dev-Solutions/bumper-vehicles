@@ -1,5 +1,5 @@
-import { Entity } from "./Entity.js";
-import { Vec2 } from "../utils/vector.js";
+import { Entity } from "../Entity.js";
+import { Vec2 } from "../../utils/vector.js";
 
 export class FinishPortalEntity extends Entity {
   constructor(config) {
@@ -7,7 +7,7 @@ export class FinishPortalEntity extends Entity {
       ...config,
       type: "finish_portal",
       type_of_actor: "passive_static",
-      hasUpdate: false
+      hasUpdate: false,
     });
 
     this.radius = config.radius || 40;
@@ -22,7 +22,7 @@ export class FinishPortalEntity extends Entity {
    */
   checkCollision(player) {
     const distance = this.position.distance(player.position);
-    return distance <= (this.radius + player.radius);
+    return distance <= this.radius + player.radius;
   }
 
   /**
@@ -81,7 +81,7 @@ export class FinishPortalEntity extends Entity {
       y: this.position.y,
       radius: this.radius,
       finishedPlayers: Array.from(this.finishedPlayers),
-      animationTime: this.animationTime
+      animationTime: this.animationTime,
     };
   }
 
@@ -89,7 +89,7 @@ export class FinishPortalEntity extends Entity {
     return {
       id: this.id,
       finishedPlayers: Array.from(this.finishedPlayers),
-      animationTime: this.animationTime
+      animationTime: this.animationTime,
     };
   }
-} 
+}

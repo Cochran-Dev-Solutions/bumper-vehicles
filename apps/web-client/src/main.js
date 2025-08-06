@@ -13,6 +13,7 @@ import {
 } from "client-logic";
 import { loadImageAsync, images_to_load } from "./render-tools/images.js";
 import { removeForms } from "./render-tools/htmlForms.js";
+import betaAuth from "./betaAuth.js";
 
 // Inject the p5.js image loader into the shared logic
 setLoadImageAsync(loadImageAsync);
@@ -132,46 +133,68 @@ const sketch = p => {
   };
 };
 
-// Create new p5 instance with our sketch
-new p5(sketch, document.getElementById("app-canvas"));
+// Initialize beta authentication before starting the app
+async function initializeApp() {
+  try {
+    console.log("Initializing Bumper Vehicles application...");
 
-// used by scene transition to create an extra sketch
-window.p5 = p5;
+    // Initialize beta authentication
+    const authResult = await betaAuth.init();
 
-// Create persistent overlay p5 instance for transitions
-window.overlayTransition = null;
-window.overlayP5 = new p5(p => {
-  p.setup = () => {
-    p.createCanvas(window.innerWidth, window.innerHeight).parent(
-      document.getElementById("overlay-canvas")
-    );
-    p.clear();
-  };
-  p.draw = () => {
-    p.clear();
-    const t = window.overlayTransition;
-    if (t) {
-      let w = window.innerWidth;
-      let h = window.innerHeight;
-      let closed;
-      if (t.type === "open") {
-        closed = w / 2 - ((t.frame / t.duration) * w) / 2;
-      } else {
-        closed = 0 + ((t.frame / t.duration) * w) / 2;
-      }
-      p.fill(255, 255, 255);
-      p.noStroke();
-      p.rect(-w / 2 + closed, 0, w / 2, h);
-      p.rect(w - closed, 0, w / 2, h);
-      t.frame++;
-      if (t.frame > t.duration) {
-        window.overlayTransition = null;
-        if (typeof t.onFinish === "function") t.onFinish();
-      }
+    if (!authResult.success) {
+      console.error("Beta authentication failed:", authResult.error);
+      return; // App will not start if authentication fails
     }
-  };
-  p.windowResized = () => {
-    p.resizeCanvas(window.innerWidth, window.innerHeight);
-    p.clear();
-  };
-}, document.getElementById("overlay-canvas"));
+
+    console.log("Beta authentication successful, starting application...");
+
+    // Create new p5 instance with our sketch
+    new p5(sketch, document.getElementById("app-canvas"));
+
+    // used by scene transition to create an extra sketch
+    window.p5 = p5;
+
+    // Create persistent overlay p5 instance for transitions
+    window.overlayTransition = null;
+    window.overlayP5 = new p5(p => {
+      p.setup = () => {
+        p.createCanvas(window.innerWidth, window.innerHeight).parent(
+          document.getElementById("overlay-canvas")
+        );
+        p.clear();
+      };
+      p.draw = () => {
+        p.clear();
+        const t = window.overlayTransition;
+        if (t) {
+          let w = window.innerWidth;
+          let h = window.innerHeight;
+          let closed;
+          if (t.type === "open") {
+            closed = w / 2 - ((t.frame / t.duration) * w) / 2;
+          } else {
+            closed = 0 + ((t.frame / t.duration) * w) / 2;
+          }
+          p.fill(255, 255, 255);
+          p.noStroke();
+          p.rect(-w / 2 + closed, 0, w / 2, h);
+          p.rect(w - closed, 0, w / 2, h);
+          t.frame++;
+          if (t.frame > t.duration) {
+            window.overlayTransition = null;
+            if (typeof t.onFinish === "function") t.onFinish();
+          }
+        }
+      };
+      p.windowResized = () => {
+        p.resizeCanvas(window.innerWidth, window.innerHeight);
+        p.clear();
+      };
+    }, document.getElementById("overlay-canvas"));
+  } catch (error) {
+    console.error("Failed to initialize application:", error);
+  }
+}
+
+// Start the application
+initializeApp();

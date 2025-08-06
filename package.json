@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "docker:build:backend": "docker build -f apps/game-backend/Dockerfile -t 473548817874.dkr.ecr.us-east-2.amazonaws.com/default-namespace/bumper-backend:latest .",
+    "docker:build:backend": "docker build -f apps/server/Dockerfile -t 473548817874.dkr.ecr.us-east-2.amazonaws.com/default-namespace/bumper-backend:latest .",
     "docker:push:backend": "docker push 473548817874.dkr.ecr.us-east-2.amazonaws.com/default-namespace/bumper-backend:latest",
     "docker:run:backend": "docker compose -f docker-compose.local.yml up --build",
     "redis:start": "docker run -d --name redis -p 6379:6379 redis",

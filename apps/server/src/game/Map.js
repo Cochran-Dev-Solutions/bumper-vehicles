@@ -1,8 +1,8 @@
-import { BlockEntity } from "../game_entities/BlockEntity.js";
-import { BouncyBall } from "../game_entities/BouncyBall.js";
-import { CheckpointEntity } from "../game_entities/CheckpointEntity.js";
-import { FinishPortalEntity } from "../game_entities/FinishPortalEntity.js";
-import { LazerEntity } from "../game_entities/LazerEntity.js";
+import { BlockEntity } from "../game_entities/static/BlockEntity.js";
+import { BouncyBall } from "../game_entities/dynamic/BouncyBall.js";
+import { CheckpointEntity } from "../game_entities/static/CheckpointEntity.js";
+import { FinishPortalEntity } from "../game_entities/static/FinishPortalEntity.js";
+import { LazerEntity } from "../game_entities/static/LazerEntity.js";
 import { Vec2 } from "../utils/vector.js";
 import { TileMap } from "../physics/TileMap.js";
 

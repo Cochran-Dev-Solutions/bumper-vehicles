@@ -1,5 +1,5 @@
-import { Entity } from "./Entity.js";
-import { Vec2 } from "../utils/vector.js";
+import { Entity } from "../Entity.js";
+import { Vec2 } from "../../utils/vector.js";
 
 export class CheckpointEntity extends Entity {
   constructor(config) {
@@ -7,7 +7,7 @@ export class CheckpointEntity extends Entity {
       ...config,
       type: "checkpoint",
       type_of_actor: "passive_static",
-      hasUpdate: false
+      hasUpdate: false,
     });
 
     this.radius = config.radius || 30;
@@ -23,7 +23,7 @@ export class CheckpointEntity extends Entity {
    */
   checkCollision(player) {
     const distance = this.position.distance(player.position);
-    return distance <= (this.radius + player.radius);
+    return distance <= this.radius + player.radius;
   }
 
   /**
@@ -61,7 +61,7 @@ export class CheckpointEntity extends Entity {
       radius: this.radius,
       checkpointId: this.checkpointId,
       activated: this.activated,
-      activatedBy: Array.from(this.activatedBy)
+      activatedBy: Array.from(this.activatedBy),
     };
   }
 
@@ -69,7 +69,7 @@ export class CheckpointEntity extends Entity {
     return {
       id: this.id,
       activated: this.activated,
-      activatedBy: Array.from(this.activatedBy)
+      activatedBy: Array.from(this.activatedBy),
     };
   }
-} 
+}

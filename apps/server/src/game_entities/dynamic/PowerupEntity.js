@@ -1,5 +1,5 @@
-import { PhysicsEntity } from "./PhysicsEntity.js";
-import { Vec2 } from "../utils/vector.js";
+import { PhysicsEntity } from "../PhysicsEntity.js";
+import { Vec2 } from "../../utils/vector.js";
 
 export default class PowerupEntity extends PhysicsEntity {
   static powerupTypes = new Map([

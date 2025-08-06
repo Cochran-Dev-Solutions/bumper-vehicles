@@ -1,6 +1,6 @@
-import { PhysicsEntity } from "./PhysicsEntity.js";
+import { PhysicsEntity } from "../PhysicsEntity.js";
 import PowerupEntity from "./PowerupEntity.js";
-import { Vec2 } from "../utils/vector.js";
+import { Vec2 } from "../../utils/vector.js";
 
 export class PlayerEntity extends PhysicsEntity {
   constructor(config) {

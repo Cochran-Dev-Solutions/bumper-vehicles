@@ -1,5 +1,5 @@
 import { PhysicsWorld } from "../physics/PhysicsWorld.js";
-import { PlayerEntity } from "../game_entities/PlayerEntity.js";
+import { PlayerEntity } from "../game_entities/dynamic/PlayerEntity.js";
 import mapManager from "./Map.js";
 import { TileMap } from "../physics/TileMap.js";
 
