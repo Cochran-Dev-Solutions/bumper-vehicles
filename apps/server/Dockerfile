@@ -1,4 +1,4 @@
-# Dockerfile for game-backend
+# Dockerfile for server
 FROM node:20-slim
 
 # Set working directory
@@ -10,7 +10,7 @@ COPY pnpm-lock.yaml ./
 COPY package.json ./
 
 # Copy app and packages
-COPY apps/game-backend ./apps/game-backend
+COPY apps/server ./apps/server
 COPY packages ./packages
 
 # Install pnpm
@@ -20,7 +20,7 @@ RUN npm install -g pnpm
 RUN pnpm install
 
 # Set working directory to backend
-WORKDIR /app/apps/game-backend
+WORKDIR /app/apps/server
 
 # Expose backend port
 EXPOSE 3000
