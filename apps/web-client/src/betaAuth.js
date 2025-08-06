@@ -4,6 +4,7 @@ class BetaAuth {
   constructor() {
     this.isProduction = import.meta.env.VITE_NODE_ENV === "production";
     this.storageKey = "bumper_beta_auth";
+    this.isExplicitlyCancelling = false; // Flag to track explicit cancellation
   }
 
   // Check if we're in production mode
@@ -76,19 +77,21 @@ class BetaAuth {
     }
   }
 
-  // Show authentication prompt
+  // Show authentication prompt with better UX
   async promptForCredentials() {
     return new Promise((resolve, reject) => {
+      // Show a more helpful message
       const username = prompt("Enter your beta username:");
 
       if (username === null) {
-        // User clicked cancel
+        // User clicked cancel - mark as explicit cancellation
+        this.isExplicitlyCancelling = true;
         reject(new Error("Authentication cancelled"));
         return;
       }
 
       if (!username.trim()) {
-        alert("Username is required");
+        alert("Username is required. Please try again.");
         this.promptForCredentials().then(resolve).catch(reject);
         return;
       }
@@ -96,13 +99,14 @@ class BetaAuth {
       const password = prompt("Enter your beta password:");
 
       if (password === null) {
-        // User clicked cancel
+        // User clicked cancel - mark as explicit cancellation
+        this.isExplicitlyCancelling = true;
         reject(new Error("Authentication cancelled"));
         return;
       }
 
       if (!password.trim()) {
-        alert("Password is required");
+        alert("Password is required. Please try again.");
         this.promptForCredentials().then(resolve).catch(reject);
         return;
       }
@@ -123,6 +127,9 @@ class BetaAuth {
     }
 
     try {
+      // Reset the cancellation flag
+      this.isExplicitlyCancelling = false;
+
       // Prompt for credentials
       const credentials = await this.promptForCredentials();
 
@@ -142,10 +149,10 @@ class BetaAuth {
       }
     } catch (error) {
       if (error.message === "Authentication cancelled") {
-        // User cancelled authentication, exit the page
-        window.close();
-        // If window.close() doesn't work, try to navigate away
-        window.location.href = "about:blank";
+        // Only exit if this was an explicit cancellation (user clicked Cancel)
+        if (this.isExplicitlyCancelling) {
+          this.exitApplication();
+        }
         return { success: false, error: "Authentication cancelled" };
       }
 
@@ -153,6 +160,36 @@ class BetaAuth {
       alert("Authentication failed. Please try again.");
       window.location.reload();
       return { success: false, error: error.message };
+    }
+  }
+
+  // Exit the application properly - only call this for explicit cancellation
+  exitApplication() {
+    // Only proceed if this was an explicit cancellation
+    if (!this.isExplicitlyCancelling) {
+      console.log("Preventing exit - not an explicit cancellation");
+      return;
+    }
+
+    try {
+      // Try to close the window/tab
+      window.close();
+
+      // If window.close() doesn't work (due to browser security),
+      // try alternative methods
+      setTimeout(() => {
+        // Try to navigate to a blank page
+        window.location.href = "about:blank";
+
+        // If that doesn't work, try to redirect to the landing page
+        setTimeout(() => {
+          window.location.href = "https://bumpervehicles.com";
+        }, 100);
+      }, 100);
+    } catch (error) {
+      console.error("Failed to exit application:", error);
+      // Fallback: redirect to landing page
+      window.location.href = "https://bumpervehicles.com";
     }
   }
 
