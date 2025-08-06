@@ -154,7 +154,7 @@ export default class PowerupEntity extends PhysicsEntity {
 
     // // register empty lsit
     this.actor_list = this.type + "-" + this.powerup_type;
-    if (this.type in this.game.actor_lists) {
+    if (this.actor_list in this.game.actor_lists) {
       this.game.actor_lists[this.actor_list].push(this);
     } else {
       this.game.actor_lists[this.actor_list] = [];
