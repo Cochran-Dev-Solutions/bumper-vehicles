@@ -5,7 +5,7 @@ import { Vec2 } from "../utils/vector.js";
 export class PlayerEntity extends PhysicsEntity {
   constructor(config) {
     // note: player is technically an active_dynamic actor,
-    // but since players are categorized separately from all other 
+    // but since players are categorized separately from all other
     // entities this distinction is moot
     super({
       ...config,
@@ -13,7 +13,7 @@ export class PlayerEntity extends PhysicsEntity {
       type: "player",
       size: new Vec2(config.radius * 2, config.radius * 2),
       mass: 10,
-      elasticity: 0.5
+      elasticity: 0.5,
     });
 
     this.lives = 1; // Changed to 1 life for racing game
@@ -34,13 +34,13 @@ export class PlayerEntity extends PhysicsEntity {
       down: false,
       left: false,
       right: false,
-      space: false
+      space: false,
     };
     this.disconnected = false;
     this.flags = {
       facing: "right", // Can be 'left' or 'right'
       about_to_boost: false,
-      boosting: false
+      boosting: false,
     };
     this.socketId = config.socketId;
 
@@ -48,13 +48,15 @@ export class PlayerEntity extends PhysicsEntity {
     this.powerup_names = config.userData.powerups;
     this.powerups = [];
     for (const powerup_name of config.userData.powerups) {
-      this.powerups.push(new PowerupEntity({
-        id: this.game.generatePassiveActorId(),
-        powerup_type: powerup_name,
-        game: this.game,
-        position: new Vec2(0, 0),
-        tileMap: this.tileMap
-      }));
+      this.powerups.push(
+        new PowerupEntity({
+          id: this.game.generatePassiveActorId(),
+          powerup_type: powerup_name,
+          game: this.game,
+          position: new Vec2(0, 0),
+          tileMap: this.tileMap,
+        })
+      );
     }
 
     // Boost timers
@@ -70,7 +72,7 @@ export class PlayerEntity extends PhysicsEntity {
 
   /**
    * Update input state
-   * @param {Object} newInput 
+   * @param {Object} newInput
    */
   updateInput(newInput) {
     this.input = { ...newInput };
@@ -83,7 +85,11 @@ export class PlayerEntity extends PhysicsEntity {
     }
 
     // Handle boost input
-    if (this.input.space && !this.flags.about_to_boost && !this.flags.boosting) {
+    if (
+      this.input.space &&
+      !this.flags.about_to_boost &&
+      !this.flags.boosting
+    ) {
       this.startBoostCharge();
     }
   }
@@ -110,7 +116,16 @@ export class PlayerEntity extends PhysicsEntity {
         this.game.markActorChanged(this);
       }
 
-      this.updateClient("boostReloadPercentage", Math.max(360 * (this.boostChargeDuration - (currentTime - this.boostChargeStartTime) * 1) / this.boostChargeDuration, 0));
+      this.updateClient(
+        "boostReloadPercentage",
+        Math.max(
+          (360 *
+            (this.boostChargeDuration -
+              (currentTime - this.boostChargeStartTime) * 1)) /
+            this.boostChargeDuration,
+          0
+        )
+      );
     }
     // Handle boost phase
     else if (this.flags.boosting) {
@@ -121,10 +136,16 @@ export class PlayerEntity extends PhysicsEntity {
       }
     } else {
       // emit back boost recharge state
-      this.updateClient("boostReloadPercentage", ((Math.min(currentTime - this.boostReloadStartTime, this.boostReloadDuration)) / this.boostReloadDuration) * 360);
+      this.updateClient(
+        "boostReloadPercentage",
+        (Math.min(
+          currentTime - this.boostReloadStartTime,
+          this.boostReloadDuration
+        ) /
+          this.boostReloadDuration) *
+          360
+      );
     }
-
-
   }
 
   endBoost() {
@@ -179,50 +200,59 @@ export class PlayerEntity extends PhysicsEntity {
   handlePlayerCollisions() {
     // Skip collision checks if this player has finished
     if (this.finished) return;
-    
+
     // Check collisions with other players
-    this.game.players.forEach((otherPlayer) => {
+    this.game.players.forEach(otherPlayer => {
       // Skip self or finished players
       if (otherPlayer.id === this.id || otherPlayer.finished) return;
       this.handleCircularCollision(otherPlayer);
     });
   }
 
-    /**
+  /**
    * Handle checkpoint and finish portal collisions
    */
   handleRacingCollisions() {
-     
-     // Check checkpoint collisions using actor lists for efficiency
-     const checkpoints = this.game.actor_lists["checkpoint"];
-     if (checkpoints) {
-       checkpoints.forEach((checkpoint) => {
-         if (checkpoint.checkCollision(this)) {
-           checkpoint.activateForPlayer(this.id);
-           this.lastCheckpoint = checkpoint.position.copy();
-           this.updateClient("lastCheckpoint", this.lastCheckpoint);
-         }
-       });
-     }
+    // Check checkpoint collisions using actor lists for efficiency
+    const checkpoints = this.game.actor_lists["checkpoint"];
+    if (checkpoints) {
+      checkpoints.forEach(checkpoint => {
+        if (checkpoint.checkCollision(this)) {
+          checkpoint.activateForPlayer(this.id);
+          this.lastCheckpoint = checkpoint.position.copy();
+          this.updateClient("lastCheckpoint", this.lastCheckpoint);
+        }
+      });
+    }
 
-     // Check finish portal collision using actor lists for efficiency
-     const finishPortals = this.game.actor_lists["finish_portal"];
-     if (finishPortals) {
-       finishPortals.forEach((finishPortal) => {
-         if (finishPortal.checkCollision(this)) {
-           const placement = finishPortal.finishPlayer(this.id);
-           if (placement) {
-             this.finished = true;
-             this.placement = placement;
-             this.updateClient("finished", true);
-             this.updateClient("placement", placement);
-           }
-         }
-       });
-     }
-   }
+    // Check finish portal collision using actor lists for efficiency
+    const finishPortals = this.game.actor_lists["finish_portal"];
+    if (finishPortals) {
+      finishPortals.forEach(finishPortal => {
+        if (finishPortal.checkCollision(this)) {
+          const placement = finishPortal.finishPlayer(this.id);
+          if (placement) {
+            this.finished = true;
+            this.placement = placement;
+            this.updateClient("finished", true);
+            this.updateClient("placement", placement);
+          }
+        }
+      });
+    }
 
-    /**
+    // Check lazer collisions using actor lists for efficiency
+    const lazers = this.game.actor_lists["lazer"];
+    if (lazers) {
+      lazers.forEach(lazer => {
+        if (lazer.checkCollision(this)) {
+          this.loseLife();
+        }
+      });
+    }
+  }
+
+  /**
    * Handle being sucked into the finish portal
    * @param {Vec2} portalPosition - Position of the finish portal
    */
@@ -234,18 +264,17 @@ export class PlayerEntity extends PhysicsEntity {
       return;
     }
 
-     
     // Calculate direction to portal
     const direction = portalPosition.subtract(this.position);
     const distance = direction.magnitude();
-    
+
     // Apply strong suction force towards portal
     const suctionForce = 5;
     const normalizedDirection = direction.normalize();
-    
+
     // Apply suction force using the proper physics method
     this.applyForce(normalizedDirection.scale(suctionForce));
-    
+
     // Mark player as being sucked in for frontend scaling
     this.flags.beingSuckedIn = true;
     this.flags.portalScale = Math.min(distance / 50, 1);
@@ -261,11 +290,11 @@ export class PlayerEntity extends PhysicsEntity {
       this.position = this.startPosition.copy();
     }
     this.velocity = new Vec2(0, 0);
-    
+
     // Reset suction flags
     this.flags.beingSuckedIn = false;
     this.flags.suctionScale = undefined;
-    
+
     this.game.markActorChanged(this);
   }
 
@@ -286,7 +315,7 @@ export class PlayerEntity extends PhysicsEntity {
   updateClient(attributeName, attributeValue) {
     this.socket.emit("local-state-specific-data", {
       attributeName,
-      attributeValue
+      attributeValue,
     });
   }
 
@@ -321,7 +350,12 @@ export class PlayerEntity extends PhysicsEntity {
     this.processForces();
 
     // Apply drag to slow down when no input
-    if (!this.input.left && !this.input.right && !this.input.up && !this.input.down) {
+    if (
+      !this.input.left &&
+      !this.input.right &&
+      !this.input.up &&
+      !this.input.down
+    ) {
       this.applyDrag();
     }
 
@@ -358,8 +392,8 @@ export class PlayerEntity extends PhysicsEntity {
       flags: {
         ...this.flags,
         finished: this.finished,
-        placement: this.placement
-      }
+        placement: this.placement,
+      },
     };
   }
 
@@ -373,9 +407,9 @@ export class PlayerEntity extends PhysicsEntity {
       flags: {
         ...this.flags,
         finished: this.finished,
-        placement: this.placement
+        placement: this.placement,
       },
-      lives: this.lives
+      lives: this.lives,
     };
   }
-} 
+}

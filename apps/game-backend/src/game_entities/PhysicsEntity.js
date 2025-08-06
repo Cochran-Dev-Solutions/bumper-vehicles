@@ -23,7 +23,7 @@ export class PhysicsEntity extends Entity {
 
   /**
    * Apply a force to the entity
-   * @param {Vec2} force 
+   * @param {Vec2} force
    */
   applyForce(force) {
     this.applyForces = this.applyForces.add(force);
@@ -31,7 +31,7 @@ export class PhysicsEntity extends Entity {
 
   /**
    * Apply drag force based on velocity
-   * @param {number} dragCoefficient 
+   * @param {number} dragCoefficient
    */
   applyDrag() {
     // Scale drag force by mass so heavier objects experience more drag
@@ -125,51 +125,79 @@ export class PhysicsEntity extends Entity {
   }
 
   /**
+   * Handle collision with a rectangular block
+   * @param {Object} block - Object with position (Vec2) and size (Vec2) properties
+   * @returns {boolean} true if collision occurred and was handled
+   */
+  handleBlockCollision(block) {
+    const centerX = this.position.x + this.radius;
+    const centerY = this.position.y + this.radius;
+
+    const closestX = Math.max(
+      block.position.x,
+      Math.min(centerX, block.position.x + block.size.x)
+    );
+    const closestY = Math.max(
+      block.position.y,
+      Math.min(centerY, block.position.y + block.size.y)
+    );
+
+    // Calculate distance between closest point and circle center
+    const distance = Math.sqrt(
+      Math.pow(centerX - closestX, 2) + Math.pow(centerY - closestY, 2)
+    );
+
+    if (distance < this.radius) {
+      // Calculate push-out vector
+      const pushX = centerX - closestX;
+      const pushY = centerY - closestY;
+      const pushLength = Math.sqrt(pushX * pushX + pushY * pushY);
+
+      // Normalize and scale by overlap
+      const overlap = this.radius - distance;
+      const pushVector = new Vec2(
+        (pushX / pushLength) * overlap,
+        (pushY / pushLength) * overlap
+      );
+
+      // Apply push-out
+      this.position.x += pushVector.x;
+      this.position.y += pushVector.y;
+      this.boundingBox.updateX();
+      this.boundingBox.updateY();
+
+      // Bounce off the wall - velocity dependent
+      const normalX = pushX / pushLength;
+      const normalY = pushY / pushLength;
+      const dot = this.velocity.x * normalX + this.velocity.y * normalY;
+
+      // Calculate bounce based on velocity magnitude
+      const velocityMagnitude = Math.sqrt(
+        this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y
+      );
+      const bounceMultiplier = Math.max(velocityMagnitude, 2); // Minimum bounce for very slow movement
+
+      this.velocity.x -= bounceMultiplier * dot * normalX * this.elasticity;
+      this.velocity.y -= bounceMultiplier * dot * normalY * this.elasticity;
+
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
    * Handle collisions with tiles/blocks
    * @returns {boolean} true if collision occurred
    */
   handleTileCollisions() {
-    const collidingTiles = this.tileMap.getCollidingTiles("block", this.boundingBox);
+    const collidingTiles = this.tileMap.getCollidingTiles(
+      "block",
+      this.boundingBox
+    );
 
     for (const tile of collidingTiles) {
-      const centerX = this.position.x + this.radius,
-        centerY = this.position.y + this.radius;
-
-      const closestX = Math.max(tile.position.x, Math.min(centerX, tile.position.x + tile.size.x));
-      const closestY = Math.max(tile.position.y, Math.min(centerY, tile.position.y + tile.size.y));
-
-      // Calculate distance between closest point and circle center
-      const distance = Math.sqrt(
-        Math.pow(centerX - closestX, 2) +
-        Math.pow(centerY - closestY, 2)
-      );
-
-      if (distance < this.radius) {
-        // Calculate push-out vector
-        const pushX = centerX - closestX;
-        const pushY = centerY - closestY;
-        const pushLength = Math.sqrt(pushX * pushX + pushY * pushY);
-
-        // Normalize and scale by overlap
-        const overlap = this.radius - distance;
-        const pushVector = new Vec2(
-          (pushX / pushLength) * overlap,
-          (pushY / pushLength) * overlap
-        );
-
-        // Apply push-out
-        this.position.x += pushVector.x;
-        this.position.y += pushVector.y;
-        this.boundingBox.updateX();
-        this.boundingBox.updateY();
-
-        // Bounce off the wall
-        const normalX = pushX / pushLength;
-        const normalY = pushY / pushLength;
-        const dot = this.velocity.x * normalX + this.velocity.y * normalY;
-        this.velocity.x -= 10 * dot * normalX * this.elasticity;
-        this.velocity.y -= 10 * dot * normalY * this.elasticity;
-
+      if (this.handleBlockCollision(tile)) {
         return true;
       }
     }
@@ -184,12 +212,14 @@ export class PhysicsEntity extends Entity {
    */
   handleCircularCollision(other) {
     // Calculate distance between centers
-    const dx = (this.position.x + this.radius) - (other.position.x + other.radius);
-    const dy = (this.position.y + this.radius) - (other.position.y + other.radius);
+    const dx =
+      this.position.x + this.radius - (other.position.x + other.radius);
+    const dy =
+      this.position.y + this.radius - (other.position.y + other.radius);
     const distance = Math.sqrt(dx * dx + dy * dy);
 
     // Check if circles are colliding
-    if (distance < (this.radius + other.radius)) {
+    if (distance < this.radius + other.radius) {
       // Calculate collision normal
       const nx = dx / distance;
       const ny = dy / distance;
@@ -200,7 +230,8 @@ export class PhysicsEntity extends Entity {
       // const relativeSpeed = Math.sqrt(relativeVelocityX * relativeVelocityX + relativeVelocityY * relativeVelocityY);
 
       // Calculate velocity along normal
-      const velocityAlongNormal = relativeVelocityX * nx + relativeVelocityY * ny;
+      const velocityAlongNormal =
+        relativeVelocityX * nx + relativeVelocityY * ny;
 
       // Only resolve if objects are moving towards each other
       if (velocityAlongNormal < 0) {
@@ -222,21 +253,25 @@ export class PhysicsEntity extends Entity {
         );
 
         // Calculate aligned velocity components
-        const alignedOtherX = this.velocity.x > 0
-          ? Math.max(other.velocity.x, 0)
-          : Math.min(other.velocity.x, 0);
+        const alignedOtherX =
+          this.velocity.x > 0
+            ? Math.max(other.velocity.x, 0)
+            : Math.min(other.velocity.x, 0);
 
-        const alignedOtherY = this.velocity.y > 0
-          ? Math.max(other.velocity.y, 0)
-          : Math.min(other.velocity.y, 0);
+        const alignedOtherY =
+          this.velocity.y > 0
+            ? Math.max(other.velocity.y, 0)
+            : Math.min(other.velocity.y, 0);
 
-        const alignedThisX = other.velocity.x > 0
-          ? Math.max(this.velocity.x, 0)
-          : Math.min(this.velocity.x, 0);
+        const alignedThisX =
+          other.velocity.x > 0
+            ? Math.max(this.velocity.x, 0)
+            : Math.min(this.velocity.x, 0);
 
-        const alignedThisY = other.velocity.y > 0
-          ? Math.max(this.velocity.y, 0)
-          : Math.min(this.velocity.y, 0);
+        const alignedThisY =
+          other.velocity.y > 0
+            ? Math.max(this.velocity.y, 0)
+            : Math.min(this.velocity.y, 0);
 
         // Calculate new velocities using aligned components
         this.velocity.x = (thisBounce.x + alignedOtherX) / (this.mass / 10);
@@ -248,7 +283,7 @@ export class PhysicsEntity extends Entity {
         other.bounceForce = otherBounce;
 
         // Separate the objects to prevent sticking
-        const overlap = (this.radius + other.radius) - distance;
+        const overlap = this.radius + other.radius - distance;
         const separationX = nx * overlap * 0.5 * 2;
         const separationY = ny * overlap * 0.5 * 2;
 
@@ -296,7 +331,7 @@ export class PhysicsEntity extends Entity {
       width: this.boundingBox.width,
       height: this.boundingBox.height,
       velocity: this.velocity,
-      maxSpeed: this.maxSpeed
+      maxSpeed: this.maxSpeed,
     };
   }
 }

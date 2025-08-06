@@ -60,7 +60,7 @@ export default class Game {
     }
 
     // Second pass: create other entities
-    mapData.entities.forEach((instruction) => {
+    mapData.entities.forEach(instruction => {
       if (instruction.type === "spawn_point") {
         this.spawn_points.push(instruction.parameters.position);
         return;
@@ -123,10 +123,12 @@ export default class Game {
     let maxY = 0;
 
     // Check all passive actors
-    this.passive_actors.forEach((actor) => {
-      const rightEdge = actor.position.x + (actor.size ? actor.size.x : actor.radius * 2);
-      const bottomEdge = actor.position.y + (actor.size ? actor.size.y : actor.radius * 2);
-      
+    this.passive_actors.forEach(actor => {
+      const rightEdge =
+        actor.position.x + (actor.size ? actor.size.x : actor.radius * 2);
+      const bottomEdge =
+        actor.position.y + (actor.size ? actor.size.y : actor.radius * 2);
+
       if (rightEdge > maxX) maxX = rightEdge;
       if (bottomEdge > maxY) maxY = bottomEdge;
     });
@@ -153,7 +155,7 @@ export default class Game {
     const player = new PlayerEntity({
       position: spawnData.position,
       type: "player",
-      radius: TileMap.getGridSize() / 2,
+      radius: TileMap.getGridSize() / 2 - 10,
       socketId: socket.id,
       id: playerId, // Use the provided playerId instead of generating one
       tileMap: this.physicsWorld.tileMap,
@@ -280,7 +282,7 @@ export default class Game {
    * @returns {Array} Array of actor state data
    */
   getChangedActorsState() {
-    const actors = Array.from(this.changed_actors).map((actor) =>
+    const actors = Array.from(this.changed_actors).map(actor =>
       actor.getUpdatedState()
     );
     this.changed_actors.clear();
@@ -300,7 +302,7 @@ export default class Game {
    * @returns {Array} Array of new actor state data
    */
   getNewActorsState() {
-    const actors = Array.from(this.new_actors).map((actor) =>
+    const actors = Array.from(this.new_actors).map(actor =>
       actor.getInitialState()
     );
     this.new_actors.clear();
@@ -337,12 +339,10 @@ export default class Game {
   getInitialState() {
     return {
       type: this.type,
-      players: Array.from(this.players.values()).map((player) =>
+      players: Array.from(this.players.values()).map(player =>
         player.getInitialState()
       ),
-      passive_actors: this.passive_actors.map((actor) =>
-        actor.getInitialState()
-      ),
+      passive_actors: this.passive_actors.map(actor => actor.getInitialState()),
       mapWidth: this.mapWidth,
       mapHeight: this.mapHeight,
     };

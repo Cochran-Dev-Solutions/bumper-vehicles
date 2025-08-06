@@ -3,77 +3,94 @@ import { Vec2 } from "../utils/vector.js";
 
 export default class PowerupEntity extends PhysicsEntity {
   static powerupTypes = new Map([
-    ["mine", {
-      radius: 35,
-      update: function () {
-        this.game.players.forEach((player) => {
-          const collided = this.handleCircularCollision(player);
-          if (collided) {
-            player.lives--;
-            this.game.markActorChanged(this.player);
+    [
+      "mine",
+      {
+        radius: 35,
+        update: function () {
+          this.game.players.forEach(player => {
+            const collided = this.handleCircularCollision(player);
+            if (collided) {
+              player.loseLife();
+              this.game.markActorChanged(this.player);
+              this.remove();
+            }
+          });
+        },
+      },
+    ],
+    [
+      "missile",
+      {
+        size: new Vec2(75, 35),
+        update: function () {},
+      },
+    ],
+    [
+      "heart",
+      {
+        size: new Vec2(45, 45),
+        lifespan: 2000,
+        update: function () {
+          if (Date.now() - this.activationTime >= this.life) {
             this.remove();
           }
-        });
-      }
-    }],
-    ["missile", {
-      size: new Vec2(75, 35),
-      update: function () { }
-    }],
-    ["heart", {
-      size: new Vec2(45, 45),
-      lifespan: 2000,
-      update: function () {
-        if (Date.now() - this.activationTime >= this.life) {
-          this.remove();
-        }
+        },
+        activationFunction: function () {
+          this.player.lives++;
+          this.player.updateClient("lives", this.player.lives);
+        },
       },
-      activationFunction: function () {
-        this.player.lives++;
-        this.player.updateClient("lives", this.player.lives);
-      }
-    }],
-    ["magnet", {
-      size: new Vec2(45, 45),
-      lifespan: 2000,
-      update: function () {
-        if (Date.now() - this.activationTime >= this.life) {
-          this.remove();
-        }
+    ],
+    [
+      "magnet",
+      {
+        size: new Vec2(45, 45),
+        lifespan: 2000,
+        update: function () {
+          if (Date.now() - this.activationTime >= this.life) {
+            this.remove();
+          }
+        },
+        activationFunction: function () {
+          this.player.hasMagnet = true;
+          this.player.magnetDuration = this.duration;
+          console.log("I am a magnet");
+          if (this.player && this.player.socket) {
+            this.player.socket.emit("magnetPowerup", {
+              duration: this.duration,
+            });
+          }
+        },
       },
-      activationFunction: function () {
-        this.player.hasMagnet = true;
-        this.player.magnetDuration = this.duration;
-        console.log("I am a magnet");
-        if (this.player && this.player.socket) {
-          this.player.socket.emit("magnetPowerup", { duration: this.duration });
-        }
-      }
-    }],
-    ["biggy", {
-      size: new Vec2(45, 45),
-      lifespan: 2000,
-      update: function () {
-        if (Date.now() - this.activationTime >= this.life) {
-          this.remove();
-        }
+    ],
+    [
+      "biggy",
+      {
+        size: new Vec2(45, 45),
+        lifespan: 2000,
+        update: function () {
+          if (Date.now() - this.activationTime >= this.life) {
+            this.remove();
+          }
+        },
+        activationFunction: function () {
+          this.player.mass *= 2;
+          this.player.size.x *= 2;
+          this.player.size.y *= 2;
+          this.player.radius *= 2;
+          this.player.get_smaller = true;
+          this.player.biggy_timer = 100;
+          if (this.player && this.player.socket) {
+            this.player.socket.emit("biggyPowerup", {
+              mass: this.player.mass,
+              radius: this.player.radius,
+              size: { x: this.player.size.x, y: this.player.size.y },
+            });
+          }
+        },
       },
-      activationFunction: function () {
-        this.player.mass *= 2;
-        this.player.size.x *= 2;
-        this.player.size.y *= 2;
-        this.player.radius *= 2;
-        this.player.get_smaller = true;
-        this.player.biggy_timer = 100;
-        if (this.player && this.player.socket) {
-          this.player.socket.emit("biggyPowerup", {
-            mass: this.player.mass,
-            radius: this.player.radius,
-            size: { x: this.player.size.x, y: this.player.size.y }
-          });
-        }
-      }
-    }],
+    ],
     // ["shockwave", {
     //   radius: 35,
     //   update: function () {
@@ -101,7 +118,9 @@ export default class PowerupEntity extends PhysicsEntity {
       ...config,
       type: "powerup",
       radius: powerupData.radius ? powerupData.radius : null,
-      size: powerupData.size ? powerupData.size : new Vec2(powerupData.radius * 2, powerupData.radius * 2)
+      size: powerupData.size
+        ? powerupData.size
+        : new Vec2(powerupData.radius * 2, powerupData.radius * 2),
     });
     this.powerup_type = config.powerup_type;
     this.powerupData = powerupData;
@@ -126,7 +145,7 @@ export default class PowerupEntity extends PhysicsEntity {
     this.position = player.position.copy();
 
     this.flags = {
-      facing: "right" // Can be 'left' or 'right'
+      facing: "right", // Can be 'left' or 'right'
     };
 
     this.game.passive_actors.push(this);
@@ -170,7 +189,10 @@ export default class PowerupEntity extends PhysicsEntity {
     }
 
     // (2) Remove from physics world
-    if (this.game.physicsWorld && typeof this.game.physicsWorld.removeEntity === "function") {
+    if (
+      this.game.physicsWorld &&
+      typeof this.game.physicsWorld.removeEntity === "function"
+    ) {
       this.game.physicsWorld.removeEntity(this);
     }
   }
@@ -184,7 +206,7 @@ export default class PowerupEntity extends PhysicsEntity {
       y: this.position.y,
       width: this.size.x,
       height: this.size.y,
-      powerup_type: this.powerup_type
+      powerup_type: this.powerup_type,
     };
   }
 
@@ -193,7 +215,7 @@ export default class PowerupEntity extends PhysicsEntity {
       id: this.id,
       x: this.position.x,
       y: this.position.y,
-      powerup_type: this.powerup_type
+      powerup_type: this.powerup_type,
     };
   }
 
@@ -220,8 +242,6 @@ export default class PowerupEntity extends PhysicsEntity {
       this.flags.facing = "right";
     }
 
-
-
     this.updatePowerup();
   }
-} 
+}

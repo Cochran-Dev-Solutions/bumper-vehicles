@@ -1,4 +1,11 @@
-import { Button, mouse, sceneManager, socket, gameInfo, globalGameRenderer } from "@bv-frontend-logic";
+import {
+  Button,
+  mouse,
+  sceneManager,
+  socket,
+  gameInfo,
+  globalGameRenderer,
+} from "@bv-frontend-logic";
 
 let loading = true;
 let gameFinished = false;
@@ -59,13 +66,13 @@ const gameScene = {
     // Use the global GameRenderer instance, already initialized
     this.gameRenderer = globalThis.globalGameRenderer;
     loading = false;
-    
+
     // Update the exit button to have access to gameRenderer
     buttons.exitToMap.onClick = function () {
       this.gameRenderer.exitGame();
       sceneManager.createTransition("map");
     }.bind(this);
-    
+
     // Update the disconnect button to have access to gameRenderer
     buttons.disconnect.onClick = function () {
       this.gameRenderer.exitGame();
@@ -79,22 +86,31 @@ const gameScene = {
     } else {
       try {
         // Check if game is finished
-        if (this.gameRenderer && this.gameRenderer.localPlayer && this.gameRenderer.localPlayer.finished) {
+        if (
+          this.gameRenderer &&
+          this.gameRenderer.localPlayer &&
+          this.gameRenderer.localPlayer.finished
+        ) {
           if (!gameFinished) {
             gameFinished = true;
             finishTime = Date.now();
             console.log("Player finished! Setting gameFinished to true");
           }
-          
+
           // Collect race results
           raceResults = [];
           this.gameRenderer.actors.forEach(actor => {
             if (actor.type === "player" && actor.finished) {
-              console.log("Found finished player:", actor.id, "placement:", actor.placement);
+              console.log(
+                "Found finished player:",
+                actor.id,
+                "placement:",
+                actor.placement
+              );
               raceResults.push({
                 id: actor.id,
                 placement: actor.placement,
-                isLocal: actor.id === this.gameRenderer.player_id
+                isLocal: actor.id === this.gameRenderer.player_id,
               });
             }
           });
@@ -105,8 +121,11 @@ const gameScene = {
         this.gameRenderer.update();
 
         // Display end screen if game is finished and enough time has passed
-        if (gameFinished && (Date.now() - finishTime) > showResultsDelay) {
-          console.log("About to display end screen. Time since finish:", Date.now() - finishTime);
+        if (gameFinished && Date.now() - finishTime > showResultsDelay) {
+          console.log(
+            "About to display end screen. Time since finish:",
+            Date.now() - finishTime
+          );
           this.displayEndScreen();
         }
       } catch (error) {
@@ -117,59 +136,76 @@ const gameScene = {
 
     // Update button positions
     buttons["disconnect"].update(10, 10);
-    if (gameFinished) {
-      buttons["exitToMap"].update(this.p.width - 170, 10);
-    }
   },
 
   displayEndScreen: function () {
     console.log("Displaying end screen with results:", raceResults);
     console.log("Canvas dimensions:", this.p.width, "x", this.p.height);
-    
+
     // Semi-transparent overlay
     this.p.fill(0, 0, 0, 150);
     this.p.rect(0, 0, this.p.width, this.p.height);
 
-    // Results popup
-    const popupWidth = 400;
-    const popupHeight = 300;
+    // Results popup - larger size
+    const popupWidth = this.p.width - 400;
+    const popupHeight = this.p.height - 200;
     const popupX = (this.p.width - popupWidth) / 2;
     const popupY = (this.p.height - popupHeight) / 2;
 
     console.log("Popup position:", popupX, popupY);
 
-    this.p.fill(255, 255, 255);
-    this.p.stroke(0);
-    this.p.strokeWeight(2);
-    this.p.rect(popupX, popupY, popupWidth, popupHeight, 10);
+    // Semi-transparent white background
+    this.p.fill(255, 255, 255, 200);
+    this.p.stroke(0, 0, 0, 100);
+    this.p.strokeWeight(1);
+    this.p.rect(popupX, popupY, popupWidth, popupHeight, 15);
+
+    // Position exit button in top-right corner of popup
+    buttons.exitToMap.update(popupX + popupWidth - 170, popupY + 15);
 
     // Title
     this.p.fill(0);
-    this.p.textSize(24);
+    this.p.textSize(28);
     this.p.textAlign(this.p.CENTER, this.p.CENTER);
-    this.p.text("Race Results", this.p.width / 2, popupY + 40);
+    this.p.noStroke(); // Remove stroke from text
+    this.p.text("Race Results", this.p.width / 2, popupY + 60);
 
     // Results
     this.p.textSize(18);
     raceResults.forEach((result, index) => {
-      const y = popupY + 80 + (index * 30);
-      const placementText = `${result.placement}${this.getOrdinalSuffix(result.placement)} Place`;
+      const y = popupY + 120 + index * 35;
+      const placementText = `${result.placement}${this.getOrdinalSuffix(
+        result.placement
+      )} Place`;
       const color = result.isLocal ? [0, 150, 255] : [0, 0, 0];
-      
-      console.log("Drawing result:", placementText, "at y:", y, "color:", color);
+
+      console.log(
+        "Drawing result:",
+        placementText,
+        "at y:",
+        y,
+        "color:",
+        color
+      );
       this.p.fill(...color);
+      this.p.noStroke(); // Remove stroke from text
       this.p.text(placementText, this.p.width / 2, y);
     });
 
     // Show remaining players if any
-    const remainingPlayers = this.gameRenderer.actors.filter(actor => 
-      actor.type === "player" && !actor.finished
+    const remainingPlayers = this.gameRenderer.actors.filter(
+      actor => actor.type === "player" && !actor.finished
     ).length;
 
     if (remainingPlayers > 0) {
       this.p.fill(128);
       this.p.textSize(16);
-      this.p.text(`${remainingPlayers} player(s) still racing...`, this.p.width / 2, popupY + popupHeight - 60);
+      this.p.noStroke(); // Remove stroke from text
+      this.p.text(
+        `${remainingPlayers} player(s) still racing...`,
+        this.p.width / 2,
+        popupY + popupHeight - 80
+      );
     }
   },
 

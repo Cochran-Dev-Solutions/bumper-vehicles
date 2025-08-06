@@ -30,12 +30,16 @@ class PlayerActor extends DynamicActor {
         this.imageNames.push(`Ari_Alligator/frame_${i}.png`);
       }
 
+      const buffer = 0.25;
+
       this.imageWidth =
         PlayerActor.characters[PlayerActor.test_character].imageWidth *
-        this.width;
+        this.width *
+        (1 + buffer);
       this.imageHeight =
         PlayerActor.characters[PlayerActor.test_character].imageHeight *
-        this.height;
+        this.height *
+        (1 + buffer);
     }
 
     this.isLocalPlayer = config.isLocalPlayer;
@@ -72,7 +76,7 @@ class PlayerActor extends DynamicActor {
     this.oscillationSpeed = 0.1;
     this.oscillationAmplitude = 0.5;
 
-    keyManager.onGenericKeyPress((keyCode) => {
+    keyManager.onGenericKeyPress(keyCode => {
       const action = keyManager.getActionForKeyCode(keyCode);
       if (
         (action && action === "one") ||
@@ -232,7 +236,7 @@ class PlayerActor extends DynamicActor {
 
   updateState(newState) {
     super.updateState(newState);
-    
+
     if (newState.lives !== undefined) {
       this.lives = newState.lives;
     }
@@ -244,7 +248,7 @@ class PlayerActor extends DynamicActor {
       // Update finished and placement from flags
       this.finished = this.flags.finished || false;
       this.placement = this.flags.placement || null;
-      
+
       // Reset scaling if no longer being sucked in
       if (!this.flags.beingSuckedIn) {
         this.scaleX = 1;

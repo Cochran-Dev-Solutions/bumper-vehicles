@@ -45,7 +45,7 @@ function calculateSunPosition(p, hour) {
 
 // Create perlin noise sky background with sun ray lighting
 async function createPerlinSkyBackground(p) {
-  console.log('Creating new sky background...');
+  console.log("Creating new sky background...");
   const canvas = p.createGraphics(p.width, p.height);
 
   // Get current time to determine day/night cycle
@@ -179,86 +179,101 @@ export const images_to_load = [
   {
     name: "Loading island image",
     estimated_time: 0.5,
-    operation: async function() {
+    operation: async function () {
       p5Images["island"] = await loadImageAsync(
         this.p,
         "MapScene/Islands/example_island.png"
       );
-    }
+    },
   },
   {
     name: "Loading cloud image",
     estimated_time: 0.5,
-    operation: async function() {
-      p5Images["cloud"] = await loadImageAsync(this.p, "MapScene/Islands/cloud.png");
-    }
+    operation: async function () {
+      p5Images["cloud"] = await loadImageAsync(
+        this.p,
+        "MapScene/Islands/cloud.png"
+      );
+    },
   },
   {
     name: "Loading coins image",
     estimated_time: 0.5,
-    operation: async function() {
+    operation: async function () {
       p5Images["coins"] = await loadImageAsync(this.p, "coins.png");
-    }
+    },
   },
   {
     name: "Loading landing_bay image",
     estimated_time: 0.5,
-    operation: async function() {
+    operation: async function () {
       p5Images["landing_bay"] = await loadImageAsync(this.p, "landing_bay.png");
-    }
+    },
   },
   {
     name: "Loading capsule image",
     estimated_time: 0.5,
-    operation: async function() {
+    operation: async function () {
       p5Images["xp_capsule"] = await loadImageAsync(this.p, "xp_capsule.png");
-    }
+    },
   },
   {
     name: "Loading desk image",
     estimated_time: 0.5,
-    operation: async function() {
+    operation: async function () {
       p5Images["desk"] = await loadImageAsync(this.p, "desk.png");
-    }
+    },
   },
   {
     name: "Loading mystery_box image",
     estimated_time: 0.5,
-    operation: async function() {
+    operation: async function () {
       p5Images["mystery_box"] = await loadImageAsync(this.p, "mystery_box.png");
-    }
+    },
   },
   {
     name: "Loading button icons",
     estimated_time: 0.5,
-    operation: async function() {
-      p5Images["characters_button"] = await loadImageAsync(this.p, "Button_Icons/characters_button.png");
-      p5Images["achievements_button"] = await loadImageAsync(this.p, "Button_Icons/achievements_button.png");
-      p5Images["powerups_button"] = await loadImageAsync(this.p, "Button_Icons/powerups_button.png");
-      p5Images["upgrades_button"] = await loadImageAsync(this.p, "Button_Icons/upgrades_button.png");
-    }
+    operation: async function () {
+      p5Images["characters_button"] = await loadImageAsync(
+        this.p,
+        "Button_Icons/characters_button.png"
+      );
+      p5Images["achievements_button"] = await loadImageAsync(
+        this.p,
+        "Button_Icons/achievements_button.png"
+      );
+      p5Images["powerups_button"] = await loadImageAsync(
+        this.p,
+        "Button_Icons/powerups_button.png"
+      );
+      p5Images["upgrades_button"] = await loadImageAsync(
+        this.p,
+        "Button_Icons/upgrades_button.png"
+      );
+    },
   },
   // Animation frames
   {
     name: "Loading Ari_Alligator animation frames",
     estimated_time: 1.5,
-    operation: async function() {
+    operation: async function () {
       const promises = [];
       for (let i = 1; i <= 15; i++) {
         promises.push(loadImageAsync(this.p, `Ari_Alligator/frame_${i}.png`));
       }
       const frames = await Promise.all(promises);
       p5Images["ari_alligator_frames"] = frames;
-    }
+    },
   },
   // Created images
   {
     name: "Creating perlin noise sky",
     estimated_time: 1,
-    operation: async function() {
+    operation: async function () {
       await createPerlinSkyBackground(this.p);
-    }
-  }
+    },
+  },
 ];
 
 export { loadImageAsync };

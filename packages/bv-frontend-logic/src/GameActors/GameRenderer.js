@@ -4,11 +4,12 @@ import BlockActor from "./BlockActor.js";
 import BouncyBallActor from "./BouncyBallActor.js";
 import CheckpointActor from "./CheckpointActor.js";
 import FinishPortalActor from "./FinishPortalActor.js";
+import LazerActor from "./LazerActor.js";
 import sceneManager from "../EventObjects/SceneManager.js";
 import keyManager from "../EventObjects/KeyManager.js";
 import PowerupActor from "./PowerupActor.js";
 import GameCamera from "../Camera/GameCamera.js";
-import { loadImageAsync } from '../globals.js';
+import { loadImageAsync } from "../globals.js";
 
 function showReconnectingOverlay() {
   const container = document.createElement("div");
@@ -68,7 +69,8 @@ class GameRenderer {
       ["bouncy_ball", BouncyBallActor],
       ["powerup", PowerupActor],
       ["checkpoint", CheckpointActor],
-      ["finish_portal", FinishPortalActor]
+      ["finish_portal", FinishPortalActor],
+      ["lazer", LazerActor],
     ]);
 
     // initalized on setup
@@ -105,21 +107,19 @@ class GameRenderer {
    * @param {string} imagePath - The path to the image
    * @returns {Promise<p5.Image>} The loaded image
    */
-    /**
+  /**
    * Update camera to follow the local player
    */
   updateCamera() {
     if (!this.camera || !this.localPlayer || this.localPlayer.finished) return;
-     
+
     // Update camera dimensions if canvas size changed
     this.camera.updateDimensions(this.p.width, this.p.height);
-    
+
     // Set target player and track
     this.camera.setTargetPlayer(this.localPlayer);
     this.camera.track();
   }
-
-
 
   async loadImage(imagePath) {
     if (this.imageCache.has(imagePath)) {
@@ -153,23 +153,31 @@ class GameRenderer {
     this.player_id = gameInfo.player_id;
 
     // Initialize camera with map dimensions
-    if (gameInfo.initial_game_state.mapWidth && gameInfo.initial_game_state.mapHeight) {
+    if (
+      gameInfo.initial_game_state.mapWidth &&
+      gameInfo.initial_game_state.mapHeight
+    ) {
       const cameraInfo = {
         xPos: 0,
         yPos: 0,
         width: gameInfo.initial_game_state.mapWidth,
-        height: gameInfo.initial_game_state.mapHeight
+        height: gameInfo.initial_game_state.mapHeight,
       };
-      this.camera = new GameCamera(0, 0, this.p.width, this.p.height, cameraInfo);
+      this.camera = new GameCamera(
+        0,
+        0,
+        this.p.width,
+        this.p.height,
+        cameraInfo
+      );
     }
-
 
     // Create players
     gameInfo.initial_game_state.players.forEach(player => {
       const newPlayer = new PlayerActor({
         p: this.p,
         type: "player",
-        isLocalPlayer: (player.id === this.player_id),
+        isLocalPlayer: player.id === this.player_id,
         x: player.x,
         y: player.y,
         radius: player.radius,
@@ -177,7 +185,7 @@ class GameRenderer {
         socket_id: this.socket_id,
         powerups: player.powerups,
         game: this,
-        lives: player.lives
+        lives: player.lives,
       });
       if (player.id === this.player_id) {
         this.localPlayer = newPlayer;
@@ -201,7 +209,9 @@ class GameRenderer {
           width: actor.width,
           height: actor.height,
           id: actor.id,
-          game: this
+          game: this,
+          // Pass all additional properties for specific actor types
+          ...actor,
         });
         this.actors.push(newActor);
         this.id_actor_map.set(actor.id, newActor);
@@ -213,7 +223,7 @@ class GameRenderer {
     // Load necessary images used for actors
     await Promise.all(this.actors.map(actor => actor.loadImages()));
 
-    socket.on("gameState", (state) => {
+    socket.on("gameState", state => {
       this.updateState(state);
     });
 
@@ -227,13 +237,13 @@ class GameRenderer {
       }
     });
 
-    socket.on("reconnect:success", (data) => {
+    socket.on("reconnect:success", data => {
       console.log("Reconnection successful:", data);
       hideReconnectingOverlay();
       this.ableToReconnect = true;
     });
 
-    socket.on("local-state-specific-data", (data) => {
+    socket.on("local-state-specific-data", data => {
       if (data.attributeName && data.attributeValue !== undefined) {
         this.localPlayer[data.attributeName] = data.attributeValue;
       }
@@ -275,14 +285,21 @@ class GameRenderer {
     this.p.stroke(0, 200, 255);
     this.p.strokeWeight(8);
     // Draw the arc from 0 to boostReloadPercentage (in degrees)
-    this.p.arc(x, y, arcSize, arcSize, -this.p.HALF_PI, -this.p.HALF_PI + this.p.radians(this.localPlayer.boostReloadPercentage));
+    this.p.arc(
+      x,
+      y,
+      arcSize,
+      arcSize,
+      -this.p.HALF_PI,
+      -this.p.HALF_PI + this.p.radians(this.localPlayer.boostReloadPercentage)
+    );
     this.p.pop();
   }
 
   displayFooter() {
     if (this.activatePopUp) {
       // Opening animation - smooth ease in
-      this.popUpY += ((this.p.height - this.footerHeight) - this.popUpY) / 5;
+      this.popUpY += (this.p.height - this.footerHeight - this.popUpY) / 5;
     } else {
       // Closing animation - starts slow, ends fast
       const distanceToTarget = this.p.height - this.popUpY;
@@ -314,7 +331,6 @@ class GameRenderer {
         }
       });
     }
-
   }
 
   update() {
@@ -359,7 +375,7 @@ class GameRenderer {
       });
 
       // Set up error handling
-      socket.on("connect-error", (error) => {
+      socket.on("connect-error", error => {
         console.error("Connection error:", error);
         reject(error);
       });
@@ -369,7 +385,7 @@ class GameRenderer {
         hideReconnectingOverlay();
       });
 
-      socket.on("gameState", (state) => {
+      socket.on("gameState", state => {
         this.updateState(state);
       });
 
@@ -395,13 +411,18 @@ class GameRenderer {
 
     showReconnectingOverlay();
     this.reconnect_attempts++;
-    console.log(`Attempting to reconnect (${this.reconnect_attempts}/${this.max_reconnect_attempts})...`);
+    console.log(
+      `Attempting to reconnect (${this.reconnect_attempts}/${this.max_reconnect_attempts})...`
+    );
 
     setTimeout(async () => {
       try {
         if (!socket.connected) {
           if (this.player_id) {
-            console.log("Socket connected, attempting to reconnect to game with playerId:", this.player_id);
+            console.log(
+              "Socket connected, attempting to reconnect to game with playerId:",
+              this.player_id
+            );
             // Reinitialize the game with the same game type
             await this.reinitializeGame();
             // After initialization, send the reconnect request
@@ -428,7 +449,7 @@ class GameRenderer {
         const newActor = new ActorConstructor({
           p: this.p,
           game: this,
-          ...actor
+          ...actor,
         });
         this.actors.push(newActor);
         this.id_actor_map.set(actor.id, newActor);
@@ -445,7 +466,7 @@ class GameRenderer {
     });
 
     // handle removed actors
-    state.removed_actor_ids.forEach((id) => {
+    state.removed_actor_ids.forEach(id => {
       const actor = this.id_actor_map.get(id);
       if (actor) {
         actor.removeFromGame();
@@ -479,15 +500,15 @@ class GameRenderer {
   exitGame() {
     // Disable reconnection attempts
     this.ableToReconnect = false;
-    
+
     // Send kill signal to server to remove player
     if (this.player_id) {
       socket.emit("player:delete", this.player_id);
     }
-    
+
     // Disconnect from socket
     socket.disconnect();
-    
+
     console.log("Exited game properly");
   }
 }

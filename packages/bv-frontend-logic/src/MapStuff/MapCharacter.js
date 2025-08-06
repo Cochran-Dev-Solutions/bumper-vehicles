@@ -1,5 +1,6 @@
 import keyManager from "../EventObjects/KeyManager.js";
 import { AnimatedSprite } from "../utils/AnimatedSprite.js";
+import PlayerActor from "../GameActors/PlayerActor.js";
 
 class MapCharacter {
   constructor(p, islands, scene) {
@@ -17,6 +18,12 @@ class MapCharacter {
     this.loaded = false;
 
     this.scaleX = 1;
+
+    // Get dimensions from PlayerActor
+    this.width =
+      PlayerActor.characters[PlayerActor.test_character].imageWidth * 80;
+    this.height =
+      PlayerActor.characters[PlayerActor.test_character].imageHeight * 80;
 
     // Set initial position to first island
     if (this.islands && this.islands.length > 0) {
@@ -81,7 +88,7 @@ class MapCharacter {
     const stopPos = targetIsland.getStopPosition();
     this.targetPosition = { x: stopPos.x, y: stopPos.y };
 
-    this.scaleX = (this.targetPosition.x > this.currentPosition.x) ? 1 : -1;
+    this.scaleX = this.targetPosition.x > this.currentPosition.x ? 1 : -1;
 
     this.inputEnabled = false;
   }
@@ -130,13 +137,7 @@ class MapCharacter {
       this.p.imageMode(this.p.CENTER);
       this.p.translate(this.currentPosition.x, this.currentPosition.y);
       this.p.scale(this.scaleX, 1);
-      this.sprite.display(
-        this.p,
-        0,
-        0,
-        80,
-        80
-      );
+      this.sprite.display(this.p, 0, 0, this.width, this.height);
       this.p.imageMode(this.p.CORNER);
       this.p.pop();
     }

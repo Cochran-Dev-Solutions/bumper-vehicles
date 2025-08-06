@@ -16,7 +16,7 @@ class SceneManager {
     this.p = null;
     this.user = null; // Will hold user data if authenticated
     this.sceneParameters = config.sceneParameters || {};
-    
+
     this.sceneCleanup = () => {}; // No-op by default, can be overridden
 
     this.loadingImages = false;
@@ -27,7 +27,7 @@ class SceneManager {
     this.hasRunInitialSetup = false;
   }
 
-  handleRouting () {
+  handleRouting() {
     // Parse the path for /user/:username
     // const path = window.location.pathname;
     // const userMatch = path.match(/^\/user\/([^/]+)$/);
@@ -42,7 +42,6 @@ class SceneManager {
     // temp: for testing
     this.setScene("map");
   }
-  
 
   async runInitialSetup() {
     this.hasRunInitialSetup = true;
@@ -80,7 +79,7 @@ class SceneManager {
   getCanvas() {
     if (this.p) return this.p;
     // Return a promise that resolves when this.p is set
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const check = () => {
         if (this.p) resolve(this.p);
         else setTimeout(check, 10);
@@ -108,7 +107,10 @@ class SceneManager {
 
     if (Object.prototype.hasOwnProperty.call(this.scenes, name)) {
       if (typeof this.scenes[name].init === "function") {
-        await this.scenes[name].init.call(this.scenes[name], this.sceneParameters);
+        await this.scenes[name].init.call(
+          this.scenes[name],
+          this.sceneParameters
+        );
       }
       this.currentScene = this.scenes[name];
     } else {
@@ -118,7 +120,7 @@ class SceneManager {
 
   displayScene() {
     if (this.currentScene && Array.isArray(this.currentScene.buttons)) {
-      this.currentScene.buttons.forEach((btn) => (btn.active = false));
+      this.currentScene.buttons.forEach(btn => (btn.active = false));
     }
     if (this.currentScene && typeof this.currentScene.display === "function") {
       this.currentScene.display.call(this.currentScene, this.sceneParameters);
@@ -150,10 +152,16 @@ class SceneManager {
     sceneManager.transitioning = true;
     SceneManager.closeScene(async function () {
       if (
-        Object.prototype.hasOwnProperty.call(sceneManager.scenes, targetScene) &&
+        Object.prototype.hasOwnProperty.call(
+          sceneManager.scenes,
+          targetScene
+        ) &&
         typeof sceneManager.scenes[targetScene].init === "function"
       ) {
-        await sceneManager.scenes[targetScene].init.call(sceneManager.scenes[targetScene], sceneManager.sceneParameters);
+        await sceneManager.scenes[targetScene].init.call(
+          sceneManager.scenes[targetScene],
+          sceneManager.sceneParameters
+        );
       }
       sceneManager.currentScene = sceneManager.scenes[targetScene];
       cb();
@@ -164,7 +172,6 @@ class SceneManager {
   }
 
   static drawLoadingOverlay(p) {
-    
     if (!p) return;
     const mgr = sceneManager;
     p.push();

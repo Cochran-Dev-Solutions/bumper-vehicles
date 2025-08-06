@@ -34,7 +34,7 @@ fastify.addHook("onRequest", async (request, reply) => {
   const origin = request.headers.origin;
   const gameHostUrl = getGameHostUrl();
   const landingPageHostUrl = getLandingPageHostUrl();
-  
+
   // Allow requests from either the game frontend or landing page
   // Also handle cases where origin might be undefined (some browsers/clients)
   if (origin === gameHostUrl || origin === landingPageHostUrl || !origin) {
@@ -45,7 +45,7 @@ fastify.addHook("onRequest", async (request, reply) => {
     console.log("CORS: Origin not allowed:", origin);
     console.log("CORS: Expected origins:", [gameHostUrl, landingPageHostUrl]);
   }
-  
+
   reply.header(
     "Access-Control-Allow-Methods",
     "GET, POST, PUT, PATCH, DELETE, OPTIONS"
@@ -61,7 +61,7 @@ fastify.options("/*", async (request, reply) => {
 
 // Start the server
 const start = async () => {
-  try { 
+  try {
     // Connect to database first
     console.log("Connecting to database...");
     await database.connect();
@@ -119,11 +119,13 @@ const start = async () => {
           },
           {
             name: "Default",
-            description: "General API endpoints including health checks and contact forms",
+            description:
+              "General API endpoints including health checks and contact forms",
           },
           {
             name: "Marketing",
-            description: "Marketing API endpoints for beta signup and landing pages",
+            description:
+              "Marketing API endpoints for beta signup and landing pages",
           },
         ],
       },
@@ -144,7 +146,7 @@ const start = async () => {
         },
       },
       staticCSP: true,
-      transformStaticCSP: (header) => header,
+      transformStaticCSP: header => header,
     });
 
     // Register routes after Swagger plugins
