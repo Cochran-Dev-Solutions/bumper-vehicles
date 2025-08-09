@@ -6,71 +6,62 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy-backend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 8
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - run: pnpm install
-      - uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-      - name: Login to Amazon ECR
-        id: login-ecr
-        run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
-          docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY }}
-      - name: Build Docker image
-        run: pnpm docker:build:backend
-      - name: Push Docker image
-        run: pnpm docker:push:backend
-      - name: Clean up old ECR images
-        run: |
-          # Get the repository name from the ECR repository URI
-          # ECR URI format: account.dkr.ecr.region.amazonaws.com/namespace/repository-name
-          REPO_NAME=$(echo ${{ secrets.ECR_REPOSITORY }} | awk -F'/' '{print $2 "/" $3}')
-
-          echo "Repository name: $REPO_NAME"
-
-          # Delete images that don't have the 'latest' tag
-          # This preserves the latest image while cleaning up old ones
-          IMAGES_TO_DELETE=$(aws ecr describe-images \
-            --repository-name $REPO_NAME \
-            --region ${{ secrets.AWS_REGION }} \
-            --query 'imageDetails[?(!imageTags || !contains(imageTags, `latest`))].imageDigest' \
-            --output text)
-
-          # Delete old images if any exist
-          if [ ! -z "$IMAGES_TO_DELETE" ]; then
-            echo "Deleting old images: $IMAGES_TO_DELETE"
-            aws ecr batch-delete-image \
-              --repository-name $REPO_NAME \
-              --region ${{ secrets.AWS_REGION }} \
-              --image-ids $(echo $IMAGES_TO_DELETE | tr ' ' '\n' | sed 's/^/imageDigest=/')
-          else
-            echo "No old images to delete"
-          fi
-      - name: Force ECS service redeploy
-        run: |
-          aws ecs update-service \
-            --cluster ${{ secrets.ECS_CLUSTER_NAME }} \
-            --service ${{ secrets.ECS_SERVICE_NAME }} \
-            --force-new-deployment
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
+  # deploy-backend:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: pnpm/action-setup@v2
+  #       with:
+  #         version: 8
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version: 20
+  #     - run: pnpm install
+  #     - uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: ${{ secrets.AWS_REGION }}
+  #     - name: Login to Amazon ECR
+  #       id: login-ecr
+  #       run: |
+  #         aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
+  #         docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY }}
+  #     - name: Build Docker image
+  #       run: pnpm docker:build:backend
+  #     - name: Push Docker image
+  #       run: pnpm docker:push:backend
+  #     - name: Clean up old ECR images
+  #       run: |
+  #         REPO_NAME=$(echo ${{ secrets.ECR_REPOSITORY }} | awk -F'/' '{print $2 "/" $3}')
+  #         echo "Repository name: $REPO_NAME"
+  #         IMAGES_TO_DELETE=$(aws ecr describe-images \
+  #           --repository-name $REPO_NAME \
+  #           --region ${{ secrets.AWS_REGION }} \
+  #           --query 'imageDetails[?(!imageTags || !contains(imageTags, `latest`))].imageDigest' \
+  #           --output text)
+  #         if [ ! -z "$IMAGES_TO_DELETE" ]; then
+  #           echo "Deleting old images: $IMAGES_TO_DELETE"
+  #           aws ecr batch-delete-image \
+  #             --repository-name $REPO_NAME \
+  #             --region ${{ secrets.AWS_REGION }} \
+  #             --image-ids $(echo $IMAGES_TO_DELETE | tr ' ' '\n' | sed 's/^/imageDigest=/')
+  #         else
+  #           echo "No old images to delete"
+  #         fi
+  #     - name: Force ECS service redeploy
+  #       run: |
+  #         aws ecs update-service \
+  #           --cluster ${{ secrets.ECS_CLUSTER_NAME }} \
+  #           --service ${{ secrets.ECS_SERVICE_NAME }} \
+  #           --force-new-deployment
+  #       env:
+  #         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         AWS_REGION: ${{ secrets.AWS_REGION }}
 
   deploy-frontend:
     runs-on: ubuntu-latest
-    needs: deploy-backend
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v2
@@ -79,28 +70,31 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: "pnpm"
       - run: pnpm install
       - name: Build web-client
         env:
           VITE_PROD_API_URL: ${{ secrets.VITE_PROD_API_URL }}
         run: pnpm -F game-frontend build
-      - uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-      - name: Sync to S3
-        run: aws s3 sync apps/web-client/dist/ s3://${{ secrets.S3_BUCKET_GAME_FRONTEND }}/ --delete
-      - name: Invalidate CloudFront cache (game-frontend)
-        run: aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID_GAME }} --paths "/*"
+      - name: Prepare SSH key (shared)
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
+          SSH_PRIVATE_KEY: ${{ secrets.SITEGROUND_SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/site_key
+          chmod 600 ~/.ssh/site_key
+          ssh-keyscan -p ${{ secrets.SITEGROUND_SSH_PORT }} ${{ secrets.SITEGROUND_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+      - name: Deploy web-client via rsync (includes hidden files)
+        env:
+          SERVER_HOST: ${{ secrets.SITEGROUND_HOST }}
+          SERVER_USER: ${{ secrets.SITEGROUND_APP_SSH_USER }}
+          SERVER_PORT: ${{ secrets.SITEGROUND_SSH_PORT }}
+          REMOTE_PATH: ${{ secrets.SITEGROUND_APP_PATH }}
+        run: |
+          rsync -az --delete -e "ssh -i ~/.ssh/site_key -p $SERVER_PORT -o StrictHostKeyChecking=no" apps/web-client/dist/ $SERVER_USER@$SERVER_HOST:$REMOTE_PATH/
 
   deploy-landing:
     runs-on: ubuntu-latest
-    needs: deploy-backend
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v2
@@ -109,18 +103,23 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: "pnpm"
       - run: pnpm install
-      - run: pnpm -F landing-page build
-      - uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-      - name: Sync to S3
-        run: aws s3 sync apps/landing-page/dist/ s3://${{ secrets.S3_BUCKET_LANDING_PAGE }}/ --delete
-      - name: Invalidate CloudFront cache (landing-page)
-        run: aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID_LANDING }} --paths "/*"
+      - name: Build landing-page
+        run: pnpm -F landing-page build
+      - name: Prepare SSH key (shared)
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
+          SSH_PRIVATE_KEY: ${{ secrets.SITEGROUND_SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/site_key
+          chmod 600 ~/.ssh/site_key
+          ssh-keyscan -p ${{ secrets.SITEGROUND_SSH_PORT }} ${{ secrets.SITEGROUND_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+      - name: Deploy landing-page via rsync (includes hidden files)
+        env:
+          SERVER_HOST: ${{ secrets.SITEGROUND_HOST }}
+          SERVER_USER: ${{ secrets.SITEGROUND_LANDING_SSH_USER }}
+          SERVER_PORT: ${{ secrets.SITEGROUND_SSH_PORT }}
+          REMOTE_PATH: ${{ secrets.SITEGROUND_LANDING_PATH }}
+        run: |
+          rsync -az --delete -e "ssh -i ~/.ssh/site_key -p $SERVER_PORT -o StrictHostKeyChecking=no" apps/landing-page/dist/ $SERVER_USER@$SERVER_HOST:$REMOTE_PATH/
