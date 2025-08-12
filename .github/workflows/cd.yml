@@ -50,10 +50,19 @@ jobs:
           SERVER_COMPOSE_DIR: ${{ secrets.SERVER_COMPOSE_DIR }}
         run: |
           ssh -i ~/.ssh/vultr_key -p $SERVER_PORT -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST \
-            "set -euo pipefail; cd $SERVER_COMPOSE_DIR; \
-             # ensure compose file references the new image repo (idempotent)
-             sed -i 's|ghcr.io/.\+/backend:latest|ghcr.io/${{ env.REPO_SLUG_LC }}/backend:latest|' docker-compose.yml || true; \
-             docker compose pull; docker compose up -d; docker system prune -f || true"
+            "set -euo pipefail; \
+             if [ -z \"$SERVER_COMPOSE_DIR\" ]; then echo 'SERVER_COMPOSE_DIR is not set'; exit 1; fi; \
+             if [ ! -d \"$SERVER_COMPOSE_DIR\" ]; then echo \"Directory not found: $SERVER_COMPOSE_DIR\"; ls -la /; exit 1; fi; \
+             cd $SERVER_COMPOSE_DIR; echo \"PWD: $(pwd)\"; ls -la; \
+             COMPOSE_FILE=docker-compose.yml; \
+             if [ ! -f \"$COMPOSE_FILE\" ]; then \
+               if [ -f docker-compose.yaml ]; then COMPOSE_FILE=docker-compose.yaml; else \
+                 echo 'No docker-compose.yml or docker-compose.yaml found'; ls -la; exit 1; fi; \
+             fi; \
+             sed -i 's|ghcr.io/.\+/backend:latest|ghcr.io/${{ env.REPO_SLUG_LC }}/backend:latest|' \"$COMPOSE_FILE\" || true; \
+             docker compose -f \"$COMPOSE_FILE\" pull; \
+             docker compose -f \"$COMPOSE_FILE\" up -d; \
+             docker system prune -f || true"
 
   deploy-frontend:
     runs-on: ubuntu-latest
