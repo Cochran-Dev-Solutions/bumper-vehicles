@@ -16,22 +16,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Compute lowercase repo
-        run: echo "REPO_SLUG_LC=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
-
       - name: Build backend image
         run: |
-          docker build -f apps/server/Dockerfile -t ghcr.io/${{ env.REPO_SLUG_LC }}/backend:latest .
+          docker build -f apps/server/Dockerfile -t bumper-backend:latest .
 
-      - name: Push backend image
-        run: docker push ghcr.io/${{ env.REPO_SLUG_LC }}/backend:latest
+      - name: Save backend image to tarball
+        run: |
+          docker save bumper-backend:latest | gzip > backend.tar.gz
 
       - name: Prepare SSH key (Vultr)
         env:
@@ -42,15 +33,23 @@ jobs:
           chmod 600 ~/.ssh/vultr_key
           ssh-keyscan -p ${{ secrets.VULTR_SSH_PORT }} ${{ secrets.VULTR_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
 
-      - name: Remote deploy (docker compose pull && up -d)
+      - name: Upload image to server
         env:
           SERVER_HOST: ${{ secrets.VULTR_HOST }}
           SERVER_USER: ${{ secrets.VULTR_SSH_USER }}
           SERVER_PORT: ${{ secrets.VULTR_SSH_PORT }}
           SERVER_COMPOSE_DIR: ${{ secrets.SERVER_COMPOSE_DIR }}
         run: |
-          REPO_SLUG_LC=${{ env.REPO_SLUG_LC }}
-          ssh -i ~/.ssh/vultr_key -p $SERVER_PORT -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST 'set -euo pipefail; cd '"$SERVER_COMPOSE_DIR"'; echo "PWD: $(pwd)"; ls -la; COMPOSE_FILE=docker-compose.yml; if [ ! -f "$COMPOSE_FILE" ]; then if [ -f docker-compose.yaml ]; then COMPOSE_FILE=docker-compose.yaml; else echo "No docker-compose.yml or docker-compose.yaml found"; ls -la; exit 1; fi; fi; sed -i "s|ghcr.io/.\+/backend:latest|ghcr.io/'"$REPO_SLUG_LC"'/backend:latest|" "$COMPOSE_FILE" || true; docker compose -f "$COMPOSE_FILE" pull; docker compose -f "$COMPOSE_FILE" up -d; docker system prune -f || true'
+          scp -P $SERVER_PORT -i ~/.ssh/vultr_key -o StrictHostKeyChecking=no backend.tar.gz $SERVER_USER@$SERVER_HOST:$SERVER_COMPOSE_DIR/backend.tar.gz
+
+      - name: Remote deploy (docker load && compose up -d)
+        env:
+          SERVER_HOST: ${{ secrets.VULTR_HOST }}
+          SERVER_USER: ${{ secrets.VULTR_SSH_USER }}
+          SERVER_PORT: ${{ secrets.VULTR_SSH_PORT }}
+          SERVER_COMPOSE_DIR: ${{ secrets.SERVER_COMPOSE_DIR }}
+        run: |
+          ssh -i ~/.ssh/vultr_key -p $SERVER_PORT -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST 'set -euo pipefail; cd '"$SERVER_COMPOSE_DIR"'; echo "PWD: $(pwd)"; ls -la; COMPOSE_FILE=docker-compose.yml; if [ ! -f "$COMPOSE_FILE" ]; then if [ -f docker-compose.yaml ]; then COMPOSE_FILE=docker-compose.yaml; else echo "No docker-compose.yml or docker-compose.yaml found"; ls -la; exit 1; fi; fi; docker load -i backend.tar.gz; sed -i "s|image: .*backend:latest|image: bumper-backend:latest|" "$COMPOSE_FILE" || true; docker compose -f "$COMPOSE_FILE" up -d; rm -f backend.tar.gz; docker system prune -f || true'
 
   deploy-frontend:
     runs-on: ubuntu-latest
