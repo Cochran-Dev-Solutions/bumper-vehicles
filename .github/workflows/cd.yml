@@ -5,60 +5,48 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
-  # deploy-backend:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: pnpm/action-setup@v2
-  #       with:
-  #         version: 8
-  #     - uses: actions/setup-node@v4
-  #       with:
-  #         node-version: 20
-  #     - run: pnpm install
-  #     - uses: aws-actions/configure-aws-credentials@v4
-  #       with:
-  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #         aws-region: ${{ secrets.AWS_REGION }}
-  #     - name: Login to Amazon ECR
-  #       id: login-ecr
-  #       run: |
-  #         aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
-  #         docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY }}
-  #     - name: Build Docker image
-  #       run: pnpm docker:build:backend
-  #     - name: Push Docker image
-  #       run: pnpm docker:push:backend
-  #     - name: Clean up old ECR images
-  #       run: |
-  #         REPO_NAME=$(echo ${{ secrets.ECR_REPOSITORY }} | awk -F'/' '{print $2 "/" $3}')
-  #         echo "Repository name: $REPO_NAME"
-  #         IMAGES_TO_DELETE=$(aws ecr describe-images \
-  #           --repository-name $REPO_NAME \
-  #           --region ${{ secrets.AWS_REGION }} \
-  #           --query 'imageDetails[?(!imageTags || !contains(imageTags, `latest`))].imageDigest' \
-  #           --output text)
-  #         if [ ! -z "$IMAGES_TO_DELETE" ]; then
-  #           echo "Deleting old images: $IMAGES_TO_DELETE"
-  #           aws ecr batch-delete-image \
-  #             --repository-name $REPO_NAME \
-  #             --region ${{ secrets.AWS_REGION }} \
-  #             --image-ids $(echo $IMAGES_TO_DELETE | tr ' ' '\n' | sed 's/^/imageDigest=/')
-  #         else
-  #           echo "No old images to delete"
-  #         fi
-  #     - name: Force ECS service redeploy
-  #       run: |
-  #         aws ecs update-service \
-  #           --cluster ${{ secrets.ECS_CLUSTER_NAME }} \
-  #           --service ${{ secrets.ECS_SERVICE_NAME }} \
-  #           --force-new-deployment
-  #       env:
-  #         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #         AWS_REGION: ${{ secrets.AWS_REGION }}
+  deploy-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build backend image
+        run: |
+          docker build -f apps/server/Dockerfile -t ghcr.io/${{ github.repository }}/backend:latest .
+
+      - name: Push backend image
+        run: docker push ghcr.io/${{ github.repository }}/backend:latest
+
+      - name: Prepare SSH key (Vultr)
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.VULTR_SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/vultr_key
+          chmod 600 ~/.ssh/vultr_key
+          ssh-keyscan -p ${{ secrets.VULTR_SSH_PORT }} ${{ secrets.VULTR_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Remote deploy (docker compose pull && up -d)
+        env:
+          SERVER_HOST: ${{ secrets.VULTR_HOST }}
+          SERVER_USER: ${{ secrets.VULTR_SSH_USER }}
+          SERVER_PORT: ${{ secrets.VULTR_SSH_PORT }}
+          SERVER_COMPOSE_DIR: ${{ secrets.SERVER_COMPOSE_DIR }}
+        run: |
+          ssh -i ~/.ssh/vultr_key -p $SERVER_PORT -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST \
+            "set -euo pipefail; cd $SERVER_COMPOSE_DIR; \
+             # ensure compose file references the new image repo (idempotent)
+             sed -i 's|ghcr.io/.\+/backend:latest|ghcr.io/${{ github.repository }}/backend:latest|' docker-compose.yml || true; \
+             docker compose pull; docker compose up -d; docker system prune -f || true"
 
   deploy-frontend:
     runs-on: ubuntu-latest
