@@ -9,7 +9,14 @@ class NodeMailerService {
   }
 
   checkEmailConfig() {
-    const requiredVars = ["AWS_REGION", "MAIL_FROM_EMAIL", "MAIL_FROM_NAME"];
+    const requiredVars = [
+      "AWS_REGION",
+      "MAIL_FROM_EMAIL",
+      "MAIL_FROM_NAME",
+      // Require explicit AWS credentials when running outside AWS
+      "AWS_ACCESS_KEY_ID",
+      "AWS_SECRET_ACCESS_KEY",
+    ];
     const missingVars = requiredVars.filter(varName => !process.env[varName]);
 
     if (missingVars.length === 0) {
@@ -42,8 +49,11 @@ class NodeMailerService {
     try {
       this.sesClient = new SESClient({
         region: process.env.AWS_REGION || "us-east-2",
-        // AWS SDK will automatically use IAM role credentials in ECS
-        // No need for explicit credentials
+        // Explicit credentials so the SDK does not fall back to IMDS on non-AWS hosts
+        credentials: {
+          accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+        },
       });
 
       console.log("NodeMailer service initialized with AWS SES SDK");
