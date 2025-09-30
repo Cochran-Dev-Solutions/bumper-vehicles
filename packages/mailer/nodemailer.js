@@ -5,11 +5,7 @@ class NodeMailerService {
     this.sesClient = null;
     this.enabled = false;
     this.disabledReason = null;
-    this.checkEmailConfig();
-  }
-
-  checkEmailConfig() {
-    const requiredVars = [
+    this.requiredVars = [
       "AWS_REGION",
       "MAIL_FROM_EMAIL",
       "MAIL_FROM_NAME",
@@ -17,15 +13,20 @@ class NodeMailerService {
       "AWS_ACCESS_KEY_ID",
       "AWS_SECRET_ACCESS_KEY",
     ];
-    const missingVars = requiredVars.filter(varName => !process.env[varName]);
+    this.checkEmailConfig();
+  }
+
+  checkEmailConfig() {
+    const missingVars = this.requiredVars.filter(varName => !process.env[varName]);
 
     if (missingVars.length === 0) {
       this.enabled = true;
+      console.log("✅ NodeMailer service enabled - all required environment variables found");
     } else {
       this.enabled = false;
-      this.disabledReason = `Missing required environment variables: ${missingVars.join(
-        ", "
-      )}`;
+      this.disabledReason = `Missing required environment variables: ${missingVars.join(", ")}`;
+      console.log("❌ NodeMailer service disabled - missing environment variables");
+      console.log("Required environment variables:", this.requiredVars.join(", "));
     }
   }
 
@@ -37,8 +38,15 @@ class NodeMailerService {
     return this.disabledReason;
   }
 
+  logDisabledMessage() {
+    console.log("❌ NodeMailer service disabled. Please insert environment variables:");
+    console.log("Required environment variables:", this.requiredVars.join(", "));
+    console.log("Current missing variables:", this.requiredVars.filter(varName => !process.env[varName]).join(", "));
+  }
+
   async initSESClient() {
     if (!this.enabled) {
+      this.logDisabledMessage();
       throw new Error(`Email service is disabled: ${this.disabledReason}`);
     }
 
@@ -67,6 +75,7 @@ class NodeMailerService {
 
   async sendEmail(mailOptions) {
     if (!this.enabled) {
+      this.logDisabledMessage();
       return {
         success: false,
         error: `Email service is disabled: ${this.disabledReason}`,
@@ -138,6 +147,7 @@ class NodeMailerService {
 
   async testConnection() {
     if (!this.enabled) {
+      this.logDisabledMessage();
       return {
         success: false,
         error: `Email service is disabled: ${this.disabledReason}`,
