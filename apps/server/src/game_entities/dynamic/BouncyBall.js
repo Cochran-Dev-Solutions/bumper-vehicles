@@ -34,6 +34,21 @@ export class BouncyBall extends PhysicsEntity {
       this.handleCircularCollision(otherBall);
     });
   }
+  
+  /**
+   * Handle collisions with lazer emitters
+   */
+  handleLazerEmitterCollisions() {
+    const lazers = this.game.actor_lists["lazer"] || [];
+    lazers.forEach(lazer => {
+      const emitter1 = { position: lazer.emitter1Position, size: lazer.emitterSize };
+      const emitter2 = { position: lazer.emitter2Position, size: lazer.emitterSize };
+  
+      // Treat emitters as solid blocks
+      this.handleBlockCollision(emitter1);
+      this.handleBlockCollision(emitter2);
+    });
+  }
 
   /**
    * Update state
@@ -56,6 +71,7 @@ export class BouncyBall extends PhysicsEntity {
 
     // Handle collisions with other bouncy balls
     this.handleBouncyBallCollisions();
+    this.handleLazerEmitterCollisions();
 
     // Handle collisions with players
     this.game.players.forEach(player => {
