@@ -76,6 +76,7 @@ export default class PowerupEntity extends PhysicsEntity {
           }
         },
         activationFunction: function () {
+          this.player.activatedBiggy = true;
           this.player.mass *= 2;
           this.player.size.x *= 2;
           this.player.size.y *= 2;

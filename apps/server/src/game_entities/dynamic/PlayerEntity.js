@@ -67,6 +67,8 @@ export class PlayerEntity extends PhysicsEntity {
     this.boostDuration = 1000;
     this.boostReloadDuration = 10000;
 
+    this.activatedBiggy = false;
+
     this.socket = config.socket;
   }
 
@@ -284,6 +286,13 @@ export class PlayerEntity extends PhysicsEntity {
    * Respawn player at last checkpoint or start position
    */
   respawn() {
+    if(this.activatedBiggy) {
+      this.activatedBiggy = false;
+      this.radius *= 0.5;
+      this.updateClient("imageWidth", this.radius*3);
+      this.updateClient("imageHeight", this.radius*3);
+    }
+
     if (this.lastCheckpoint) {
       this.position = this.lastCheckpoint.copy();
     } else {
