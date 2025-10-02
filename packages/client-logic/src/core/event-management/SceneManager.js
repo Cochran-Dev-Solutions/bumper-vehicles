@@ -212,7 +212,7 @@ class SceneManager {
 
   async initUser() {
     this.user = {
-      powerups: ["mine", "missile", "heart"],
+      powerups: ["mine", "missile", "heart", "biggy", "magnet"],
       logged_in: false,
     };
     try {
@@ -220,18 +220,18 @@ class SceneManager {
       if (res.ok && res.data) {
         this.user = {
           ...res.data,
-          powerups: ["mine", "missile", "heart"],
+          powerups: ["mine", "missile", "heart", "biggy", "magnet"],
           logged_in: true,
         };
       } else {
         this.user = {
-          powerups: ["mine", "missile", "heart"],
+          powerups: ["mine", "missile", "heart", "biggy", "magnet"],
           logged_in: false,
         };
       }
     } catch (e) {
       this.user = {
-        powerups: ["mine", "missile", "heart"],
+        powerups: ["mine", "missile", "heart", "biggy", "magnet"],
         logged_in: false,
       };
     }

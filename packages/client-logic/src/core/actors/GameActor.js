@@ -60,11 +60,15 @@ export default class GameActor {
   display() {
     if (this.isAnimated && this.sprite) {
       this.p.push();
-      this.p.translate(this.x + this.width / 2, this.y + this.height / 2);
+      this.p.translate(this.x + this.imageWidth / 2, this.y + this.imageHeight / 2);
       this.p.rotate(this.rotation);
       this.p.scale(this.scaleX, this.scaleY);
       if (this.opacity < 1) {
         this.p.tint(255, this.opacity * 255);
+      }
+
+      if (this.type === "player") {
+        console.log("imageWidth: ", this.imageWidth);
       }
 
       this.sprite.display(

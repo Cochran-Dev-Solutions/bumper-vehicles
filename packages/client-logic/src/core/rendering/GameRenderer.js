@@ -245,6 +245,10 @@ class GameRenderer {
 
     socket.on("local-state-specific-data", data => {
       if (data.attributeName && data.attributeValue !== undefined) {
+        if (data.attributeName !== "boostReloadPercentage") {
+          console.log("data: ", data);
+        }
+        
         this.localPlayer[data.attributeName] = data.attributeValue;
       }
     });

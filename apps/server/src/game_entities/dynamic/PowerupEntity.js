@@ -60,6 +60,7 @@ export default class PowerupEntity extends PhysicsEntity {
             this.player.socket.emit("magnetPowerup", {
               duration: this.duration,
             });
+            
           }
         },
       },
@@ -82,11 +83,12 @@ export default class PowerupEntity extends PhysicsEntity {
           this.player.get_smaller = true;
           this.player.biggy_timer = 100;
           if (this.player && this.player.socket) {
+            // CHANGE TO socket.emit("biggyPowerup", this.player.socketID)
             this.player.socket.emit("biggyPowerup", {
-              mass: this.player.mass,
-              radius: this.player.radius,
-              size: { x: this.player.size.x, y: this.player.size.y },
+              radius: this.player.radius
             });
+            this.player.updateClient("imageWidth", this.player.radius * 2);
+            this.player.updateClient("imageHeight", this.player.radius * 2);
           }
         },
       },
