@@ -76,20 +76,18 @@ export default class PowerupEntity extends PhysicsEntity {
           }
         },
         activationFunction: function () {
-          this.player.activatedBiggy = true;
           this.player.mass *= 2;
           this.player.size.x *= 2;
           this.player.size.y *= 2;
           this.player.radius *= 2;
-          this.player.get_smaller = true;
-          this.player.biggy_timer = 100;
+          this.player.biggy_timer = 500;
           if (this.player && this.player.socket) {
             // CHANGE TO socket.emit("biggyPowerup", this.player.socketID)
             this.player.socket.emit("biggyPowerup", {
               radius: this.player.radius
             });
-            this.player.updateClient("imageWidth", this.player.radius * 2);
-            this.player.updateClient("imageHeight", this.player.radius * 2);
+            this.player.updateClient("toImageWidth", this.player.radius * 2);
+            this.player.updateClient("toImageHeight", this.player.radius * 2);
           }
         },
       },
