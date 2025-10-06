@@ -98,6 +98,9 @@ class PlayerActor extends DynamicActor {
     // Magnet powerup variables
     this.magnetDuration = null;
     this.hasMagnet = false;
+
+    this.toImageWidth = this.imageWidth;
+    this.toImageHeight = this.imageHeight;
   }
 
   async loadImages() {
@@ -174,6 +177,11 @@ class PlayerActor extends DynamicActor {
   }
 
   update() {
+
+    this.imageWidth -= (this.imageWidth - this.toImageWidth)/10;
+    this.imageHeight -= (this.imageHeight - this.toImageHeight)/10;
+
+
     if (this.isLocalPlayer && !this.finished) {
       this.updateInputs();
       this.sendInputs();

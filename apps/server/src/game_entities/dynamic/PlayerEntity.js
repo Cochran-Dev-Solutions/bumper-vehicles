@@ -67,7 +67,11 @@ export class PlayerEntity extends PhysicsEntity {
     this.boostDuration = 1000;
     this.boostReloadDuration = 10000;
 
+    this.activatedBiggy = false;
+
     this.socket = config.socket;
+
+    this.biggy_timer = 0;
   }
 
   /**
@@ -280,10 +284,20 @@ export class PlayerEntity extends PhysicsEntity {
     this.flags.portalScale = Math.min(distance / 50, 1);
   }
 
+  updateSize() {
+    this.radius = 40;
+    this.size = new Vec2(this.radius * 2, this.radius * 2);
+    this.boundingBox.updateSize();
+    this.updateClient("toImageWidth", 1.2 * this.radius*2 * 1.25);
+    this.updateClient("toImageHeight", 1* this.radius*2 * 1.25);
+  }
+
   /**
    * Respawn player at last checkpoint or start position
    */
   respawn() {
+    this.updateSize();
+
     if (this.lastCheckpoint) {
       this.position = this.lastCheckpoint.copy();
     } else {
@@ -323,6 +337,12 @@ export class PlayerEntity extends PhysicsEntity {
    * Update player state
    */
   update() {
+
+    this.biggy_timer--;
+    if(this.biggy_timer <= 0) {
+      this.updateSize();
+    }
+
     // If player has finished, handle portal suction instead of normal updates
     if (this.finished) {
       // Find the finish portal using actor lists for efficiency
