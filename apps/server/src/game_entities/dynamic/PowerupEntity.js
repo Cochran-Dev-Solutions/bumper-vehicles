@@ -92,6 +92,33 @@ export default class PowerupEntity extends PhysicsEntity {
         },
       },
     ],
+    [
+      "smally",
+      {
+        size: new Vec2(45, 45),
+        lifespan: 2000,
+        update: function () {
+          if (Date.now() - this.activationTime >= this.life) {
+            this.remove();
+          }
+        },
+        activationFunction: function () {
+          this.player.mass /= 2;
+          this.player.size.x /= 2;
+          this.player.size.y /= 2;
+          this.player.radius /= 2;
+          this.player.smally_timer = 1000;
+          if (this.player && this.player.socket) {
+            // CHANGE TO socket.emit("smallyPowerup", this.player.socketID)
+            this.player.socket.emit("smallyPowerup", {
+              radius: this.player.radius
+            });
+            this.player.updateClient("toImageWidth", this.player.radius * 2);
+            this.player.updateClient("toImageHeight", this.player.radius * 2);
+          }
+        },
+      },
+    ],
     // ["shockwave", {
     //   radius: 35,
     //   update: function () {
