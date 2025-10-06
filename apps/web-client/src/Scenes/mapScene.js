@@ -91,9 +91,44 @@ const buttons = {
       p.textAlign(p.CENTER, p.CENTER);
       p.text("Join Race", this.x + this.width / 2, this.y + this.height / 2);
     },
-    onClick: function () {
+    onClick: async function () {
       hasJoined = true;
-      initializeGame("race");
+      const gameType = "race";
+      const gameRenderer = new GameRenderer({ p: sceneManager.p });
+      // expose for game scene
+      globalThis.globalGameRenderer = gameRenderer;
+
+      // ensure socket connected
+      if (!socket.connected) {
+        await socket.connect();
+      }
+
+      // waiting room updates
+      socket.off("waitingRoom");
+      socket.on("waitingRoom", data => {
+        window.dispatchEvent(
+          new CustomEvent("waitingRoomUpdate", { detail: data })
+        );
+      });
+
+      // receive player id (one-time)
+      const onPlayerId = playerId => {
+        updateGameInfo({ player_id: playerId, socket_id: socket.id, game_type: gameType });
+        socket.off("player-id", onPlayerId);
+      };
+      socket.on("player-id", onPlayerId);
+
+      // initial setup from server (one-time)
+      const onGameSetup = async initialState => {
+        updateGameInfo({ initial_game_state: initialState });
+        await gameRenderer.setup(sceneManager.p, gameInfo);
+        sceneManager.createTransition("game");
+        socket.off("gameSetup", onGameSetup);
+      };
+      socket.on("gameSetup", onGameSetup);
+
+      // send join event
+      socket.emit("player:join:event", { gameType, userData: sceneManager.user });
     },
   }),
   leaveRace: new Button({
@@ -141,9 +176,44 @@ const buttons = {
       p.textAlign(p.CENTER, p.CENTER);
       p.text("Join Battle", this.x + this.width / 2, this.y + this.height / 2);
     },
-    onClick: function () {
+    onClick: async function () {
       hasJoined = true;
-      initializeGame("battle");
+      const gameType = "battle";
+      const gameRenderer = new GameRenderer({ p: sceneManager.p });
+      // expose for game scene
+      globalThis.globalGameRenderer = gameRenderer;
+
+      // ensure socket connected
+      if (!socket.connected) {
+        await socket.connect();
+      }
+
+      // waiting room updates
+      socket.off("waitingRoom");
+      socket.on("waitingRoom", data => {
+        window.dispatchEvent(
+          new CustomEvent("waitingRoomUpdate", { detail: data })
+        );
+      });
+
+      // receive player id (one-time)
+      const onPlayerId = playerId => {
+        updateGameInfo({ player_id: playerId, socket_id: socket.id, game_type: gameType });
+        socket.off("player-id", onPlayerId);
+      };
+      socket.on("player-id", onPlayerId);
+
+      // initial setup from server (one-time)
+      const onGameSetup = async initialState => {
+        updateGameInfo({ initial_game_state: initialState });
+        await gameRenderer.setup(sceneManager.p, gameInfo);
+        sceneManager.createTransition("game");
+        socket.off("gameSetup", onGameSetup);
+      };
+      socket.on("gameSetup", onGameSetup);
+
+      // send join event
+      socket.emit("player:join:event", { gameType, userData: sceneManager.user });
     },
   }),
   leaveBattle: new Button({
@@ -452,58 +522,10 @@ let hasJoined = false;
 let justZoomedIn = false; // Add this flag
 let justActivatedButton = false; // Add debounce for join/leave
 
-async function initializeGame(gameType) {
-  try {
-    // Connect to the socket
-    await socket.connect();
-
-    // update game info
-    gameInfo.game_type = activePanel;
-    gameInfo.socket_id = socket.id;
-
-    socket.on("disconnect", () => {
-      console.log("Disconnected from server");
-      socket.connected = false;
-    });
-
-    // Set up error handling
-    socket.on("connect-error", error => {
-      console.error("Connection error:", error);
-      reject(error);
-    });
-
-    socket.on("player-id", id => {
-      gameInfo.player_id = id;
-    });
-
-    socket.on("waitingRoom", newWaitingRoom => {
-      waitingRoom = newWaitingRoom;
-    });
-
-    socket.on("gameSetup", async function gameSetupHandler(initial_game_state) {
-      console.log("Receiving Initial Game State: ", initial_game_state);
-      gameInfo.initial_game_state = initial_game_state;
-      // Initialize GameRenderer immediately and store globally
-      globalThis.globalGameRenderer = new GameRenderer({ p: sceneManager.p });
-      await globalThis.globalGameRenderer.setup(sceneManager.p, gameInfo);
-      sceneManager.createTransition("game");
-      // Remove this event listener after it's been called
-      socket.off("gameSetup", gameSetupHandler);
-    });
-
-    // Now that our socket is setup,
-    // send join message to server
-    socket.emit("player:join:event", {
-      gameType: gameType,
-      userData: sceneManager.user,
-    });
-
-    return true;
-  } catch (error) {
-    console.error("Failed to connect to socket:", error);
-    return false;
-  }
-}
+// Listen for waiting room updates from GameRenderer
+window.addEventListener('waitingRoomUpdate', (event) => {
+  waitingRoom = event.detail;
+});
 
 const mapScene = {
   name: "Map Scene",

@@ -72,6 +72,7 @@ export class PlayerEntity extends PhysicsEntity {
     this.socket = config.socket;
 
     this.biggy_timer = 0;
+    this.smally_timer = 0;
   }
 
   /**
@@ -338,9 +339,18 @@ export class PlayerEntity extends PhysicsEntity {
    */
   update() {
 
-    this.biggy_timer--;
-    if(this.biggy_timer <= 0) {
-      this.updateSize();
+    if(this.biggy_timer > 0) {
+      this.biggy_timer--;
+      if(this.biggy_timer <= 0) {
+        this.updateSize();
+      }
+    }
+
+    if(this.smally_timer) {
+      this.smally_timer--;
+      if(this.smally_timer <= 0) {
+        this.updateSize();
+      }
     }
 
     // If player has finished, handle portal suction instead of normal updates
