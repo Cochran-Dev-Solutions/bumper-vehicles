@@ -91,10 +91,44 @@ const buttons = {
       p.textAlign(p.CENTER, p.CENTER);
       p.text("Join Race", this.x + this.width / 2, this.y + this.height / 2);
     },
-    onClick: function () {
+    onClick: async function () {
       hasJoined = true;
+      const gameType = "race";
       const gameRenderer = new GameRenderer({ p: sceneManager.p });
-      gameRenderer.initializeGame("race", sceneManager.user);
+      // expose for game scene
+      globalThis.globalGameRenderer = gameRenderer;
+
+      // ensure socket connected
+      if (!socket.connected) {
+        await socket.connect();
+      }
+
+      // waiting room updates
+      socket.off("waitingRoom");
+      socket.on("waitingRoom", data => {
+        window.dispatchEvent(
+          new CustomEvent("waitingRoomUpdate", { detail: data })
+        );
+      });
+
+      // receive player id (one-time)
+      const onPlayerId = playerId => {
+        updateGameInfo({ player_id: playerId, socket_id: socket.id, game_type: gameType });
+        socket.off("player-id", onPlayerId);
+      };
+      socket.on("player-id", onPlayerId);
+
+      // initial setup from server (one-time)
+      const onGameSetup = async initialState => {
+        updateGameInfo({ initial_game_state: initialState });
+        await gameRenderer.setup(sceneManager.p, gameInfo);
+        sceneManager.createTransition("game");
+        socket.off("gameSetup", onGameSetup);
+      };
+      socket.on("gameSetup", onGameSetup);
+
+      // send join event
+      socket.emit("player:join:event", { gameType, userData: sceneManager.user });
     },
   }),
   leaveRace: new Button({
@@ -142,10 +176,44 @@ const buttons = {
       p.textAlign(p.CENTER, p.CENTER);
       p.text("Join Battle", this.x + this.width / 2, this.y + this.height / 2);
     },
-    onClick: function () {
+    onClick: async function () {
       hasJoined = true;
+      const gameType = "battle";
       const gameRenderer = new GameRenderer({ p: sceneManager.p });
-      gameRenderer.initializeGame("battle", sceneManager.user);
+      // expose for game scene
+      globalThis.globalGameRenderer = gameRenderer;
+
+      // ensure socket connected
+      if (!socket.connected) {
+        await socket.connect();
+      }
+
+      // waiting room updates
+      socket.off("waitingRoom");
+      socket.on("waitingRoom", data => {
+        window.dispatchEvent(
+          new CustomEvent("waitingRoomUpdate", { detail: data })
+        );
+      });
+
+      // receive player id (one-time)
+      const onPlayerId = playerId => {
+        updateGameInfo({ player_id: playerId, socket_id: socket.id, game_type: gameType });
+        socket.off("player-id", onPlayerId);
+      };
+      socket.on("player-id", onPlayerId);
+
+      // initial setup from server (one-time)
+      const onGameSetup = async initialState => {
+        updateGameInfo({ initial_game_state: initialState });
+        await gameRenderer.setup(sceneManager.p, gameInfo);
+        sceneManager.createTransition("game");
+        socket.off("gameSetup", onGameSetup);
+      };
+      socket.on("gameSetup", onGameSetup);
+
+      // send join event
+      socket.emit("player:join:event", { gameType, userData: sceneManager.user });
     },
   }),
   leaveBattle: new Button({
