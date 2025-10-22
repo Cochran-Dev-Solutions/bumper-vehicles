@@ -1,0 +1,195 @@
+# Bumper Vehicles - Multi-Platform Racing Game
+
+## Project Overview
+
+Bumper Vehicles is a real-time multiplayer racing game with a multi-platform architecture. The project consists of a Node.js backend server, web client (p5.js), mobile client (React Native/Expo), landing page (React), and shared packages for common functionality.
+
+## Architecture
+
+### Backend Server (`apps/server`)
+
+- **Framework**: Fastify with Socket.IO for WebSocket communication
+- **Database**: MySQL with custom DAL (Data Access Layer) pattern
+- **Deployment**: Docker container on Vultr (shares server with MySQL DBMS)
+- **Physics Engine**: Custom 2D physics system with collision detection
+- **Game Logic**: Server-authoritative multiplayer game state management
+
+#### Key Components:
+
+- **Game.js**: Master class managing all game logic, physics world, player connections, and state management
+- **PhysicsWorld**: Manages all physics entities, collisions, and movement
+- **BoundingBox**: 2D rectangular collision detection system
+- **TileMap**: Efficient grid-based collision system for static entities
+- **Map.js**: Map management system with spawn points and entity placement
+- **WebSocket Manager**: Handles real-time client connections and game state synchronization
+
+#### Game Entities:
+
+- **Entity**: Base class for all game objects
+- **PhysicsEntity**: Dynamic entities with physics (players, powerups, bouncy balls)
+- **StaticEntity**: Static entities (blocks, checkpoints, finish portals)
+- **PlayerEntity**: Player-specific logic with input handling, powerups, racing mechanics
+
+#### State Management System:
+
+- `getState()`: Collects changed entity information for client updates
+- `getInitialState()`: Provides complete game state for new clients
+- Actor tracking: `changed_actors`, `new_actors`, `removed_actors` sets
+- Real-time synchronization via WebSocket broadcasts
+
+### Frontend Clients
+
+#### Web Client (`apps/web-client`)
+
+- **Framework**: p5.js for rendering and game logic
+- **Architecture**: Uses shared `client-logic` package for core functionality
+- **Scenes**: Multiple game scenes (menu, map, game, garage, profile, etc.)
+- **Input**: Keyboard input management with key mapping system
+
+#### Mobile Client (`apps/mobile-client`)
+
+- **Framework**: React Native with Expo
+- **Rendering**: Skia for custom graphics (planned mock p5.js interface)
+- **Status**: Currently not working, planned for future development
+
+#### Landing Page (`apps/landing-page`)
+
+- **Framework**: React with React Router
+- **Purpose**: Marketing site with beta authentication
+- **Features**: Newsletter signup, community pages, beta testing access
+
+### Shared Packages
+
+#### Client Logic (`packages/client-logic`)
+
+- **Purpose**: Shared game logic between web and mobile clients
+- **Architecture**: Actor-based system mirroring server entities
+- **Components**:
+  - **Actors**: PlayerActor, StaticActor, DynamicActor, PowerupActor
+  - **Event Management**: SceneManager, MouseManager, KeyManager, TimeManager
+  - **Rendering**: GameRenderer, AnimatedSprite
+  - **Networking**: Socket client, AJAX utilities
+  - **Scene Tools**: MapCharacter, Camera, Island, GarageCharacter
+
+#### Database (`packages/database`)
+
+- **ORM**: Custom DAL pattern with MySQL2
+- **Models**: User, UnverifiedUser, BetaUser
+- **Features**: User authentication, email verification, beta user management
+
+#### Mailer (`packages/mailer`)
+
+- **Service**: AWS SES integration
+- **Templates**: Email verification, newsletter, beta access
+- **Features**: Verification code generation, expiration handling
+
+#### Payment (`packages/payment`)
+
+- **Integration**: PayPal payment processing
+- **Features**: Subscription management, payment verification
+
+#### Redis (`packages/redis`)
+
+- **Purpose**: Caching and session management
+- **Modules**: Client, JSON, Search, Time-series, Bloom filters, Graph
+
+## Game Mechanics
+
+### Racing System
+
+- **Checkpoints**: Players must pass through checkpoints in order
+- **Finish Portal**: End goal with placement tracking
+- **Lives**: Players have limited lives, respawn at last checkpoint
+- **Powerups**: Collectible items with various effects (magnet, biggy, etc.)
+
+### Physics System
+
+- **Collision Detection**: BoundingBox for rectangular, circular for entities
+- **Forces**: Drag, bounce, boost mechanics
+- **Tile-based Collisions**: Efficient static entity collision using TileMap
+- **Boundary Collisions**: Map edge collision handling
+
+### Multiplayer Features
+
+- **Real-time Sync**: 60fps physics updates via WebSocket
+- **Player Management**: Join/leave, reconnect, disconnect handling
+- **State Broadcasting**: Efficient delta updates for changed entities
+- **Spawn System**: Random spawn point assignment with availability tracking
+
+## Development Guidelines
+
+### Code Organization
+
+- **Monorepo**: pnpm workspaces with shared packages
+- **ES Modules**: All code uses ES6 import/export syntax
+- **Type Safety**: JSDoc comments for better IDE support
+- **Error Handling**: Comprehensive try-catch blocks with proper error responses
+
+### API Design
+
+- **RESTful**: Fastify routes with Swagger documentation
+- **Authentication**: Session-based with secure cookies
+- **Validation**: Request/response schema validation
+- **CORS**: Proper cross-origin handling for multiple frontends
+
+### Game Development
+
+- **Server Authority**: All game logic runs on server
+- **Client Prediction**: Smooth client-side rendering with server correction
+- **State Management**: Efficient delta updates to minimize bandwidth
+- **Performance**: 60fps physics loop, optimized collision detection
+
+### Frontend Patterns
+
+- **Actor System**: Mirror server entities with client-specific rendering
+- **Scene Management**: Modular scene system for different game states
+- **Input Handling**: Centralized input management with key mapping
+- **Asset Loading**: Async image loading with progress tracking
+
+## File Structure
+
+```
+bumper-vehicles/
+├── apps/
+│   ├── server/           # Backend API and game server
+│   ├── web-client/       # p5.js web game client
+│   ├── mobile-client/    # React Native mobile client
+│   └── landing-page/     # React marketing site
+├── packages/
+│   ├── client-logic/     # Shared frontend game logic
+│   ├── database/         # MySQL DAL and models
+│   ├── mailer/          # Email service integration
+│   ├── payment/         # PayPal integration
+│   └── redis/           # Redis utilities
+└── Media/               # Game assets and images
+```
+
+## Environment Configuration
+
+- **Development**: Local MySQL, Redis, development URLs
+- **Production**: Vultr deployment, production domains, secure cookies
+- **Environment Variables**: Comprehensive .env.example files for each app
+
+## Key Dependencies
+
+- **Backend**: Fastify, Socket.IO, MySQL2, bcryptjs
+- **Web Client**: p5.js, Vite
+- **Mobile Client**: React Native, Expo, Skia
+- **Landing Page**: React, Tailwind CSS
+- **Shared**: Socket.IO client, custom utilities
+
+## Development Commands
+
+- `pnpm run dev` - Start development servers
+- `pnpm run docker:run:backend` - Run backend in Docker
+- `pnpm run lint` - Lint all packages
+- `pnpm run redis:start` - Start Redis container
+
+## Important Notes
+
+- All game physics and logic runs on the server for security and consistency
+- Client-side code focuses on rendering, input handling, and UI
+- The mobile client is planned but not currently functional
+- Beta authentication system for controlled access
+- Comprehensive error handling and logging throughout
+- Modular architecture allows for easy feature additions and maintenance
