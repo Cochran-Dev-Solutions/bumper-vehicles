@@ -74,7 +74,16 @@ jobs:
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/app_key
           chmod 600 ~/.ssh/app_key
+          # Verify key format
+          head -1 ~/.ssh/app_key | grep -q "BEGIN.*PRIVATE KEY" || (echo "ERROR: Private key format invalid" && exit 1)
           ssh-keyscan -p ${{ secrets.SITEGROUND_SSH_PORT }} ${{ secrets.SITEGROUND_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+      - name: Test SSH connection (app)
+        env:
+          SERVER_HOST: ${{ secrets.SITEGROUND_HOST }}
+          SERVER_USER: ${{ secrets.SITEGROUND_APP_SSH_USER }}
+          SERVER_PORT: ${{ secrets.SITEGROUND_SSH_PORT }}
+        run: |
+          ssh -v -i ~/.ssh/app_key -p $SERVER_PORT -o StrictHostKeyChecking=no -o ConnectTimeout=10 $SERVER_USER@$SERVER_HOST "echo 'SSH connection successful'" || (echo "SSH connection failed" && exit 1)
       - name: Deploy web-client via rsync (includes hidden files)
         env:
           SERVER_HOST: ${{ secrets.SITEGROUND_HOST }}
@@ -105,7 +114,16 @@ jobs:
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/landing_key
           chmod 600 ~/.ssh/landing_key
+          # Verify key format
+          head -1 ~/.ssh/landing_key | grep -q "BEGIN.*PRIVATE KEY" || (echo "ERROR: Private key format invalid" && exit 1)
           ssh-keyscan -p ${{ secrets.SITEGROUND_SSH_PORT }} ${{ secrets.SITEGROUND_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+      - name: Test SSH connection (landing)
+        env:
+          SERVER_HOST: ${{ secrets.SITEGROUND_HOST }}
+          SERVER_USER: ${{ secrets.SITEGROUND_LANDING_SSH_USER }}
+          SERVER_PORT: ${{ secrets.SITEGROUND_SSH_PORT }}
+        run: |
+          ssh -v -i ~/.ssh/landing_key -p $SERVER_PORT -o StrictHostKeyChecking=no -o ConnectTimeout=10 $SERVER_USER@$SERVER_HOST "echo 'SSH connection successful'" || (echo "SSH connection failed" && exit 1)
       - name: Deploy landing-page via rsync (includes hidden files)
         env:
           SERVER_HOST: ${{ secrets.SITEGROUND_HOST }}
