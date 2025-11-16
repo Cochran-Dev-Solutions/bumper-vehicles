@@ -67,13 +67,13 @@ jobs:
         env:
           VITE_PROD_API_URL: ${{ secrets.VITE_PROD_API_URL }}
         run: pnpm -F game-frontend build
-      - name: Prepare SSH key (shared)
+      - name: Prepare SSH key (app)
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.SITEGROUND_SSH_PRIVATE_KEY }}
+          SSH_PRIVATE_KEY: ${{ secrets.SITEGROUND_APP_SSH_PRIVATE_KEY }}
         run: |
           mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/site_key
-          chmod 600 ~/.ssh/site_key
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/app_key
+          chmod 600 ~/.ssh/app_key
           ssh-keyscan -p ${{ secrets.SITEGROUND_SSH_PORT }} ${{ secrets.SITEGROUND_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
       - name: Deploy web-client via rsync (includes hidden files)
         env:
@@ -82,7 +82,7 @@ jobs:
           SERVER_PORT: ${{ secrets.SITEGROUND_SSH_PORT }}
           REMOTE_PATH: ${{ secrets.SITEGROUND_APP_PATH }}
         run: |
-          rsync -az --delete -e "ssh -i ~/.ssh/site_key -p $SERVER_PORT -o StrictHostKeyChecking=no" apps/web-client/dist/ $SERVER_USER@$SERVER_HOST:$REMOTE_PATH/
+          rsync -az --delete -e "ssh -i ~/.ssh/app_key -p $SERVER_PORT -o StrictHostKeyChecking=no" apps/web-client/dist/ $SERVER_USER@$SERVER_HOST:$REMOTE_PATH/
 
   deploy-landing:
     runs-on: ubuntu-latest
@@ -98,13 +98,13 @@ jobs:
       - run: pnpm install
       - name: Build landing-page
         run: pnpm -F landing-page build
-      - name: Prepare SSH key (shared)
+      - name: Prepare SSH key (landing)
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.SITEGROUND_SSH_PRIVATE_KEY }}
+          SSH_PRIVATE_KEY: ${{ secrets.SITEGROUND_LANDING_SSH_PRIVATE_KEY }}
         run: |
           mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/site_key
-          chmod 600 ~/.ssh/site_key
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/landing_key
+          chmod 600 ~/.ssh/landing_key
           ssh-keyscan -p ${{ secrets.SITEGROUND_SSH_PORT }} ${{ secrets.SITEGROUND_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
       - name: Deploy landing-page via rsync (includes hidden files)
         env:
@@ -113,4 +113,4 @@ jobs:
           SERVER_PORT: ${{ secrets.SITEGROUND_SSH_PORT }}
           REMOTE_PATH: ${{ secrets.SITEGROUND_LANDING_PATH }}
         run: |
-          rsync -az --delete -e "ssh -i ~/.ssh/site_key -p $SERVER_PORT -o StrictHostKeyChecking=no" apps/landing-page/dist/ $SERVER_USER@$SERVER_HOST:$REMOTE_PATH/
+          rsync -az --delete -e "ssh -i ~/.ssh/landing_key -p $SERVER_PORT -o StrictHostKeyChecking=no" apps/landing-page/dist/ $SERVER_USER@$SERVER_HOST:$REMOTE_PATH/
